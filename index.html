@@ -624,25 +624,57 @@
 </div>
 
 <script>
+  // لینک سرور ابری پایتون‌انی‌ور شما
+  const API_URL = "https://alinew.pythonanywhere.com";
+
   let currentUser = null;
-  let db = JSON.parse(localStorage.getItem('minertools_users_db')) || {};
-  let adminConfig = JSON.parse(localStorage.getItem('minertools_admin_cfg')) || {
+  let db = {};
+  let adminConfig = {
     card: "6037-9974-1234-5678",
     name: "شرکت تجارت ابری ماینرتولز",
     wallet: "TRC20WalletAddressExample123"
   };
-  let mandatoryChannels = JSON.parse(localStorage.getItem('minertools_channels')) || [
+  let mandatoryChannels = [
     { name: 'کانال رسمی ماینرتولز', link: 'https://t.me/' }
   ];
-  let globalNotice = JSON.parse(localStorage.getItem('minertools_notice')) || null;
-  let dailyBonusAmount = parseInt(localStorage.getItem('minertools_daily_bonus')) || 5000;
-  let pendingReceipts = JSON.parse(localStorage.getItem('minertools_receipts')) || [];
-  let allWithdrawals = JSON.parse(localStorage.getItem('minertools_withdrawals')) || [];
+  let globalNotice = null;
+  let dailyBonusAmount = 5000;
+  let pendingReceipts = [];
+  let allWithdrawals = [];
 
   let miningInterval = null;
   let selectedMachineToBuy = null;
 
-  function completeRegistration() {
+  // همگام‌سازی و بارگذاری داده‌ها از سرور ابری
+  async function loadDataFromServer() {
+    try {
+      let res = await fetch(`${API_URL}/api/get_all`);
+      let data = await res.json();
+      if(data) {
+        db = data;
+      }
+    } catch (err) {
+      console.log("خطا در ارتباط با سرور ابری:", err);
+    }
+  }
+
+  async function saveDB() {
+    if(!currentUser) return;
+    try {
+      await fetch(`${API_URL}/api/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: currentUser,
+          userData: db[currentUser]
+        })
+      });
+    } catch (err) {
+      console.log("خطا در ذخیره ابری:", err);
+    }
+  }
+
+  async function completeRegistration() {
     let u = document.getElementById('usernameInput').value.trim();
     let p = document.getElementById('passwordInput').value.trim();
 
@@ -650,6 +682,9 @@
       alert("لطفاً نام کاربری و رمز عبور را وارد کنید.");
       return;
     }
+
+    // بارگذاری آخرین اطلاعات از سرور ابری
+    await loadDataFromServer();
 
     currentUser = u;
     if(!db[u]) {
@@ -672,13 +707,12 @@
         alert("رمز عبور اشتباه است!");
         return;
       }
-      // اطمینان از وجود ساختار ماینرها برای کاربران قدیمی
       if(!db[u].miners) {
         db[u].miners = [{ name: "ماینر رایگان پایه", hashrate: "68.4 TH/s", maxDaily: 35000 }];
       }
     }
 
-    saveDB();
+    await saveDB();
     checkBackgroundMining();
 
     document.getElementById('tab-welcome').classList.remove('active');
@@ -767,12 +801,6 @@
 
   function closeAnnouncementModal() {
     document.getElementById('announcementModal').style.display = 'none';
-  }
-
-  function saveDB() {
-    localStorage.setItem('minertools_users_db', JSON.stringify(db));
-    localStorage.setItem('minertools_receipts', JSON.stringify(pendingReceipts));
-    localStorage.setItem('minertools_withdrawals', JSON.stringify(allWithdrawals));
   }
 
   function getTotalMaxDaily(user) {
@@ -1031,22 +1059,22 @@
     container.innerHTML = html;
   }
 
-  function updateUsername() {
+  async function updateUsername() {
     let newName = document.getElementById('changeUsernameInput').value.trim();
     if(!newName || db[newName]) { alert("نام نامعتبر یا تکراری است."); return; }
     db[newName] = db[currentUser];
     delete db[currentUser];
     currentUser = newName;
-    saveDB();
+    await saveDB();
     document.getElementById('userGreeting').innerText = "کاربر: " + currentUser;
     alert("نام کاربری تغییر کرد.");
   }
 
-  function updatePassword() {
+  async function updatePassword() {
     let newPass = document.getElementById('changePasswordInput').value.trim();
     if(!newPass) { alert("رمز عبور خالی است."); return; }
     db[currentUser].password = newPass;
-    saveDB();
+    await saveDB();
     alert("رمز عبور تغییر کرد.");
   }
 
@@ -1076,7 +1104,6 @@
     if(!receipt) { alert("لطفاً کد پیگیری یا هش تراکنش را وارد کنید."); return; }
 
     pendingReceipts.push({ username: currentUser, machine: selectedMachineToBuy.name, receipt: receipt });
-    saveDB();
     alert("رسید ثبت و برای بررسی مدیریت ارسال شد.");
     document.getElementById('receiptInput').value = '';
     closeCheckout();
@@ -1085,10 +1112,11 @@
   function openAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'flex'; }
   function closeAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'none'; }
 
-  function verifyAdminPassword() {
+  async function verifyAdminPassword() {
     let pass = document.getElementById('adminPasswordInput').value;
     if(pass === "Safasafa0990@") {
       closeAdminLoginModal();
+      await loadDataFromServer();
       document.getElementById('statTotalUsers').innerText = Object.keys(db).length;
       document.getElementById('editCardInput').value = adminConfig.card;
       document.getElementById('editNameInput').value = adminConfig.name;
@@ -1119,7 +1147,6 @@
     let amount = parseInt(document.getElementById('editBonusAmount').value);
     if(isNaN(amount) || amount <= 0) { alert("مقدار نامعتبر است."); return; }
     dailyBonusAmount = amount;
-    localStorage.setItem('minertools_daily_bonus', dailyBonusAmount);
     alert("مبلغ پاداش روزانه با موفقیت بروزرسانی شد!");
   }
 
@@ -1128,7 +1155,6 @@
     let text = document.getElementById('adminNoticeText').value.trim();
     let link = document.getElementById('adminNoticeLink').value.trim();
     globalNotice = { title: title, text: text, link: link };
-    localStorage.setItem('minertools_notice', JSON.stringify(globalNotice));
     alert("پیام پاپ‌آپ همگانی با موفقیت ذخیره و برای کاربران فعال شد!");
   }
 
@@ -1145,8 +1171,9 @@
     list.innerHTML = html;
   }
 
-  function approveReceipt(idx) {
+  async function approveReceipt(idx) {
     let r = pendingReceipts[idx];
+    await loadDataFromServer();
     if(db[r.username]) {
       let newMachine = {};
       if(r.machine === 'Pro') {
@@ -1154,12 +1181,10 @@
       } else {
         newMachine = { name: "ماینر توربو (Turbo)", hashrate: "650 TH/s", maxDaily: 250000 };
       }
-      // بدون پاک کردن موجودی قبلی، ماینر جدید را به لیست اضافه می‌کنیم
       db[r.username].miners.push(newMachine);
-      saveDB();
+      await saveDB();
     }
     pendingReceipts.splice(idx, 1);
-    saveDB();
     renderAdminReceipts();
     alert("رسید تایید و ماینر جدید به حساب کاربر اضافه شد!");
     if(currentUser === r.username) updateUI();
@@ -1186,16 +1211,16 @@
     list.innerHTML = html;
   }
 
-  function approveWithdrawal(wId) {
+  async function approveWithdrawal(wId) {
     let wItem = allWithdrawals.find(x => x.id === wId);
     if(wItem) {
       wItem.status = "واریز شد ✅";
-      // بروزرسانی در تاریخچه کاربر مربوطه
+      await loadDataFromServer();
       if(db[wItem.username]) {
         let userW = db[wItem.username].withdrawHistory.find(x => x.id === wId);
         if(userW) userW.status = "واریز شد ✅";
+        await saveDB();
       }
-      saveDB();
       renderAdminWithdrawals();
       alert("درخواست برداشت تایید و به کاربر اعلام شد!");
       if(currentUser && db[currentUser]) updateUI();
@@ -1220,7 +1245,6 @@
     let link = document.getElementById('newChannelUrl').value.trim();
     if(!name || !link) { alert("نام و لینک کانال را وارد کنید."); return; }
     mandatoryChannels.push({ name: name, link: link });
-    localStorage.setItem('minertools_channels', JSON.stringify(mandatoryChannels));
     document.getElementById('newChannelName').value = '';
     document.getElementById('newChannelUrl').value = '';
     renderAdminChannelsManager();
@@ -1229,7 +1253,6 @@
 
   function deleteChannel(idx) {
     mandatoryChannels.splice(idx, 1);
-    localStorage.setItem('minertools_channels', JSON.stringify(mandatoryChannels));
     renderAdminChannelsManager();
   }
 
@@ -1237,7 +1260,6 @@
     adminConfig.card = document.getElementById('editCardInput').value;
     adminConfig.name = document.getElementById('editNameInput').value;
     adminConfig.wallet = document.getElementById('editWalletInput').value;
-    localStorage.setItem('minertools_admin_cfg', JSON.stringify(adminConfig));
     alert("اطلاعات کارت و ولت ادمین با موفقیت آپدیت شد!");
     closeAdminDashboard();
   }
