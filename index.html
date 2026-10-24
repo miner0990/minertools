@@ -19,13 +19,16 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: Tahoma, Arial, sans-serif; }
 
-    body {
+    html, body {
+      background-color: #060913 !important;
+      color: #ffffff !important;
       min-height: 100vh;
+    }
+
+    body {
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      background-color: #060913 !important;
-      color: #ffffff !important;
       padding-bottom: 85px;
     }
 
@@ -35,7 +38,8 @@
       max-width: 480px;
       min-height: 100vh;
       margin: 0 auto;
-      background: radial-gradient(circle at 50% 15%, #162038 0%, #060913 85%);
+      background: #060913 !important;
+      background-image: radial-gradient(circle at 50% 15%, #162038 0%, #060913 85%) !important;
       padding: 16px;
       color: #ffffff;
     }
@@ -244,7 +248,7 @@
         </div>
       </div>
 
-      <!-- دکمه پاداش روزانه -->
+      <!-- پاداش ورود روزانه -->
       <div class="card card-cyan" style="text-align: right; padding: 12px; margin-bottom: 14px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
@@ -266,7 +270,7 @@
         </div>
       </div>
 
-      <!-- انتخاب ارز برای استخراج (با لوگوهای گرافیکی) -->
+      <!-- انتخاب ارز برای استخراج -->
       <div class="card card-blue" style="text-align: right; margin-bottom: 14px;">
         <label style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 8px;">انتخاب ارز برای استخراج:</label>
         <div style="display: flex; gap: 8px;">
@@ -302,13 +306,13 @@
       </div>
 
       <div class="card card-yellow">
-        <span style="color: #94a3b8; font-size: 13px;" id="dailyLimitLabel">موجودی استخراج شده (سقف ۲۴ ساعته: ۳۵,۰۰۰ تومان)</span>
+        <span style="color: #94a3b8; font-size: 13px;" id="dailyLimitLabel">موجودی استخراج شده (مجموع سقف درآمدی فعال)</span>
         <h2 id="minedAmount" style="font-size: 26px; color: #facc15; margin: 8px 0;">0 تومان</h2>
         <span id="minedUsdt" style="font-size: 13px; color: #38bdf8;">≈ 0.00 USDT</span>
         <div style="margin-top: 12px; background: #060913; height: 8px; border-radius: 4px; overflow: hidden; border: 1px solid #1e293b;">
           <div id="progressBar" style="width: 0%; background: #facc15; height: 100%;"></div>
         </div>
-        <span id="progressText" style="font-size: 11px; color: #94a3b8; margin-top: 6px; display: block;">0% از ظرفیت ۲۴ ساعته</span>
+        <span id="progressText" style="font-size: 11px; color: #94a3b8; margin-top: 6px; display: block;">0% از ظرفیت کلی</span>
         <button class="btn-yellow" id="startBtn" onclick="checkChannelAndMining()">شروع استخراج رایگان 🚀</button>
       </div>
     </div>
@@ -317,10 +321,7 @@
     <div id="tab-miners" class="section">
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">مدیریت ماینرها</h2></header>
       <div id="myMinersList" style="display: flex; flex-direction: column; gap: 10px;">
-        <div class="card card-yellow" style="text-align: right;">
-          <b style="color: #facc15;">ماینر رایگان پایه</b>
-          <p style="font-size: 11px; color: #94a3b8; margin-top: 3px;">وضعیت: فعال | هش‌ریت: 68.4 TH/s | سقف روزانه: ۳۵,۰۰۰ تومان</p>
-        </div>
+        <!-- لیست ماینرهای فعال کاربر پویا پر می‌شود -->
       </div>
     </div>
 
@@ -405,7 +406,7 @@
       </div>
     </div>
 
-    <!-- تب ۵: دعوت دوستان (رفرال با بنر شیک و قابلیت اشتراک‌گذاری مستقیم و کپی) -->
+    <!-- تب ۵: دعوت دوستان -->
     <div id="tab-referral" class="section">
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">👥 دعوت دوستان و کسب درآمد</h2></header>
       
@@ -428,7 +429,7 @@
       </div>
     </div>
 
-    <!-- تب ۶: حساب کاربری (همراه با لیدربورد برترین‌ها) -->
+    <!-- تب ۶: حساب کاربری -->
     <div id="tab-account" class="section">
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">👤 حساب کاربری من</h2></header>
       
@@ -468,7 +469,7 @@
         <div id="accountWithdrawHistory" style="font-size: 12px; color: #94a3b8;">هنوز برداشتی ثبت نشده است.</div>
       </div>
 
-      <!-- نقطه مخفی ورود به پنل ادمین -->
+      <!-- نقطه مخفی ورود به ادمین -->
       <div onclick="openAdminLoginModal()" style="width: 35px; height: 25px; margin: 15px auto 0 auto; cursor: pointer;" title="مدیریت"></div>
     </div>
 
@@ -534,7 +535,7 @@
   </div>
 </div>
 
-<!-- پنل ورود ادمین با رمز Safasafa0990@ -->
+<!-- پنل ورود ادمین -->
 <div id="adminLoginModal" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center;" dir="rtl">
   <div style="background: #1e1e2f; padding: 30px; border-radius: 14px; width: 340px; text-align: center; color: white; border: 1px solid #e74c3c;">
     <h3 style="margin-bottom: 8px; color: #facc15;">ورودی ادمین</h3>
@@ -556,9 +557,10 @@
     <div style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;">
       <button onclick="switchAdminTab('stats')" style="background: #e67e22; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📊 آمار کاربران</button>
       <button onclick="switchAdminTab('receipts')" style="background: #27ae60; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🧾 رسیدهای خرید</button>
-      <button onclick="switchAdminTab('bonus')" style="background: #d35400; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🎁 تنظیم پاداش روزانه</button>
-      <button onclick="switchAdminTab('broadcast')" style="background: #9b59b6; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📢 پیام پاپ‌آپ همگانی</button>
-      <button onclick="switchAdminTab('channels')" style="background: #34495e; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📢 کانال‌های اجباری</button>
+      <button onclick="switchAdminTab('withdrawals')" style="background: #e74c3c; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">💸 درخواست‌های برداشت</button>
+      <button onclick="switchAdminTab('bonus')" style="background: #d35400; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🎁 تنظیم پاداش</button>
+      <button onclick="switchAdminTab('broadcast')" style="background: #9b59b6; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📢 پیام پاپ‌آپ</button>
+      <button onclick="switchAdminTab('channels')" style="background: #34495e; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📢 کانال‌ها</button>
       <button onclick="switchAdminTab('walletcfg')" style="background: #3498db; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">💳 تنظیم کارت و ولت</button>
     </div>
 
@@ -577,30 +579,29 @@
       <div id="adminReceiptsList" style="margin-top: 10px; font-size: 12px; color: #aaa;">هیچ رسید منتظری وجود ندارد.</div>
     </div>
 
-    <!-- بخش تنظیم مقدار پاداش روزانه -->
+    <!-- بخش درخواست‌های برداشت کاربران -->
+    <div id="adminTab-withdrawals" class="admin-tab-content" style="display: none;">
+      <h4>مدیریت و تایید درخواست‌های برداشت استخراج کاربران</h4>
+      <div id="adminWithdrawalsList" style="margin-top: 10px; font-size: 12px; color: #aaa;">هیچ درخواست برداشتی وجود ندارد.</div>
+    </div>
+
+    <!-- بخش تنظیم پاداش -->
     <div id="adminTab-bonus" class="admin-tab-content" style="display: none;">
       <h4>تعیین مبلغ پاداش ورود روزانه (تومان)</h4>
-      <label style="font-size: 12px; color: #aaa; display: block; margin-bottom: 6px;">مبلغ پاداش روزانه:</label>
       <input type="number" id="editBonusAmount" class="select-box" style="margin-bottom: 15px;">
       <button onclick="saveAdminDailyBonus()" class="btn-yellow">ذخیره مبلغ پاداش روزانه ✅</button>
     </div>
 
-    <!-- بخش ارسال پیام پاپ‌آپ همگانی -->
+    <!-- بخش ارسال پیام پاپ‌آپ -->
     <div id="adminTab-broadcast" class="admin-tab-content" style="display: none;">
-      <h4>ارسال پیام پاپ‌آپ (به کاربران هنگام ورود نمایش داده می‌شود)</h4>
-      <label style="font-size: 12px; color: #aaa;">عنوان پیام:</label>
-      <input type="text" id="adminNoticeTitle" placeholder="مثلاً: اطلاعیه مهم..." class="select-box" style="margin-bottom: 10px;">
-
-      <label style="font-size: 12px; color: #aaa;">متن پیام:</label>
+      <h4>ارسال پیام پاپ‌آپ همگانی</h4>
+      <input type="text" id="adminNoticeTitle" placeholder="عنوان پیام..." class="select-box" style="margin-bottom: 10px;">
       <textarea id="adminNoticeText" placeholder="متن اطلاعیه..." style="width: 100%; height: 80px; padding: 10px; background: #030712; color: white; border: 1px solid #334155; border-radius: 8px; margin-bottom: 10px;"></textarea>
-
-      <label style="font-size: 12px; color: #aaa;">لینک دکمه (اختیاری - https://...):</label>
-      <input type="text" id="adminNoticeLink" placeholder="لینک..." class="select-box" style="margin-bottom: 15px;" dir="ltr">
-
-      <button onclick="saveAdminAnnouncement()" class="btn-yellow">ذخیره و انتشار پیام برای کاربران 🚀</button>
+      <input type="text" id="adminNoticeLink" placeholder="لینک (https://...)" class="select-box" style="margin-bottom: 15px;" dir="ltr">
+      <button onclick="saveAdminAnnouncement()" class="btn-yellow">ذخیره و انتشار پیام 🚀</button>
     </div>
 
-    <!-- بخش مدیریت کانال‌های اجباری -->
+    <!-- بخش کانال‌های اجباری -->
     <div id="adminTab-channels" class="admin-tab-content" style="display: none;">
       <h4>مدیریت کانال‌های تلگرام (عضویت اجباری)</h4>
       <div style="display: flex; gap: 8px; margin: 10px 0;">
@@ -614,15 +615,9 @@
     <!-- بخش تنظیم کارت و ولت -->
     <div id="adminTab-walletcfg" class="admin-tab-content" style="display: none;">
       <h4>ویرایش اطلاعات کارت و ولت ادمین</h4>
-      <label style="font-size: 12px; color: #aaa;">شماره کارت:</label>
-      <input type="text" id="editCardInput" class="select-box" style="margin-bottom: 10px;">
-
-      <label style="font-size: 12px; color: #aaa;">نام صاحب کارت:</label>
-      <input type="text" id="editNameInput" class="select-box" style="margin-bottom: 10px;">
-
-      <label style="font-size: 12px; color: #aaa;">آدرس ولت ترون (TRC20):</label>
-      <input type="text" id="editWalletInput" class="select-box" style="margin-bottom: 15px;" dir="ltr">
-
+      <input type="text" id="editCardInput" class="select-box" style="margin-bottom: 10px;" placeholder="شماره کارت">
+      <input type="text" id="editNameInput" class="select-box" style="margin-bottom: 10px;" placeholder="نام صاحب کارت">
+      <input type="text" id="editWalletInput" class="select-box" style="margin-bottom: 15px;" dir="ltr" placeholder="آدرس ولت ترون">
       <button onclick="saveAdminFinancialSettings()" class="btn-yellow">ذخیره تغییرات مالی ✅</button>
     </div>
   </div>
@@ -641,10 +636,11 @@
   ];
   let globalNotice = JSON.parse(localStorage.getItem('minertools_notice')) || null;
   let dailyBonusAmount = parseInt(localStorage.getItem('minertools_daily_bonus')) || 5000;
+  let pendingReceipts = JSON.parse(localStorage.getItem('minertools_receipts')) || [];
+  let allWithdrawals = JSON.parse(localStorage.getItem('minertools_withdrawals')) || [];
 
   let miningInterval = null;
   let selectedMachineToBuy = null;
-  let pendingReceipts = [];
 
   function completeRegistration() {
     let u = document.getElementById('usernameInput').value.trim();
@@ -657,12 +653,13 @@
 
     currentUser = u;
     if(!db[u]) {
+      // ایجاد کاربر جدید با ماینر رایگان پایه اولیه
       db[u] = {
         password: p,
         mined: 0,
-        maxDaily: 35000,
-        hashrate: "68.4 TH/s",
-        activeMachine: "ماینر رایگان پایه",
+        miners: [
+          { name: "ماینر رایگان پایه", hashrate: "68.4 TH/s", maxDaily: 35000 }
+        ],
         withdrawHistory: [],
         lastMiningTime: Date.now(),
         isMining: false,
@@ -670,9 +667,15 @@
         lastBonusTime: 0,
         miningCrypto: 'USDT'
       };
-    } else if(db[u].password !== p) {
-      alert("رمز عبور اشتباه است!");
-      return;
+    } else {
+      if(db[u].password !== p) {
+        alert("رمز عبور اشتباه است!");
+        return;
+      }
+      // اطمینان از وجود ساختار ماینرها برای کاربران قدیمی
+      if(!db[u].miners) {
+        db[u].miners = [{ name: "ماینر رایگان پایه", hashrate: "68.4 TH/s", maxDaily: 35000 }];
+      }
     }
 
     saveDB();
@@ -686,6 +689,7 @@
     document.getElementById('changeUsernameInput').value = currentUser;
 
     updateUI();
+    renderMyMiners();
     startMiningLoop();
     checkGlobalNotice();
     checkBonusStatus();
@@ -766,9 +770,24 @@
   }
 
   function saveDB() {
-    if(currentUser && db[currentUser]) {
-      localStorage.setItem('minertools_users_db', JSON.stringify(db));
-    }
+    localStorage.setItem('minertools_users_db', JSON.stringify(db));
+    localStorage.setItem('minertools_receipts', JSON.stringify(pendingReceipts));
+    localStorage.setItem('minertools_withdrawals', JSON.stringify(allWithdrawals));
+  }
+
+  function getTotalMaxDaily(user) {
+    let total = 0;
+    user.miners.forEach(m => total += m.maxDaily);
+    return total;
+  }
+
+  function getTotalHashrate(user) {
+    let totalTh = 0;
+    user.miners.forEach(m => {
+      let num = parseFloat(m.hashrate);
+      if(!isNaN(num)) totalTh += num;
+    });
+    return totalTh.toFixed(1) + " TH/s";
   }
 
   function checkBackgroundMining() {
@@ -777,9 +796,9 @@
       let now = Date.now();
       let elapsedSeconds = (now - user.lastMiningTime) / 1000;
       if(elapsedSeconds > 0) {
-        let incomePerSec = user.maxDaily / 86400;
+        let totalMax = getTotalMaxDaily(user);
+        let incomePerSec = totalMax / 86400;
         user.mined += elapsedSeconds * incomePerSec;
-        if(user.mined > user.maxDaily) user.mined = user.maxDaily;
       }
     }
     user.lastMiningTime = Date.now();
@@ -790,6 +809,7 @@
     let user = db[currentUser];
     if(!user) return;
 
+    let totalMax = getTotalMaxDaily(user);
     let toman = Math.floor(user.mined);
     let usdt = (toman / 60000).toFixed(4);
 
@@ -797,13 +817,13 @@
     document.getElementById('walletTotalToman').innerText = toman.toLocaleString() + " تومان";
     document.getElementById('minedAmount').innerText = toman.toLocaleString() + " تومان";
     document.getElementById('minedUsdt').innerText = "≈ " + usdt + " USDT";
-    document.getElementById('totalHashrate').innerText = user.hashrate;
-    document.getElementById('activeMachineName').innerText = user.activeMachine;
-    document.getElementById('machineTitle').innerText = user.activeMachine + (user.isMining ? " (در حال استخراج ⚡)" : " (آماده)");
+    document.getElementById('totalHashrate').innerText = getTotalHashrate(user);
+    document.getElementById('activeMachineName').innerText = user.miners[user.miners.length - 1].name;
+    document.getElementById('dailyLimitLabel').innerText = `موجودی استخراج شده (مجموع سقف درآمدی: ${totalMax.toLocaleString()} تومان)`;
 
-    let percent = (user.mined / user.maxDaily) * 100;
+    let percent = totalMax > 0 ? Math.min(100, (user.mined / totalMax) * 100) : 0;
     document.getElementById('progressBar').style.width = percent + "%";
-    document.getElementById('progressText').innerText = percent.toFixed(1) + "% از ظرفیت ۲۴ ساعته";
+    document.getElementById('progressText').innerText = percent.toFixed(1) + "% از ظرفیت کل";
 
     let startBtn = document.getElementById('startBtn');
     let container = document.getElementById('minerContainer');
@@ -814,41 +834,42 @@
       startBtn.className = "btn-danger";
       container.classList.add('active-mining');
       statusText.innerText = "وضعیت: در حال استخراج فعال ⚡️";
+      document.getElementById('machineTitle').innerText = user.miners[user.miners.length - 1].name + " (در حال استخراج ⚡)";
     } else {
       startBtn.innerText = "شروع استخراج رایگان 🚀";
       startBtn.className = "btn-yellow";
       container.classList.remove('active-mining');
       statusText.innerText = "وضعیت: متوقف شده ⏸️";
+      document.getElementById('machineTitle').innerText = user.miners[user.miners.length - 1].name + " (آماده)";
     }
 
-    // آپدیت لینک رفرال
     let linkText = "https://t.me/MinerToolsBot?start=" + currentUser;
     document.getElementById('userShareLink').innerText = linkText;
 
     renderWithdrawHistory();
+    renderMyMiners();
   }
 
-  function copyShareText() {
-    let linkText = "https://t.me/MinerToolsBot?start=" + currentUser;
-    let fullText = "«میخوای ماینر مجازی رایگان در اختیارت بذاریم و روزانه بیت‌کوین استخراج کنی؟ ⛏️💰\n\n🚀 کاملاً ابری و رایگان! همین الان از طریق لینک زیر وارد شو و ماینر هدیه‌ات رو فعال کن تا استخراجت شروع بشه 👇\n" + linkText;
-    navigator.clipboard.writeText(fullText);
-    alert('متن بنر و لینک اختصاصی شما کپی شد!');
-  }
+  function renderMyMiners() {
+    let user = db[currentUser];
+    let listContainer = document.getElementById('myMinersList');
+    if(!user || !listContainer) return;
 
-  function shareToTelegram() {
-    let linkText = "https://t.me/MinerToolsBot?start=" + currentUser;
-    let fullText = "«میخوای ماینر مجازی رایگان در اختیارت بذاریم و روزانه بیت‌کوین استخراج کنی؟ ⛏️💰\n\n🚀 کاملاً ابری و رایگان! همین الان از طریق لینک زیر وارد شو و ماینر هدیه‌ات رو فعال کن تا استخراجت شروع بشه 👇\n" + linkText;
-    let url = "https://t.me/share/url?url=" + encodeURIComponent(linkText) + "&text=" + encodeURIComponent(fullText);
-    window.open(url, '_blank');
+    let html = "";
+    user.miners.forEach(m => {
+      html += `
+        <div class="card card-yellow" style="text-align: right;">
+          <b style="color: #facc15;">${m.name}</b>
+          <p style="font-size: 11px; color: #94a3b8; margin-top: 3px;">وضعیت: فعال ✅ | هش‌ریت: ${m.hashrate} | سقف روزانه: ${m.maxDaily.toLocaleString()} تومان</p>
+        </div>
+      `;
+    });
+    listContainer.innerHTML = html;
   }
 
   function checkChannelAndMining() {
     let user = db[currentUser];
     if(!user.isMining) {
-      if(user.mined >= user.maxDaily) {
-        alert("سقف استخراج ۲۴ ساعته تکمیل شده است.");
-        return;
-      }
       if(!user.isChannelJoined && mandatoryChannels.length > 0) {
         renderModalChannels();
         document.getElementById('channelModal').style.display = 'flex';
@@ -861,10 +882,6 @@
     }
     saveDB();
     updateUI();
-  }
-
-  function toggleMining() {
-    checkChannelAndMining();
   }
 
   function renderModalChannels() {
@@ -881,7 +898,7 @@
     user.isChannelJoined = true;
     saveDB();
     document.getElementById('channelModal').style.display = 'none';
-    toggleMining();
+    checkChannelAndMining();
   }
 
   function renderLeaderboard() {
@@ -911,13 +928,10 @@
     miningInterval = setInterval(() => {
       let user = db[currentUser];
       if(user && user.isMining) {
-        let incomePerSec = user.maxDaily / 86400;
+        let totalMax = getTotalMaxDaily(user);
+        let incomePerSec = totalMax / 86400;
         user.mined += incomePerSec;
         user.lastMiningTime = Date.now();
-        if(user.mined >= user.maxDaily) {
-          user.mined = user.maxDaily;
-          user.isMining = false;
-        }
         saveDB();
         updateUI();
       }
@@ -958,12 +972,16 @@
     }
 
     user.mined -= amount;
-    user.withdrawHistory.unshift({
+    let wObj = {
+      id: Date.now(),
+      username: currentUser,
       type: "تومانی",
       details: "کارت: " + card + " (" + holder + ")",
       amount: amount,
       status: "در حال بررسی ⏳"
-    });
+    };
+    user.withdrawHistory.unshift(wObj);
+    allWithdrawals.unshift(wObj);
     saveDB();
     updateUI();
     alert("درخواست برداشت تومانی ثبت شد و از موجودی کسر گردید.");
@@ -980,12 +998,16 @@
     }
 
     user.mined -= amount;
-    user.withdrawHistory.unshift({
+    let wObj = {
+      id: Date.now(),
+      username: currentUser,
       type: "برداشت ترون (TRC20)",
       details: "ولت ترون: " + address,
       amount: amount,
       status: "در حال بررسی ⏳"
-    });
+    };
+    user.withdrawHistory.unshift(wObj);
+    allWithdrawals.unshift(wObj);
     saveDB();
     updateUI();
     alert("درخواست برداشت ترون روی شبکه TRC20 ثبت و از موجودی کسر شد.");
@@ -1003,7 +1025,8 @@
 
     let html = "";
     user.withdrawHistory.forEach(h => {
-      html += `<div style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; margin-bottom: 6px;"><b>برداشت ${h.amount.toLocaleString()} تومان (${h.type})</b> - <span style="color:#38bdf8;">${h.status}</span><div style="font-size:10px; color:#aaa;">${h.details}</div></div>`;
+      let color = h.status.includes('واریز شد') ? '#00ff88' : '#38bdf8';
+      html += `<div style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; margin-bottom: 6px;"><b>برداشت ${h.amount.toLocaleString()} تومان (${h.type})</b> - <span style="color:${color};">${h.status}</span><div style="font-size:10px; color:#aaa;">${h.details}</div></div>`;
     });
     container.innerHTML = html;
   }
@@ -1053,6 +1076,7 @@
     if(!receipt) { alert("لطفاً کد پیگیری یا هش تراکنش را وارد کنید."); return; }
 
     pendingReceipts.push({ username: currentUser, machine: selectedMachineToBuy.name, receipt: receipt });
+    saveDB();
     alert("رسید ثبت و برای بررسی مدیریت ارسال شد.");
     document.getElementById('receiptInput').value = '';
     closeCheckout();
@@ -1076,6 +1100,7 @@
         document.getElementById('adminNoticeLink').value = globalNotice.link || '';
       }
       renderAdminReceipts();
+      renderAdminWithdrawals();
       renderAdminChannelsManager();
       document.getElementById('adminDashboardPanel').style.display = 'block';
     } else {
@@ -1123,21 +1148,58 @@
   function approveReceipt(idx) {
     let r = pendingReceipts[idx];
     if(db[r.username]) {
+      let newMachine = {};
       if(r.machine === 'Pro') {
-        db[r.username].activeMachine = "ماینر پرو (Pro)";
-        db[r.username].hashrate = "320 TH/s";
-        db[r.username].maxDaily = 150000;
+        newMachine = { name: "ماینر پرو (Pro)", hashrate: "320 TH/s", maxDaily: 150000 };
       } else {
-        db[r.username].activeMachine = "ماینر توربو (Turbo)";
-        db[r.username].hashrate = "650 TH/s";
-        db[r.username].maxDaily = 250000;
+        newMachine = { name: "ماینر توربو (Turbo)", hashrate: "650 TH/s", maxDaily: 250000 };
       }
-      db[r.username].mined = 0;
+      // بدون پاک کردن موجودی قبلی، ماینر جدید را به لیست اضافه می‌کنیم
+      db[r.username].miners.push(newMachine);
+      saveDB();
     }
     pendingReceipts.splice(idx, 1);
+    saveDB();
     renderAdminReceipts();
-    alert("رسید تایید و ماینر فعال شد!");
-    updateUI();
+    alert("رسید تایید و ماینر جدید به حساب کاربر اضافه شد!");
+    if(currentUser === r.username) updateUI();
+  }
+
+  function renderAdminWithdrawals() {
+    let list = document.getElementById('adminWithdrawalsList');
+    if(!allWithdrawals || allWithdrawals.length === 0) {
+      list.innerHTML = "هیچ درخواست برداشتی وجود ندارد.";
+      return;
+    }
+    let html = "";
+    allWithdrawals.forEach((w, idx) => {
+      let isDone = w.status.includes('واریز شد');
+      html += `
+        <div style="background:#252538; padding:10px; border-radius:6px; margin-bottom:8px;">
+          کاربر: <b>${w.username}</b> | مبلغ: <b style="color:#facc15;">${w.amount.toLocaleString()} تومان</b> (${w.type})<br>
+          جزئیات: <span style="color:#38bdf8;">${w.details}</span><br>
+          وضعیت: <span style="color:${isDone ? '#00ff88':'#facc15'}">${w.status}</span>
+          ${!isDone ? `<button onclick="approveWithdrawal(${w.id})" style="background:#2ecc71; color:white; border:none; padding:5px 10px; border-radius:4px; margin-top:6px; display:block; cursor:pointer;">تایید و واریز شد ✅</button>` : ''}
+        </div>
+      `;
+    });
+    list.innerHTML = html;
+  }
+
+  function approveWithdrawal(wId) {
+    let wItem = allWithdrawals.find(x => x.id === wId);
+    if(wItem) {
+      wItem.status = "واریز شد ✅";
+      // بروزرسانی در تاریخچه کاربر مربوطه
+      if(db[wItem.username]) {
+        let userW = db[wItem.username].withdrawHistory.find(x => x.id === wId);
+        if(userW) userW.status = "واریز شد ✅";
+      }
+      saveDB();
+      renderAdminWithdrawals();
+      alert("درخواست برداشت تایید و به کاربر اعلام شد!");
+      if(currentUser && db[currentUser]) updateUI();
+    }
   }
 
   function renderAdminChannelsManager() {
