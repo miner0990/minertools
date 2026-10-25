@@ -200,11 +200,11 @@
       </div>
     </div>
 
-    <!-- تب ۶: حساب کاربری (با جزئیات دارایی‌ها و استخراج در بالای صفحه) -->
+    <!-- تب ۶: حساب کاربری (شامل جزئیات دارایی‌ها و تاریخچه خریدهای فروشگاه) -->
     <div id="tab-account" class="section">
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">👤 حساب کاربری من</h2></header>
       
-      <!-- کادر جدید نمایش جزئیات دارایی‌ها در بالای حساب -->
+      <!-- جزئیات دارایی‌ها -->
       <div class="card card-cyan" style="text-align: right; margin-bottom: 15px; background: rgba(0, 255, 136, 0.04);">
         <h3 style="color: #00ff88; font-size: 13px; margin-bottom: 8px;">💎 جزئیات دارایی‌های شما</h3>
         <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 4px;">
@@ -230,6 +230,12 @@
       
       <div class="card card-yellow" style="text-align: right; padding: 12px; transition: 0.3s;" id="userTierCard">
         <h3 style="color: #facc15; font-size: 16px; margin: 0; text-align: center;" id="userTierBadge">حساب عادی 🥉</h3>
+      </div>
+
+      <!-- تاریخچه خریدهای فروشگاه -->
+      <div class="card card-yellow" style="text-align: right; background: rgba(250, 204, 21, 0.03);">
+        <h3 style="color: #facc15; font-size: 14px; margin-bottom: 10px;">📜 تاریخچه خریدهای فروشگاه</h3>
+        <div id="userPurchaseHistoryList" style="font-size: 12px; color: #94a3b8;">هنوز سفارشی ثبت نکرده‌اید.</div>
       </div>
 
       <div class="card" style="text-align: right;">
@@ -313,7 +319,7 @@
 
 <div id="channelModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px;" dir="rtl"><div class="card card-yellow" style="max-width: 380px; width: 100%; text-align: center; position: relative;"><button onclick="document.getElementById('channelModal').style.display='none'" style="position: absolute; top: 12px; left: 12px; background: #ef4444; color: white; border: none; width: 26px; height: 26px; border-radius: 50%; font-weight: bold; cursor: pointer;">✕</button><h3 style="color: #facc15; font-size: 16px; margin-bottom: 10px;">📢 عضویت اجباری در کانال‌ها</h3><div id="modalChannelsContainer" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;"></div><button class="btn-yellow" id="verifyChannelBtn" onclick="verifyAllMemberships()">تایید عضویت و شروع ⚡</button></div></div>
 
-<!-- مودال خرید اصلاح شده با نمایش درست کارت و ولت ادمین -->
+<!-- مودال خرید -->
 <div id="checkoutModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; padding: 15px;" dir="rtl">
   <div class="card card-yellow" style="max-width: 400px; width: 100%; text-align: right;">
     <h3 style="color: #facc15; font-size: 17px; margin-bottom: 10px; text-align: center;" id="checkoutTitle">خرید دستگاه</h3>
@@ -372,7 +378,7 @@
       <div id="adminTicketsList" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">هیچ تیکتی وجود ندارد.</div>
     </div>
 
-    <!-- برداشت‌ها با تب‌های تفکیک شده -->
+    <!-- برداشت‌ها -->
     <div id="adminTab-withdrawals" class="admin-tab-content" style="display: none;">
       <h4>تایید و مدیریت برداشت‌ها</h4>
       <div style="display: flex; gap: 5px; margin-bottom: 15px; margin-top: 10px;">
@@ -385,7 +391,7 @@
       <div id="adminWithdrawalsListRejected" style="display:none;"></div>
     </div>
 
-    <!-- ویرایش متن دعوت -->
+    <!-- متن دعوت -->
     <div id="adminTab-referralCfg" class="admin-tab-content" style="display: none;">
       <h4>ویرایش متن بنر دعوت دوستان</h4>
       <p style="font-size:11px; color:#aaa; margin-bottom:10px;">متن دلخواه خود را بنویسید. لینک زیرمجموعه‌گیری کاربر به صورت خودکار به انتهای این متن اضافه می‌شود.</p>
@@ -393,7 +399,7 @@
       <button onclick="saveAdminBanner()" class="btn-yellow">ذخیره متن بنر ✅</button>
     </div>
 
-    <!-- کانال‌های اجباری -->
+    <!-- کانال‌ها -->
     <div id="adminTab-channels" class="admin-tab-content" style="display: none;">
       <h4>مدیریت کانال‌های تلگرام (عضویت اجباری)</h4>
       <div style="display: flex; gap: 8px; margin: 10px 0;">
@@ -404,7 +410,7 @@
       <div id="adminChannelsList" style="margin-top: 10px; font-size: 12px; color: #aaa;"></div>
     </div>
 
-    <!-- پاداش و سایر تنظیمات -->
+    <!-- پاداش و سایر -->
     <div id="adminTab-bonus" class="admin-tab-content" style="display: none;">
       <div style="margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom:15px;">
         <h4>پاداش ورود روزانه (تومان)</h4>
@@ -427,7 +433,11 @@
       </div>
     </div>
     
-    <div id="adminTab-receipts" class="admin-tab-content" style="display: none;"><h4>رسیدهای خرید</h4><div id="adminReceiptsList"></div></div>
+    <!-- رسیدهای خرید (آپدیت شده با دکمه رد و دلیل) -->
+    <div id="adminTab-receipts" class="admin-tab-content" style="display: none;">
+      <h4>رسیدهای خرید</h4>
+      <div id="adminReceiptsList" style="margin-top: 15px;"></div>
+    </div>
   </div>
 </div>
 
@@ -509,10 +519,11 @@
     await loadDataFromServer();
     currentUser = u;
     if(!db[u]) {
-      db[u] = { password: p, mined: 0, miners: [{ name: "ماینر رایگان پایه", hashrate: "68.4 TH/s", maxDaily: 35000 }], withdrawHistory: [], lastMiningTime: Date.now(), miningStartTime: 0, isMining: false, isChannelJoined: false, lastBonusTime: 0, miningCrypto: 'USDT', referrals: 0, tickets: [] };
+      db[u] = { password: p, mined: 0, miners: [{ name: "ماینر رایگان پایه", hashrate: "68.4 TH/s", maxDaily: 35000 }], withdrawHistory: [], purchaseHistory: [], lastMiningTime: Date.now(), miningStartTime: 0, isMining: false, isChannelJoined: false, lastBonusTime: 0, miningCrypto: 'USDT', referrals: 0, tickets: [] };
     } else {
       if(db[u].password !== p) { showCustomAlert("رمز عبور اشتباه است!", "❌"); return; }
       if(!db[u].tickets) db[u].tickets = []; 
+      if(!db[u].purchaseHistory) db[u].purchaseHistory = []; 
     }
     await saveDB();
     checkBackgroundMining();
@@ -588,7 +599,6 @@
     document.getElementById('dailyLimitLabel').innerText = `موجودی استخراج شده (سقف: ${tMax.toLocaleString()})`;
     document.getElementById('progressBar').style.width = (tMax > 0 ? Math.min(100, (u.mined / tMax) * 100) : 0) + "%";
 
-    // آپدیت مقادیر دارایی‌ها در تب حساب
     document.getElementById('accValToman').innerText = toman.toLocaleString() + " تومان";
     document.getElementById('accValUsdt').innerText = usdt + " USDT";
     document.getElementById('accValTrx').innerText = trx + " TRX";
@@ -634,7 +644,7 @@
       }
     }
 
-    renderWithdrawHistory(); renderMyMiners(); renderUserTickets(); renderLeaderboard();
+    renderWithdrawHistory(); renderPurchaseHistory(); renderMyMiners(); renderUserTickets(); renderLeaderboard();
   }
 
   function renderMyMiners() {
@@ -643,6 +653,21 @@
       h += `<div class="card card-yellow" style="text-align: right;"><b style="color: #facc15;">${m.name}</b><p style="font-size: 11px; color: #94a3b8; margin-top: 3px;">وضعیت: فعال ✅ | هش‌ریت: ${m.hashrate} | سقف روزانه: ${m.maxDaily.toLocaleString()} ت</p></div>`;
     });
     document.getElementById('myMinersList').innerHTML = h;
+  }
+
+  function renderPurchaseHistory() {
+    let u = db[currentUser];
+    if(!u.purchaseHistory) u.purchaseHistory = [];
+    let h = "";
+    u.purchaseHistory.forEach(item => {
+      let col = item.status.includes('تایید') ? '#00ff88' : (item.status.includes('رد') ? '#ef4444' : '#facc15');
+      h += `<div style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; margin-bottom: 6px;">
+              <b>خرید ماینر ${item.machine}</b> - <span style="color:${col};">${item.status}</span>
+              <div style="font-size:10px; color:#aaa; margin-top:2px;">کد پیگیری/هش: ${item.receipt}</div>
+              ${item.rejectReason ? `<div style="font-size:10px; color:#ef4444; margin-top:2px;">دلیل رد: ${item.rejectReason}</div>`:''}
+            </div>`;
+    });
+    document.getElementById('userPurchaseHistoryList').innerHTML = h || "هنوز سفارشی ثبت نکرده‌اید.";
   }
 
   async function checkChannelAndMining() {
@@ -869,7 +894,6 @@
     showCustomAlert("تیکت با موفقیت برای همیشه بسته شد.", "🔒");
   }
 
-  // --- مدیریت نمایش اطلاعات در پاپ‌آپ خرید ---
   function openCheckout(n, p, m) { 
     selectedMachineToBuy = {name: n, price: p, method: m}; 
     document.getElementById('checkoutTitle').innerText = "خرید " + n; 
@@ -890,7 +914,6 @@
        document.getElementById('checkoutCryptoBox').style.display = 'block';
     }
 
-    // بارگذاری اطلاعات ادمین
     document.getElementById('displayAdminCard').innerText = adminConfig.card;
     document.getElementById('displayAdminName').innerText = adminConfig.name;
     document.getElementById('displayAdminWallet').innerText = adminConfig.wallet;
@@ -903,7 +926,14 @@
   async function submitReceipt() { 
     let r = document.getElementById('receiptInput').value.trim(); 
     if(!r) return showCustomAlert("لطفاً اطلاعات پیگیری را وارد کنید.", "⚠️"); 
-    pendingReceipts.push({ username: currentUser, machine: selectedMachineToBuy.name, receipt: r }); 
+    
+    let recObj = { id: Date.now(), username: currentUser, machine: selectedMachineToBuy.name, receipt: r, status: "در حال بررسی ⏳" };
+    pendingReceipts.push(recObj); 
+    
+    if(!db[currentUser].purchaseHistory) db[currentUser].purchaseHistory = [];
+    db[currentUser].purchaseHistory.unshift({ id: recObj.id, machine: selectedMachineToBuy.name, receipt: r, status: "در حال بررسی ⏳" });
+    
+    await saveDB();
     await saveGlobalAdminData(); 
     showCustomAlert("رسید خرید شما با موفقیت ثبت شد و پس از بررسی توسط مدیریت، ماینر فعال می‌شود.", "✅"); 
     closeCheckout(); 
@@ -1051,13 +1081,65 @@
   
   function renderAdminReceipts() {
     let h = "";
-    pendingReceipts.forEach((r, i) => { h += `<div style="background:#252538; padding:10px; border-radius:6px; margin-bottom:8px;">کاربر: <b>${r.username}</b> | درخواست: <b>${r.machine}</b><br>کد: <span style="color:#facc15;">${r.receipt}</span><br><button class="btn-yellow" style="padding:6px; margin-top:6px;" onclick="approveReceipt(${i})">تایید ✅</button></div>`; });
+    pendingReceipts.forEach((r, i) => { 
+      let isDone = r.status && r.status.includes('تایید');
+      let isRej = r.status && r.status.includes('رد');
+      h += `<div style="background:#252538; padding:10px; border-radius:6px; margin-bottom:8px; border:1px solid ${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')};">
+              کاربر: <b>${r.username}</b> | درخواست: <b>${r.machine}</b><br>
+              کد پیگیری/هش: <span style="color:#facc15;">${r.receipt}</span><br>
+              وضعیت: <span style="color:${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}">${r.status || 'در حال بررسی ⏳'}</span>
+              ${!isDone && !isRej ? `<div style="display:flex; gap:6px; margin-top:8px;">
+                <button style="flex:1; background:#2ecc71; color:#fff; border:none; padding:6px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="approveReceipt(${i})">تایید ✅</button>
+                <button style="flex:1; background:#e74c3c; color:#fff; border:none; padding:6px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="rejectReceipt(${i})">رد با دلیل ❌</button>
+              </div>`:''}
+              ${isRej && r.rejectReason ? `<div style="font-size:10px; color:#ef4444; margin-top:4px;">دلیل رد: ${r.rejectReason}</div>`:''}
+            </div>`; 
+    });
     document.getElementById('adminReceiptsList').innerHTML = h || "رسیدی نیست.";
   }
+
   async function approveReceipt(i) {
-    let r = pendingReceipts[i]; await loadDataFromServer();
-    if(db[r.username]) { db[r.username].miners.push(r.machine === 'Pro' ? {name:"ماینر پرو (Pro)", hashrate:"320 TH/s", maxDaily:150000} : {name:"ماینر توربو (Turbo)", hashrate:"650 TH/s", maxDaily:250000}); await saveDB(r.username); }
-    pendingReceipts.splice(i, 1); await saveGlobalAdminData(); renderAdminReceipts(); renderAdminStats(); showCustomAlert("رسید تایید و ماینر فعال شد.", "✅");
+    let r = pendingReceipts[i]; 
+    await loadDataFromServer();
+    
+    r.status = "تایید شد ✅";
+    if(db[r.username]) { 
+      db[r.username].miners.push(r.machine === 'Pro' ? {name:"ماینر پرو (Pro)", hashrate:"320 TH/s", maxDaily:150000} : {name:"ماینر توربو (Turbo)", hashrate:"650 TH/s", maxDaily:250000}); 
+      
+      if(db[r.username].purchaseHistory) {
+        let p = db[r.username].purchaseHistory.find(x => x.id === r.id || x.receipt === r.receipt);
+        if(p) p.status = "تایید شد و ماینر فعال گردید ✅";
+      }
+      await saveDB(r.username); 
+    }
+    
+    pendingReceipts.splice(i, 1); 
+    await saveGlobalAdminData(); 
+    renderAdminReceipts(); 
+    renderAdminStats(); 
+    showCustomAlert("رسید تایید و ماینر به حساب کاربر اضافه شد.", "✅");
+  }
+
+  async function rejectReceipt(i) {
+    let reason = prompt("دلیل رد کردن رسید را بنویسید:");
+    if(!reason) return;
+
+    let r = pendingReceipts[i];
+    await loadDataFromServer();
+
+    r.status = "رد شد ❌";
+    r.rejectReason = reason;
+
+    if(db[r.username] && db[r.username].purchaseHistory) {
+      let p = db[r.username].purchaseHistory.find(x => x.id === r.id || x.receipt === r.receipt);
+      if(p) { p.status = "رد شد ❌"; p.rejectReason = reason; }
+      await saveDB(r.username);
+    }
+
+    pendingReceipts.splice(i, 1);
+    await saveGlobalAdminData();
+    renderAdminReceipts();
+    showCustomAlert("رسید رد شد و دلیل آن برای کاربر ثبت گردید.", "✅");
   }
   
   async function updateUsername() {
