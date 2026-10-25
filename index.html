@@ -122,23 +122,16 @@
     <!-- تب ۲: ماینرها -->
     <div id="tab-miners" class="section">
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">مدیریت ماینرها</h2></header>
-      
-      <!-- توضیحات برگشت داده شده بخش ماینرها -->
       <div class="card card-cyan" style="text-align: right; background: rgba(0, 255, 136, 0.05); margin-bottom: 15px;">
         <h3 style="color: #00ff88; font-size: 14px; margin-bottom: 8px;">💡 وضعیت استخراج</h3>
-        <p style="font-size: 11px; color: #94a3b8; line-height: 1.6;">
-          در این بخش می‌توانید لیست تمام دستگاه‌های استخراج فعال خود را مشاهده کنید. این دستگاه‌ها به صورت ابری به حساب شما متصل هستند.
-        </p>
+        <p style="font-size: 11px; color: #94a3b8; line-height: 1.6;">در این بخش می‌توانید لیست تمام دستگاه‌های استخراج فعال خود را مشاهده کنید. این دستگاه‌ها به صورت ابری به حساب شما متصل هستند.</p>
       </div>
-
       <div id="myMinersList" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
 
     <!-- تب ۳: فروشگاه -->
     <div id="tab-shop" class="section">
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">فروشگاه ماینرها</h2></header>
-      
-      <!-- توضیحات برگشت داده شده بخش فروشگاه -->
       <div class="card card-cyan" style="text-align: right; background: rgba(0, 255, 136, 0.05); margin-bottom: 15px;">
         <h3 style="color: #00ff88; font-size: 14px; margin-bottom: 8px;">💡 راهنمای ارتقا</h3>
         <p style="font-size: 11px; color: #94a3b8; line-height: 1.6;">
@@ -339,7 +332,7 @@
       <button onclick="saveAdminBanner()" class="btn-yellow">ذخیره متن بنر ✅</button>
     </div>
 
-    <!-- کانال‌های اجباری -->
+    <!-- کانال‌های اجباری (برگردانده شد) -->
     <div id="adminTab-channels" class="admin-tab-content" style="display: none;">
       <h4>مدیریت کانال‌های تلگرام (عضویت اجباری)</h4>
       <div style="display: flex; gap: 8px; margin: 10px 0;">
@@ -621,7 +614,7 @@
     document.getElementById('accountWithdrawHistory').innerHTML = h || "هنوز برداشتی ثبت نشده.";
   }
 
-  // --- سیستم پشتیبانی کاملاً اصلاح شده ---
+  // --- سیستم پشتیبانی ---
   function openNewTicketPrompt() {
     let sub = prompt("موضوع تیکت خود را کوتاه بنویسید:"); if(!sub) return;
     let txt = prompt("پیام کامل خود را بنویسید:"); if(!txt) return;
@@ -646,7 +639,6 @@
     let t = db[username].tickets.find(x => x.id === ticketId);
     document.getElementById('tcTitle').innerText = t.subject;
     
-    // دکمه بستن و فرم ارسال پیام برای تیکت‌های بسته شده مخفی می‌شود
     let isClosed = t.status.includes('بسته');
     document.getElementById('tcCloseBtnUniversal').style.display = isClosed ? 'none' : 'block';
     document.getElementById('tcInputArea').style.display = isClosed ? 'none' : 'flex';
@@ -677,7 +669,6 @@
     let t = db[activeChatUsername].tickets.find(x => x.id === activeChatTicketId);
     t.messages.push({ sender: isAdminLoggedIn ? 'admin' : activeChatUsername, text: text, time: new Date().toLocaleTimeString('fa-IR') });
     
-    // وقتی ادمین جواب می‌دهد سبز می‌شود، وقتی کاربر پیام می‌دهد در حال بررسی می‌شود
     t.status = isAdminLoggedIn ? "پاسخ داده شده 💬" : "در حال بررسی ⏳";
     inp.value = ''; renderTicketMessages();
     
@@ -693,7 +684,6 @@
     if(isAdminLoggedIn) renderAdminTickets(); else renderUserTickets();
     alert("تیکت بسته شد.");
   }
-  // ------------------------------------
 
   function openCheckout(n, p, m) { selectedMachineToBuy={name:n,price:p,method:m}; document.getElementById('checkoutTitle').innerText="خرید "+n; document.getElementById('checkoutPriceText').innerText="مبلغ: "+p.toLocaleString(); document.getElementById('checkoutCardBox').style.display=m==='toman'?'block':'none'; document.getElementById('checkoutCryptoBox').style.display=m==='crypto'?'block':'none'; document.getElementById('checkoutModal').style.display='flex'; }
   function closeCheckout() { document.getElementById('checkoutModal').style.display = 'none'; }
@@ -707,7 +697,7 @@
       closeAdminLoginModal();
       await loadDataFromServer();
       
-      isAdminLoggedIn = true; // تشخیص قطعی ادمین
+      isAdminLoggedIn = true;
       
       renderAdminStats(); renderAdminTickets(); renderAdminReceipts(); renderAdminWithdrawals(); renderAdminChannelsManager();
       document.getElementById('editBannerText').value = adminConfig.bannerText;
@@ -758,10 +748,9 @@
   function saveAdminAnnouncement() { globalNotice = { title: document.getElementById('adminNoticeTitle').value.trim(), text: document.getElementById('adminNoticeText').value.trim(), link: document.getElementById('adminNoticeLink').value.trim() }; alert("ارسال شد!"); }
   function saveAdminFinancialSettings() { adminConfig.card = document.getElementById('editCardInput').value; adminConfig.name = document.getElementById('editNameInput').value; adminConfig.wallet = document.getElementById('editWalletInput').value; alert("ذخیره شد!"); }
 
-  // تفکیک رنگی و دسته‌بندی درخواست‌های برداشت ادمین
+  // تفکیک دقیق برداشت‌ها و رفع تداخل سرور در هنگام تایید/رد
   function renderAdminWithdrawals() {
     let pendingHTML = "", doneHTML = "", rejectedHTML = "";
-    
     allWithdrawals.forEach(w => {
       let isDone = w.status.includes('واریز');
       let isRej = w.status.includes('رد');
@@ -793,16 +782,40 @@
      document.getElementById('adminWithdrawalsListRejected').style.display = type==='rejected' ? 'block' : 'none';
   }
 
+  // اصلاح تداخل تایید و رد درخواست
   async function approveW(id) {
-    let w = allWithdrawals.find(x => x.id === id); w.status = "واریز شد ✅";
-    await loadDataFromServer(); let uw = db[w.username].withdrawHistory.find(x => x.id === id); if(uw) uw.status = "واریز شد ✅";
-    await saveDB(w.username); await saveGlobalAdminData(); renderAdminWithdrawals(); alert("تایید شد.");
+    await loadDataFromServer(); // اول دیتای جدید سرور رو می‌گیریم که تغییرمون پاک نشه
+    let w = allWithdrawals.find(x => x.id === id); 
+    if(w) w.status = "واریز شد ✅"; 
+    
+    if(w && db[w.username]) {
+      let uw = db[w.username].withdrawHistory.find(x => x.id === id); 
+      if(uw) uw.status = "واریز شد ✅";
+      await saveDB(w.username); 
+    }
+    await saveGlobalAdminData(); 
+    renderAdminWithdrawals(); 
+    alert("تایید شد.");
   }
+
   async function rejectW(id) {
-    let r = prompt("دلیل رد (مبلغ به حساب کاربر برمی‌گردد):"); if(!r) return;
-    let w = allWithdrawals.find(x => x.id === id); w.status = "رد شد ❌"; w.rejectReason = r;
-    await loadDataFromServer(); let uw = db[w.username].withdrawHistory.find(x => x.id === id); if(uw){ uw.status = "رد شد ❌"; uw.rejectReason = r; }
-    db[w.username].mined += w.amount; await saveDB(w.username); await saveGlobalAdminData(); renderAdminWithdrawals(); renderAdminStats(); alert("رد شد.");
+    let r = prompt("دلیل رد (مبلغ به حساب کاربر برمی‌گردد):"); 
+    if(!r) return;
+    
+    await loadDataFromServer(); // اول دیتای جدید سرور رو می‌گیریم که تغییرمون پاک نشه
+    let w = allWithdrawals.find(x => x.id === id); 
+    if(w) { w.status = "رد شد ❌"; w.rejectReason = r; }
+    
+    if(w && db[w.username]) {
+      let uw = db[w.username].withdrawHistory.find(x => x.id === id); 
+      if(uw){ uw.status = "رد شد ❌"; uw.rejectReason = r; }
+      db[w.username].mined += w.amount; 
+      await saveDB(w.username); 
+    }
+    await saveGlobalAdminData(); 
+    renderAdminWithdrawals(); 
+    renderAdminStats(); 
+    alert("رد شد.");
   }
 
   function renderAdminChannelsManager() {
