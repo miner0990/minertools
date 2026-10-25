@@ -199,10 +199,20 @@
       </div>
     </div>
 
-    <!-- تب ۶: حساب کاربری -->
+    <!-- تب ۶: حساب کاربری (مرتب شده و اصلاح شده) -->
     <div id="tab-account" class="section">
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">👤 حساب کاربری من</h2></header>
       
+      <!-- نشان وضعیت حساب -->
+      <div class="card card-yellow" style="text-align: right; padding: 12px;"><h3 style="color: #facc15; font-size: 16px; margin: 0; text-align: center;" id="userTierBadge">حساب عادی 🥉</h3></div>
+      
+      <!-- تنظیمات حساب -->
+      <div class="card" style="text-align: right;">
+        <h3 style="color: #facc15; font-size: 14px; margin-bottom: 10px;">تنظیمات حساب</h3>
+        <div style="display: flex; gap: 8px; margin-bottom: 10px;"><input type="text" class="select-box" id="changeUsernameInput" placeholder="نام کاربری جدید..." style="margin-bottom: 0;"><button class="btn-yellow" style="margin-top: 0; width: 90px; padding: 8px; font-size: 11px;" onclick="updateUsername()">ذخیره</button></div>
+        <div style="display: flex; gap: 8px;"><input type="password" class="select-box" id="changePasswordInput" placeholder="رمز جدید..." style="margin-bottom: 0;"><button class="btn-yellow" style="margin-top: 0; width: 90px; padding: 8px; font-size: 11px;" onclick="updatePassword()">ذخیره</button></div>
+      </div>
+
       <!-- تیکت پشتیبانی -->
       <div class="card card-blue" style="text-align: right; background: rgba(56, 189, 248, 0.05);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -213,19 +223,12 @@
         <div id="userTicketsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;"></div>
       </div>
 
-      <div class="card card-yellow" style="text-align: right;"><h3 style="color: #facc15; font-size: 16px;" id="userTierBadge">حساب عادی 🥉</h3></div>
-
       <!-- برترین ها -->
       <div class="card card-cyan" style="text-align: right;">
         <h3 style="color: #00ff88; font-size: 14px; margin-bottom: 10px;">🏆 جدول برترین‌های ماینینگ</h3>
         <div id="leaderboardList" style="display: flex; flex-direction: column; gap: 6px;"></div>
       </div>
 
-      <div class="card" style="text-align: right;">
-        <h3 style="color: #facc15; font-size: 14px; margin-bottom: 10px;">تنظیمات حساب</h3>
-        <div style="display: flex; gap: 8px; margin-bottom: 10px;"><input type="text" class="select-box" id="changeUsernameInput" placeholder="نام کاربری جدید..." style="margin-bottom: 0;"><button class="btn-yellow" style="margin-top: 0; width: 90px; padding: 8px; font-size: 11px;" onclick="updateUsername()">ذخیره</button></div>
-        <div style="display: flex; gap: 8px;"><input type="password" class="select-box" id="changePasswordInput" placeholder="رمز جدید..." style="margin-bottom: 0;"><button class="btn-yellow" style="margin-top: 0; width: 90px; padding: 8px; font-size: 11px;" onclick="updatePassword()">ذخیره</button></div>
-      </div>
       <div onclick="openAdminLoginModal()" style="width: 35px; height: 25px; margin: 15px auto 0 auto; cursor: pointer;"></div>
     </div>
   </div>
@@ -332,7 +335,7 @@
       <button onclick="saveAdminBanner()" class="btn-yellow">ذخیره متن بنر ✅</button>
     </div>
 
-    <!-- کانال‌های اجباری (برگردانده شد) -->
+    <!-- کانال‌های اجباری -->
     <div id="adminTab-channels" class="admin-tab-content" style="display: none;">
       <h4>مدیریت کانال‌های تلگرام (عضویت اجباری)</h4>
       <div style="display: flex; gap: 8px; margin: 10px 0;">
@@ -523,6 +526,21 @@
     if(pBox) pBox.innerHTML = hasPro ? '<span style="background: rgba(0,255,136,0.1); padding: 8px; border-radius: 8px; color: #00ff88; font-size: 11px; display: block; text-align: center; width: 100%;">✅ خریداری شده (دائمی)</span>' : `<button class="btn-blue" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Pro', 1999000, 'toman')">💳 تومانی</button><button class="btn-yellow" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Pro', 1999000, 'crypto')">🪙 ترون TRC20</button>`;
     let tBox = document.getElementById('turboPurchaseBtns');
     if(tBox) tBox.innerHTML = hasTurbo ? '<span style="background: rgba(0,255,136,0.1); padding: 8px; border-radius: 8px; color: #00ff88; font-size: 11px; display: block; text-align: center; width: 100%;">✅ خریداری شده (دائمی)</span>' : `<button class="btn-blue" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Turbo', 2799000, 'toman')">💳 تومانی</button><button class="btn-yellow" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Turbo', 2799000, 'crypto')">🪙 ترون TRC20</button>`;
+
+    // آپدیت وضعیت مدال و نام کاربری
+    let badge = document.getElementById('userTierBadge');
+    if(badge) {
+      if(hasTurbo) {
+        badge.innerText = "حساب توربو (VIP) 💎";
+        badge.style.color = "#00ff88";
+      } else if(hasPro) {
+        badge.innerText = "حساب پرو (Pro) 🚀";
+        badge.style.color = "#38bdf8";
+      } else {
+        badge.innerText = "حساب عادی 🥉";
+        badge.style.color = "#facc15";
+      }
+    }
 
     renderWithdrawHistory(); renderMyMiners(); renderUserTickets(); renderLeaderboard();
   }
@@ -748,7 +766,6 @@
   function saveAdminAnnouncement() { globalNotice = { title: document.getElementById('adminNoticeTitle').value.trim(), text: document.getElementById('adminNoticeText').value.trim(), link: document.getElementById('adminNoticeLink').value.trim() }; alert("ارسال شد!"); }
   function saveAdminFinancialSettings() { adminConfig.card = document.getElementById('editCardInput').value; adminConfig.name = document.getElementById('editNameInput').value; adminConfig.wallet = document.getElementById('editWalletInput').value; alert("ذخیره شد!"); }
 
-  // تفکیک دقیق برداشت‌ها و رفع تداخل سرور در هنگام تایید/رد
   function renderAdminWithdrawals() {
     let pendingHTML = "", doneHTML = "", rejectedHTML = "";
     allWithdrawals.forEach(w => {
@@ -782,9 +799,8 @@
      document.getElementById('adminWithdrawalsListRejected').style.display = type==='rejected' ? 'block' : 'none';
   }
 
-  // اصلاح تداخل تایید و رد درخواست
   async function approveW(id) {
-    await loadDataFromServer(); // اول دیتای جدید سرور رو می‌گیریم که تغییرمون پاک نشه
+    await loadDataFromServer(); 
     let w = allWithdrawals.find(x => x.id === id); 
     if(w) w.status = "واریز شد ✅"; 
     
@@ -802,7 +818,7 @@
     let r = prompt("دلیل رد (مبلغ به حساب کاربر برمی‌گردد):"); 
     if(!r) return;
     
-    await loadDataFromServer(); // اول دیتای جدید سرور رو می‌گیریم که تغییرمون پاک نشه
+    await loadDataFromServer(); 
     let w = allWithdrawals.find(x => x.id === id); 
     if(w) { w.status = "رد شد ❌"; w.rejectReason = r; }
     
