@@ -122,16 +122,30 @@
     <!-- تب ۲: ماینرها -->
     <div id="tab-miners" class="section">
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">مدیریت ماینرها</h2></header>
+      
+      <!-- توضیحات برگشت داده شده بخش ماینرها -->
+      <div class="card card-cyan" style="text-align: right; background: rgba(0, 255, 136, 0.05); margin-bottom: 15px;">
+        <h3 style="color: #00ff88; font-size: 14px; margin-bottom: 8px;">💡 وضعیت استخراج</h3>
+        <p style="font-size: 11px; color: #94a3b8; line-height: 1.6;">
+          در این بخش می‌توانید لیست تمام دستگاه‌های استخراج فعال خود را مشاهده کنید. این دستگاه‌ها به صورت ابری به حساب شما متصل هستند.
+        </p>
+      </div>
+
       <div id="myMinersList" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
 
     <!-- تب ۳: فروشگاه -->
     <div id="tab-shop" class="section">
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">فروشگاه ماینرها</h2></header>
+      
+      <!-- توضیحات برگشت داده شده بخش فروشگاه -->
       <div class="card card-cyan" style="text-align: right; background: rgba(0, 255, 136, 0.05); margin-bottom: 15px;">
         <h3 style="color: #00ff88; font-size: 14px; margin-bottom: 8px;">💡 راهنمای ارتقا</h3>
-        <p style="font-size: 11px; color: #94a3b8; line-height: 1.6;">خرید هر دستگاه سرعت استخراج شما را به طور دائمی افزایش می‌دهد.</p>
+        <p style="font-size: 11px; color: #94a3b8; line-height: 1.6;">
+          با خرید هر یک از دستگاه‌های قدرتمند زیر، <b style="color: #fff;">سرعت استخراج (هش‌ریت)</b> و <b style="color: #fff;">سقف درآمد روزانه</b> شما به طور چشمگیری افزایش می‌یابد. ماینرهای جدید به صورت دائمی به حساب شما متصل شده و سود روزانه شما را چند برابر می‌کنند.
+        </p>
       </div>
+      
       <div class="card card-blue" style="text-align: right; display: flex; align-items: center; gap: 12px;">
         <div style="background: rgba(56,189,248,0.1); border: 1px solid #38bdf8; padding: 10px; border-radius: 12px; min-width: 60px;"><svg width="40" height="26" viewBox="0 0 100 60"><rect x="5" y="10" width="90" height="40" rx="6" fill="#030712" stroke="#38bdf8" stroke-width="4"/><circle cx="70" cy="30" r="12" fill="#0f172a" stroke="#38bdf8" stroke-width="3"/><circle cx="35" cy="30" r="6" fill="#38bdf8"/></svg></div>
         <div style="flex: 1;">
@@ -153,6 +167,7 @@
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">💳 کیف پول من</h2></header>
       <div class="card card-cyan" style="text-align: right;"><span style="font-size: 12px; color: #94a3b8;">موجودی کل قابل برداشت</span><h2 style="color: #00ff88; font-size: 22px; margin: 6px 0;" id="walletTotalToman">0 تومان</h2></div>
       <div style="display: flex; gap: 8px; margin-bottom: 15px;"><button class="btn-yellow" style="margin-top:0; font-size: 12px; padding: 10px;" onclick="switchWithdrawTab('toman')">💳 برداشت تومانی</button><button class="btn-blue" style="margin-top:0; font-size: 12px; padding: 10px;" onclick="switchWithdrawTab('crypto')">🪙 برداشت ترون (TRC20)</button></div>
+      
       <div id="withdrawTomanSection" class="card card-yellow" style="text-align: right;">
         <h3 style="color: #facc15; font-size: 14px; margin-bottom: 12px;">انتقال وجه به کارت بانکی</h3>
         <input type="text" class="select-box" id="wCardNumber" placeholder="شماره کارت ۱۶ رقمی" style="margin-bottom: 10px; text-align: center;" maxlength="16">
@@ -161,6 +176,7 @@
         <input type="number" class="select-box" id="wTomanAmount" placeholder="مبلغ..." style="margin-bottom: 15px; text-align: right;">
         <button class="btn-yellow" style="margin-top:0;" onclick="submitTomanWithdraw()">ثبت برداشت تومانی ✅</button>
       </div>
+
       <div id="withdrawCryptoSection" class="card card-blue" style="text-align: right; display: none;">
         <h3 style="color: #38bdf8; font-size: 14px; margin-bottom: 6px;">برداشت ترون روی شبکه TRC20</h3>
         <input type="text" class="select-box" id="wCryptoAddress" placeholder="آدرس ولت ترون (TRC20)..." style="margin-bottom: 10px; text-align: left;" dir="ltr">
@@ -247,7 +263,7 @@
   </div>
 </div>
 
-<!-- مدال چت تیکت (روی پنل ادمین باز می‌شود) -->
+<!-- مدال چت تیکت -->
 <div id="ticketChatModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 15000; justify-content: center; align-items: center; padding: 15px;" dir="rtl">
   <div class="card card-blue" style="max-width: 400px; width: 100%; text-align: right; position: relative;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #1e293b; padding-bottom: 10px;">
@@ -302,10 +318,17 @@
       <div id="adminTicketsList" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">هیچ تیکتی وجود ندارد.</div>
     </div>
 
-    <!-- برداشت‌ها (با دسته‌بندی دقیق) -->
+    <!-- برداشت‌ها با تب‌های تفکیک شده -->
     <div id="adminTab-withdrawals" class="admin-tab-content" style="display: none;">
       <h4>تایید و مدیریت برداشت‌ها</h4>
-      <div id="adminWithdrawalsList" style="margin-top: 15px;"></div>
+      <div style="display: flex; gap: 5px; margin-bottom: 15px; margin-top: 10px;">
+         <button onclick="filterAdminW('pending')" style="flex:1; padding:8px; font-size:11px; background:#f1c40f; color:#000; border:none; border-radius:6px; font-weight:bold;">در حال بررسی</button>
+         <button onclick="filterAdminW('done')" style="flex:1; padding:8px; font-size:11px; background:#2ecc71; color:#fff; border:none; border-radius:6px; font-weight:bold;">واریز شده</button>
+         <button onclick="filterAdminW('rejected')" style="flex:1; padding:8px; font-size:11px; background:#e74c3c; color:#fff; border:none; border-radius:6px; font-weight:bold;">رد شده</button>
+      </div>
+      <div id="adminWithdrawalsListPending" style="display:block;"></div>
+      <div id="adminWithdrawalsListDone" style="display:none;"></div>
+      <div id="adminWithdrawalsListRejected" style="display:none;"></div>
     </div>
 
     <!-- ویرایش متن دعوت -->
@@ -316,7 +339,7 @@
       <button onclick="saveAdminBanner()" class="btn-yellow">ذخیره متن بنر ✅</button>
     </div>
 
-    <!-- کانال‌های اجباری (برگردانده شد) -->
+    <!-- کانال‌های اجباری -->
     <div id="adminTab-channels" class="admin-tab-content" style="display: none;">
       <h4>مدیریت کانال‌های تلگرام (عضویت اجباری)</h4>
       <div style="display: flex; gap: 8px; margin: 10px 0;">
@@ -358,7 +381,7 @@
   const API_URL = "https://alinew.pythonanywhere.com";
   let currentUser = null;
   let db = {};
-  let isAdminLoggedIn = false; // بررسی وضعیت لاگین ادمین
+  let isAdminLoggedIn = false;
   
   let adminConfig = { 
     card: "6037-9974-1234-5678", name: "شرکت تجارت ابری ماینرتولز", wallet: "TRC20WalletAddressExample123",
@@ -737,28 +760,37 @@
 
   // تفکیک رنگی و دسته‌بندی درخواست‌های برداشت ادمین
   function renderAdminWithdrawals() {
-    let pending = "", done = "", rejected = "";
+    let pendingHTML = "", doneHTML = "", rejectedHTML = "";
     
     allWithdrawals.forEach(w => {
-      let isDone = w.status.includes('واریز شد');
-      let isRej = w.status.includes('رد شد');
+      let isDone = w.status.includes('واریز');
+      let isRej = w.status.includes('رد');
       
-      let card = `<div style="background:#252538; border-right:4px solid ${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}; padding:10px; border-radius:6px; margin-bottom:8px;">
-        کاربر: <b>${w.username}</b> | <b style="color:#facc15;">${w.amount.toLocaleString()} ت</b><br>
-        آدرس: <span style="color:#38bdf8;">${w.details}</span><br>
-        وضعیت: <span style="color:${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}">${w.status}</span>
-        ${!isDone && !isRej ? `<div style="display:flex; gap:6px; margin-top:8px;"><button class="btn" style="padding:6px;" onclick="approveW(${w.id})">تایید پرداخت ✅</button><button class="btn-danger" style="padding:6px;" onclick="rejectW(${w.id})">رد ❌</button></div>`:''}
+      let card = `<div style="background:#252538; border: 1px solid ${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}; border-right: 4px solid ${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}; padding:12px; border-radius:6px; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <b style="color:#38bdf8; font-size:13px;">کاربر: ${w.username}</b>
+          <span style="font-size:10px; color:${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}">${w.status}</span>
+        </div>
+        <div style="font-size:12px; margin-bottom:4px;">مبلغ: <b style="color:#facc15;">${w.amount.toLocaleString()} تومان</b> (${w.type})</div>
+        <div style="font-size:11px; color:#aaa; margin-bottom:8px;">مقصد: <span style="color:#fff;">${w.details}</span></div>
+        ${!isDone && !isRej ? `<div style="display:flex; gap:6px; margin-top:8px;"><button style="flex:1; background:#2ecc71; color:#fff; border:none; padding:8px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="approveW(${w.id})">تایید پرداخت ✅</button><button style="flex:1; background:#e74c3c; color:#fff; border:none; padding:8px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="rejectW(${w.id})">رد ❌</button></div>`:''}
+        ${isRej && w.rejectReason ? `<div style="font-size:11px; color:#ef4444; margin-top:6px;">دلیل رد: ${w.rejectReason}</div>`:''}
       </div>`;
       
-      if(isDone) done += card;
-      else if(isRej) rejected += card;
-      else pending += card;
+      if(isDone) doneHTML += card;
+      else if(isRej) rejectedHTML += card;
+      else pendingHTML += card;
     });
     
-    document.getElementById('adminWithdrawalsList').innerHTML = 
-      `<h5 style="color:#facc15; margin-bottom:8px; margin-top:10px;">⏳ در حال بررسی</h5>` + (pending || `<p style="font-size:11px; color:#aaa; margin-bottom:15px;">هیچ موردی نیست.</p>`) +
-      `<h5 style="color:#00ff88; margin-bottom:8px; margin-top:15px;">✅ واریز شده</h5>` + (done || `<p style="font-size:11px; color:#aaa; margin-bottom:15px;">هیچ موردی نیست.</p>`) +
-      `<h5 style="color:#ef4444; margin-bottom:8px; margin-top:15px;">❌ رد شده</h5>` + (rejected || `<p style="font-size:11px; color:#aaa; margin-bottom:15px;">هیچ موردی نیست.</p>`);
+    document.getElementById('adminWithdrawalsListPending').innerHTML = pendingHTML || "<p style='font-size:11px; color:#aaa;'>موردی یافت نشد.</p>";
+    document.getElementById('adminWithdrawalsListDone').innerHTML = doneHTML || "<p style='font-size:11px; color:#aaa;'>موردی یافت نشد.</p>";
+    document.getElementById('adminWithdrawalsListRejected').innerHTML = rejectedHTML || "<p style='font-size:11px; color:#aaa;'>موردی یافت نشد.</p>";
+  }
+  
+  function filterAdminW(type) {
+     document.getElementById('adminWithdrawalsListPending').style.display = type==='pending' ? 'block' : 'none';
+     document.getElementById('adminWithdrawalsListDone').style.display = type==='done' ? 'block' : 'none';
+     document.getElementById('adminWithdrawalsListRejected').style.display = type==='rejected' ? 'block' : 'none';
   }
 
   async function approveW(id) {
