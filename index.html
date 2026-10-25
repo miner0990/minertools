@@ -658,10 +658,11 @@
   let miningInterval = null;
   let selectedMachineToBuy = null;
 
-  // همگام‌سازی و بارگذاری داده‌ها از سرور ابری
+  // همگام‌سازی و بارگذاری داده‌ها از سرور ابری با جلوگیری از کش شدن (Cache Busting)
   async function loadDataFromServer() {
     try {
-      let res = await fetch(`${API_URL}/api/get_all`);
+      // اضافه کردن متغیر زمان به انتهای لینک برای جلوگیری از خواندن اطلاعات از حافظه پنهان مرورگر
+      let res = await fetch(`${API_URL}/api/get_all?t=${Date.now()}`, { cache: "no-store" });
       let data = await res.json();
       if(data) {
         db = data;
