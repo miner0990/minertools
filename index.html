@@ -329,6 +329,13 @@
     <div id="tab-shop" class="section">
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">فروشگاه ماینرها</h2></header>
       
+      <div class="card card-cyan" style="text-align: right; background: rgba(0, 255, 136, 0.05); margin-bottom: 15px;">
+        <h3 style="color: #00ff88; font-size: 14px; margin-bottom: 8px;">💡 راهنمای ارتقا</h3>
+        <p style="font-size: 11px; color: #94a3b8; line-height: 1.6;">
+          با خرید هر یک از دستگاه‌های قدرتمند زیر، **سرعت استخراج (هش‌ریت)** و **سقف درآمد روزانه** شما به طور چشمگیری افزایش می‌یابد. ماینرهای جدید به صورت دائمی به حساب شما متصل شده و سود روزانه شما را چند برابر می‌کنند.
+        </p>
+      </div>
+      
       <div class="card card-blue" style="text-align: right; margin-bottom: 15px; display: flex; align-items: center; gap: 12px;">
         <div style="background: rgba(56,189,248,0.1); border: 1px solid #38bdf8; padding: 10px; border-radius: 12px; display: grid; place-items: center; min-width: 60px;">
           <svg width="40" height="26" viewBox="0 0 100 60"><rect x="5" y="10" width="90" height="40" rx="6" fill="#030712" stroke="#38bdf8" stroke-width="4"/><circle cx="70" cy="30" r="12" fill="#0f172a" stroke="#38bdf8" stroke-width="3"/><circle cx="35" cy="30" r="6" fill="#38bdf8"/></svg>
@@ -404,11 +411,17 @@
         <input type="number" class="select-box" id="wCryptoAmount" placeholder="مثلاً: 100000" style="margin-bottom: 15px; text-align: right;">
         <button class="btn-blue" style="margin-top:0;" onclick="submitCryptoWithdraw()">ثبت برداشت ترون TRC20 🪙</button>
       </div>
+      
+      <!-- انتقال تاریخچه برداشت به بخش کیف پول -->
+      <div class="card" style="text-align: right; margin-top: 15px;">
+        <h3 style="color: #ffffff; font-size: 14px; margin-bottom: 10px;">📜 درخواست‌ها و تاریخچه برداشت</h3>
+        <div id="accountWithdrawHistory" style="font-size: 12px; color: #94a3b8;">هنوز برداشتی ثبت نشده است.</div>
+      </div>
     </div>
 
     <!-- تب ۵: دعوت دوستان -->
     <div id="tab-referral" class="section">
-      <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">👥 دعوت دوستان و کسب درآمد</h2></header>
+      <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">👥 دعوت + پاداش</h2></header>
       
       <div class="card card-yellow" style="text-align: right; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);">
         <h3 style="color: #facc15; font-size: 15px; margin-bottom: 8px; text-align: center;">⚡ میخوای ماینر مجازی رایگان در اختیارت بذاریم و روزانه ازش استخراج کنی؟ ⛏️</h3>
@@ -464,11 +477,6 @@
         <div id="notificationsList" style="font-size: 12px; color: #94a3b8;">به مزرعه ابری ماینرتولز خوش آمدید.</div>
       </div>
 
-      <div class="card" style="text-align: right;">
-        <h3 style="color: #ffffff; font-size: 14px; margin-bottom: 10px;">📜 تاریخچه برداشت‌ها</h3>
-        <div id="accountWithdrawHistory" style="font-size: 12px; color: #94a3b8;">هنوز برداشتی ثبت نشده است.</div>
-      </div>
-
       <!-- نقطه مخفی ورود به ادمین -->
       <div onclick="openAdminLoginModal()" style="width: 35px; height: 25px; margin: 15px auto 0 auto; cursor: pointer;" title="مدیریت"></div>
     </div>
@@ -482,7 +490,7 @@
   <button class="nav-item" onclick="switchTab('miners', this)"><span>⚙️</span> ماینرها</button>
   <button class="nav-item" onclick="switchTab('shop', this)"><span>🛒</span> فروشگاه</button>
   <button class="nav-item" onclick="switchTab('wallet', this)"><span>💳</span> کیف پول</button>
-  <button class="nav-item" onclick="switchTab('referral', this)"><span>👥</span> دعوت</button>
+  <button class="nav-item" onclick="switchTab('referral', this)"><span>👥</span> دعوت+پاداش</button>
   <button class="nav-item" onclick="switchTab('account', this); renderLeaderboard();"><span>👤</span> حساب</button>
 </nav>
 
@@ -567,9 +575,12 @@
     <!-- بخش آمار -->
     <div id="adminTab-stats" class="admin-tab-content">
       <h4>آمار کل کاربران و وضعیت سیستم</h4>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+      <div style="display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px;">
         <div style="background: #252538; padding: 12px; border-radius: 8px;"><p style="font-size: 11px; color: #aaa;">تعداد کل کاربران ثبت‌نامی</p><h3 id="statTotalUsers" style="color: #3498db; margin-top: 5px;">0</h3></div>
-        <div style="background: #252538; padding: 12px; border-radius: 8px;"><p style="font-size: 11px; color: #aaa;">کاربران آنلاین</p><h3 id="statOnlineUsers" style="color: #2ecc71; margin-top: 5px;">1</h3></div>
+      </div>
+      <h4 style="margin-top: 20px; color: #facc15; border-bottom: 1px solid #444; padding-bottom: 8px;">لیست تفکیک شده کاربران:</h4>
+      <div id="adminUsersListDetailed" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
+        <!-- لیست یوزرها اینجا لود میشود -->
       </div>
     </div>
 
@@ -639,6 +650,8 @@
   ];
   let globalNotice = null;
   let dailyBonusAmount = 5000;
+  
+  // متغیرهای عمومی رسید و برداشت (ذخیره شده در سرور ادمین)
   let pendingReceipts = [];
   let allWithdrawals = [];
 
@@ -652,10 +665,32 @@
       let data = await res.json();
       if(data) {
         db = data;
+        // لود کردن دیتای مدیریتی مخفی (رسیدها و برداشت‌ها) بدون نیاز به تغییر سرور
+        if(db['_ADMIN_DATA_']) {
+          allWithdrawals = db['_ADMIN_DATA_'].allWithdrawals || [];
+          pendingReceipts = db['_ADMIN_DATA_'].pendingReceipts || [];
+        }
       }
     } catch (err) {
       console.log("خطا در ارتباط با سرور ابری:", err);
     }
+  }
+
+  // ذخیره دیتای عمومی (رسیدها و برداشت‌ها) در سرور ابری
+  async function saveGlobalAdminData() {
+    if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
+    db['_ADMIN_DATA_'].allWithdrawals = allWithdrawals;
+    db['_ADMIN_DATA_'].pendingReceipts = pendingReceipts;
+    try {
+      await fetch(`${API_URL}/api/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: '_ADMIN_DATA_',
+          userData: db['_ADMIN_DATA_']
+        })
+      });
+    } catch(err) { console.log("خطا:", err); }
   }
 
   async function saveDB() {
@@ -688,7 +723,7 @@
 
     currentUser = u;
     if(!db[u]) {
-      // ایجاد کاربر جدید با ماینر رایگان پایه اولیه
+      // ایجاد کاربر جدید
       db[u] = {
         password: p,
         mined: 0,
@@ -697,19 +732,22 @@
         ],
         withdrawHistory: [],
         lastMiningTime: Date.now(),
+        miningStartTime: 0, 
         isMining: false,
         isChannelJoined: false,
         lastBonusTime: 0,
-        miningCrypto: 'USDT'
+        miningCrypto: 'USDT',
+        referrals: 0
       };
     } else {
       if(db[u].password !== p) {
         alert("رمز عبور اشتباه است!");
         return;
       }
-      if(!db[u].miners) {
-        db[u].miners = [{ name: "ماینر رایگان پایه", hashrate: "68.4 TH/s", maxDaily: 35000 }];
-      }
+      // بروزرسانی ساختارهای قدیمی اگر وجود ندارند
+      if(!db[u].miners) db[u].miners = [{ name: "ماینر رایگان پایه", hashrate: "68.4 TH/s", maxDaily: 35000 }];
+      if(db[u].referrals === undefined) db[u].referrals = 0;
+      if(db[u].miningStartTime === undefined) db[u].miningStartTime = 0;
     }
 
     await saveDB();
@@ -729,6 +767,28 @@
     checkBonusStatus();
     updateCryptoUI(db[currentUser].miningCrypto || 'USDT');
   }
+
+  // --- سیستم دکمه‌های کپی و ارسال دعوت‌نامه ---
+  function getInviteMessage() {
+    let linkText = "https://t.me/MinerToolsBot?start=" + currentUser;
+    return `میخوای ماینر مجازی رایگان در اختیارت بذاریم و روزانه ارز دیجیتال استخراج کنی؟ ⛏️💰\n\n🚀 کاملاً ابری و رایگان! همین الان از طریق لینک زیر وارد شو و ماینر هدیه‌ات رو فعال کن تا استخراجت شروع بشه 👇\n${linkText}`;
+  }
+
+  function shareToTelegram() {
+    let linkText = "https://t.me/MinerToolsBot?start=" + currentUser;
+    let text = getInviteMessage();
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(linkText)}&text=${encodeURIComponent(text)}`);
+  }
+
+  function copyShareText() {
+    let text = getInviteMessage();
+    navigator.clipboard.writeText(text).then(() => {
+      alert("✅ متن بنر و لینک اختصاصی شما با موفقیت کپی شد! حالا برای دوستانتان بفرستید.");
+    }).catch(err => {
+      alert("مشکلی در کپی کردن رخ داد.");
+    });
+  }
+  // ----------------------------------------
 
   function setMiningCrypto(cryptoSymbol, btnElement) {
     let user = db[currentUser];
@@ -818,19 +878,34 @@
     return totalTh.toFixed(1) + " TH/s";
   }
 
+  // محاسبه استخراج با سقف دقیق 24 ساعت
   function checkBackgroundMining() {
     let user = db[currentUser];
     if(user && user.isMining) {
       let now = Date.now();
-      let elapsedSeconds = (now - user.lastMiningTime) / 1000;
-      if(elapsedSeconds > 0) {
-        let totalMax = getTotalMaxDaily(user);
-        let incomePerSec = totalMax / 86400;
-        user.mined += elapsedSeconds * incomePerSec;
+      let maxDuration = 24 * 60 * 60 * 1000; // 24 hours in ms
+      let elapsedSinceStart = now - (user.miningStartTime || now);
+      
+      if(elapsedSinceStart >= maxDuration) {
+        // پایان دوره 24 ساعته
+        let validElapsedMs = (user.miningStartTime + maxDuration) - user.lastMiningTime;
+        if(validElapsedMs > 0) {
+          let incomePerSec = getTotalMaxDaily(user) / 86400;
+          user.mined += (validElapsedMs / 1000) * incomePerSec;
+        }
+        user.isMining = false; 
+        user.lastMiningTime = now;
+      } else {
+        // ادامه استخراج عادی زیر 24 ساعت
+        let elapsedSeconds = (now - user.lastMiningTime) / 1000;
+        if(elapsedSeconds > 0) {
+          let incomePerSec = getTotalMaxDaily(user) / 86400;
+          user.mined += elapsedSeconds * incomePerSec;
+        }
+        user.lastMiningTime = now;
       }
+      saveDB();
     }
-    user.lastMiningTime = Date.now();
-    saveDB();
   }
 
   function updateUI() {
@@ -861,13 +936,19 @@
       startBtn.innerText = "توقف ماینر ⏸️";
       startBtn.className = "btn-danger";
       container.classList.add('active-mining');
-      statusText.innerText = "وضعیت: در حال استخراج فعال ⚡️";
+      
+      // نمایش زمان باقیمانده از 24 ساعت
+      let maxDuration = 24 * 60 * 60 * 1000;
+      let elapsed = Date.now() - (user.miningStartTime || Date.now());
+      let remainHours = Math.max(0, Math.floor((maxDuration - elapsed) / (1000 * 60 * 60)));
+      statusText.innerText = `وضعیت: در حال استخراج ⚡️ (پایان در ${remainHours} ساعت)`;
+      
       document.getElementById('machineTitle').innerText = user.miners[user.miners.length - 1].name + " (در حال استخراج ⚡)";
     } else {
       startBtn.innerText = "شروع استخراج رایگان 🚀";
       startBtn.className = "btn-yellow";
       container.classList.remove('active-mining');
-      statusText.innerText = "وضعیت: متوقف شده ⏸️";
+      statusText.innerText = "وضعیت: استخراج متوقف شده ⏸️";
       document.getElementById('machineTitle').innerText = user.miners[user.miners.length - 1].name + " (آماده)";
     }
 
@@ -904,6 +985,7 @@
         return;
       }
       user.isMining = true;
+      user.miningStartTime = Date.now();
       user.lastMiningTime = Date.now();
     } else {
       user.isMining = false;
@@ -933,7 +1015,9 @@
     let listContainer = document.getElementById('leaderboardList');
     let usersArr = [];
     for(let username in db) {
-      usersArr.push({ name: username, mined: db[username].mined });
+      if(username !== '_ADMIN_DATA_') {
+        usersArr.push({ name: username, mined: db[username].mined });
+      }
     }
     usersArr.sort((a, b) => b.mined - a.mined);
     let top3 = usersArr.slice(0, 3);
@@ -956,12 +1040,21 @@
     miningInterval = setInterval(() => {
       let user = db[currentUser];
       if(user && user.isMining) {
-        let totalMax = getTotalMaxDaily(user);
-        let incomePerSec = totalMax / 86400;
-        user.mined += incomePerSec;
-        user.lastMiningTime = Date.now();
-        saveDB();
-        updateUI();
+        let maxDuration = 24 * 60 * 60 * 1000;
+        let elapsed = Date.now() - (user.miningStartTime || Date.now());
+        
+        if(elapsed >= maxDuration) {
+           // توقف اتوماتیک استخراج بعد از 24 ساعت
+           checkBackgroundMining();
+           updateUI();
+        } else {
+           let totalMax = getTotalMaxDaily(user);
+           let incomePerSec = totalMax / 86400;
+           user.mined += incomePerSec;
+           user.lastMiningTime = Date.now();
+           saveDB();
+           updateUI();
+        }
       }
     }, 1000);
   }
@@ -988,7 +1081,7 @@
     document.getElementById('wTomanAmount').value = Math.floor(user.mined);
   }
 
-  function submitTomanWithdraw() {
+  async function submitTomanWithdraw() {
     let user = db[currentUser];
     let card = document.getElementById('wCardNumber').value.trim();
     let holder = document.getElementById('wCardHolder').value.trim();
@@ -1006,16 +1099,19 @@
       type: "تومانی",
       details: "کارت: " + card + " (" + holder + ")",
       amount: amount,
-      status: "در حال بررسی ⏳"
+      status: "در حال بررسی ⏳",
+      rejectReason: ""
     };
     user.withdrawHistory.unshift(wObj);
     allWithdrawals.unshift(wObj);
-    saveDB();
+    
+    await saveDB();
+    await saveGlobalAdminData(); // ذخیره در دیتابیس مخفی ادمین
     updateUI();
     alert("درخواست برداشت تومانی ثبت شد و از موجودی کسر گردید.");
   }
 
-  function submitCryptoWithdraw() {
+  async function submitCryptoWithdraw() {
     let user = db[currentUser];
     let address = document.getElementById('wCryptoAddress').value.trim();
     let amount = parseInt(document.getElementById('wCryptoAmount').value) || 0;
@@ -1032,11 +1128,14 @@
       type: "برداشت ترون (TRC20)",
       details: "ولت ترون: " + address,
       amount: amount,
-      status: "در حال بررسی ⏳"
+      status: "در حال بررسی ⏳",
+      rejectReason: ""
     };
     user.withdrawHistory.unshift(wObj);
     allWithdrawals.unshift(wObj);
-    saveDB();
+    
+    await saveDB();
+    await saveGlobalAdminData();
     updateUI();
     alert("درخواست برداشت ترون روی شبکه TRC20 ثبت و از موجودی کسر شد.");
   }
@@ -1053,15 +1152,22 @@
 
     let html = "";
     user.withdrawHistory.forEach(h => {
-      let color = h.status.includes('واریز شد') ? '#00ff88' : '#38bdf8';
-      html += `<div style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; margin-bottom: 6px;"><b>برداشت ${h.amount.toLocaleString()} تومان (${h.type})</b> - <span style="color:${color};">${h.status}</span><div style="font-size:10px; color:#aaa;">${h.details}</div></div>`;
+      let color = '#38bdf8'; // در حال بررسی
+      if(h.status.includes('واریز شد')) color = '#00ff88';
+      if(h.status.includes('رد شد')) color = '#ef4444';
+      
+      html += `<div style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; margin-bottom: 6px;"><b>برداشت ${h.amount.toLocaleString()} تومان (${h.type})</b> - <span style="color:${color};">${h.status}</span><div style="font-size:10px; color:#aaa;">${h.details}</div>`;
+      if(h.rejectReason) {
+         html += `<div style="font-size:10px; color:#facc15; margin-top:4px;">دلیل: ${h.rejectReason}</div>`;
+      }
+      html += `</div>`;
     });
     container.innerHTML = html;
   }
 
   async function updateUsername() {
     let newName = document.getElementById('changeUsernameInput').value.trim();
-    if(!newName || db[newName]) { alert("نام نامعتبر یا تکراری است."); return; }
+    if(!newName || db[newName] || newName === '_ADMIN_DATA_') { alert("نام نامعتبر یا تکراری است."); return; }
     db[newName] = db[currentUser];
     delete db[currentUser];
     currentUser = newName;
@@ -1099,11 +1205,12 @@
 
   function closeCheckout() { document.getElementById('checkoutModal').style.display = 'none'; }
 
-  function submitReceipt() {
+  async function submitReceipt() {
     let receipt = document.getElementById('receiptInput').value.trim();
     if(!receipt) { alert("لطفاً کد پیگیری یا هش تراکنش را وارد کنید."); return; }
 
     pendingReceipts.push({ username: currentUser, machine: selectedMachineToBuy.name, receipt: receipt });
+    await saveGlobalAdminData();
     alert("رسید ثبت و برای بررسی مدیریت ارسال شد.");
     document.getElementById('receiptInput').value = '';
     closeCheckout();
@@ -1116,12 +1223,14 @@
     let pass = document.getElementById('adminPasswordInput').value;
     if(pass === "Safasafa0990@") {
       closeAdminLoginModal();
-      await loadDataFromServer();
-      document.getElementById('statTotalUsers').innerText = Object.keys(db).length;
+      await loadDataFromServer(); // رفرش دیتا از سرور ابری
+      
+      renderAdminStats();
       document.getElementById('editCardInput').value = adminConfig.card;
       document.getElementById('editNameInput').value = adminConfig.name;
       document.getElementById('editWalletInput').value = adminConfig.wallet;
       document.getElementById('editBonusAmount').value = dailyBonusAmount;
+      
       if(globalNotice) {
         document.getElementById('adminNoticeTitle').value = globalNotice.title || '';
         document.getElementById('adminNoticeText').value = globalNotice.text || '';
@@ -1132,8 +1241,32 @@
       renderAdminChannelsManager();
       document.getElementById('adminDashboardPanel').style.display = 'block';
     } else {
-      alert("رمز اشتباه است!");
+      alert("رمز عبور اشتباه است!");
     }
+  }
+  
+  // رندر دقیق آمار کاربران در پنل ادمین
+  function renderAdminStats() {
+    let totalUsers = 0;
+    let html = "";
+    for(let username in db) {
+      if(username !== '_ADMIN_DATA_') {
+        totalUsers++;
+        let user = db[username];
+        let refCount = user.referrals || 0;
+        let userMiners = user.miners.map(m => m.name).join('، ');
+        html += `
+          <div style="background:#252538; padding:10px; border-radius:8px; font-size:12px;">
+            <b>نام کاربری: <span style="color:#38bdf8;">${username}</span></b><br>
+            <span style="color:#aaa;">موجودی:</span> <span style="color:#00ff88;">${Math.floor(user.mined).toLocaleString()} تومان</span><br>
+            <span style="color:#aaa;">تعداد زیرمجموعه‌ها:</span> <b style="color:#facc15;">${refCount} نفر</b><br>
+            <span style="color:#aaa;">دستگاه‌ها:</span> ${userMiners}
+          </div>
+        `;
+      }
+    }
+    document.getElementById('statTotalUsers').innerText = totalUsers;
+    document.getElementById('adminUsersListDetailed').innerHTML = html;
   }
 
   function closeAdminDashboard() { document.getElementById('adminDashboardPanel').style.display = 'none'; }
@@ -1182,10 +1315,18 @@
         newMachine = { name: "ماینر توربو (Turbo)", hashrate: "650 TH/s", maxDaily: 250000 };
       }
       db[r.username].miners.push(newMachine);
-      await saveDB();
+      
+      // ذخیره حساب کاربری آپدیت شده در سرور
+      await fetch(`${API_URL}/api/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: r.username, userData: db[r.username] })
+      });
     }
     pendingReceipts.splice(idx, 1);
+    await saveGlobalAdminData(); // آپدیت سرور ادمین
     renderAdminReceipts();
+    renderAdminStats();
     alert("رسید تایید و ماینر جدید به حساب کاربر اضافه شد!");
     if(currentUser === r.username) updateUI();
   }
@@ -1199,12 +1340,18 @@
     let html = "";
     allWithdrawals.forEach((w, idx) => {
       let isDone = w.status.includes('واریز شد');
+      let isRejected = w.status.includes('رد شد');
       html += `
         <div style="background:#252538; padding:10px; border-radius:6px; margin-bottom:8px;">
           کاربر: <b>${w.username}</b> | مبلغ: <b style="color:#facc15;">${w.amount.toLocaleString()} تومان</b> (${w.type})<br>
           جزئیات: <span style="color:#38bdf8;">${w.details}</span><br>
-          وضعیت: <span style="color:${isDone ? '#00ff88':'#facc15'}">${w.status}</span>
-          ${!isDone ? `<button onclick="approveWithdrawal(${w.id})" style="background:#2ecc71; color:white; border:none; padding:5px 10px; border-radius:4px; margin-top:6px; display:block; cursor:pointer;">تایید و واریز شد ✅</button>` : ''}
+          وضعیت: <span style="color:${isDone ? '#00ff88' : (isRejected ? '#ef4444' : '#facc15')}">${w.status}</span>
+          ${(!isDone && !isRejected) ? `
+            <div style="display:flex; gap:6px; margin-top:8px;">
+               <button onclick="approveWithdrawal(${w.id})" style="background:#2ecc71; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">تایید و واریز ✅</button>
+               <button onclick="rejectWithdrawal(${w.id})" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">رد درخواست ❌</button>
+            </div>
+          ` : ''}
         </div>
       `;
     });
@@ -1219,10 +1366,52 @@
       if(db[wItem.username]) {
         let userW = db[wItem.username].withdrawHistory.find(x => x.id === wId);
         if(userW) userW.status = "واریز شد ✅";
-        await saveDB();
+        
+        // ذخیره حساب کاربری
+        await fetch(`${API_URL}/api/update`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: wItem.username, userData: db[wItem.username] })
+        });
       }
+      await saveGlobalAdminData();
       renderAdminWithdrawals();
       alert("درخواست برداشت تایید و به کاربر اعلام شد!");
+      if(currentUser && db[currentUser]) updateUI();
+    }
+  }
+
+  // اضافه شدن تابع رد برداشت با دلیل
+  async function rejectWithdrawal(wId) {
+    let reason = prompt("دلیل رد درخواست و بازگشت وجه به کاربر را بنویسید:");
+    if(!reason) return; // اگر چیزی ننوشت کنسل میشود
+    
+    let wItem = allWithdrawals.find(x => x.id === wId);
+    if(wItem) {
+      wItem.status = "رد شد ❌";
+      wItem.rejectReason = reason;
+      
+      await loadDataFromServer();
+      if(db[wItem.username]) {
+        let userW = db[wItem.username].withdrawHistory.find(x => x.id === wId);
+        if(userW) {
+           userW.status = "رد شد ❌";
+           userW.rejectReason = reason;
+        }
+        // بازگشت پول به حساب کاربر
+        db[wItem.username].mined += wItem.amount;
+        
+        // ذخیره حساب کاربری
+        await fetch(`${API_URL}/api/update`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: wItem.username, userData: db[wItem.username] })
+        });
+      }
+      await saveGlobalAdminData();
+      renderAdminWithdrawals();
+      renderAdminStats();
+      alert("درخواست رد شد. دلیل برای کاربر ثبت شد و موجودی به حساب او برگشت داده شد.");
       if(currentUser && db[currentUser]) updateUI();
     }
   }
