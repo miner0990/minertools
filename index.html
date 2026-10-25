@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>MinerTools Cloud Mining</title>
-  <!-- کتابخانه رسمی تلگرام برای تشخیص آیدی کاربر اضافه شد -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root { --bg: #060913; --card-bg: #0f172a; --card-border: #1e293b; --cyan: #00ff88; --yellow: #facc15; --blue: #38bdf8; --text-main: #ffffff; --text-secondary: #94a3b8; --danger: #ef4444; }
@@ -201,29 +200,25 @@
       </div>
     </div>
 
-    <!-- تب ۶: حساب کاربری (مرتب شده با اولویت‌بندی صحیح) -->
+    <!-- تب ۶: حساب کاربری -->
     <div id="tab-account" class="section">
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">👤 حساب کاربری من</h2></header>
       
-      <!-- 1. نشان وضعیت حساب (با قابلیت آپدیت رنگ زنده) -->
       <div class="card card-yellow" style="text-align: right; padding: 12px; transition: 0.3s;" id="userTierCard">
         <h3 style="color: #facc15; font-size: 16px; margin: 0; text-align: center;" id="userTierBadge">حساب عادی 🥉</h3>
       </div>
 
-      <!-- 2. جدول برترین ها (آورده شد بالا) -->
       <div class="card card-cyan" style="text-align: right;">
         <h3 style="color: #00ff88; font-size: 14px; margin-bottom: 10px;">🏆 جدول برترین‌های ماینینگ</h3>
         <div id="leaderboardList" style="display: flex; flex-direction: column; gap: 6px;"></div>
       </div>
 
-      <!-- 3. تنظیمات حساب -->
       <div class="card" style="text-align: right;">
         <h3 style="color: #facc15; font-size: 14px; margin-bottom: 10px;">تنظیمات حساب</h3>
         <div style="display: flex; gap: 8px; margin-bottom: 10px;"><input type="text" class="select-box" id="changeUsernameInput" placeholder="نام کاربری جدید..." style="margin-bottom: 0;"><button class="btn-yellow" style="margin-top: 0; width: 90px; padding: 8px; font-size: 11px;" onclick="updateUsername()">ذخیره</button></div>
         <div style="display: flex; gap: 8px;"><input type="password" class="select-box" id="changePasswordInput" placeholder="رمز جدید..." style="margin-bottom: 0;"><button class="btn-yellow" style="margin-top: 0; width: 90px; padding: 8px; font-size: 11px;" onclick="updatePassword()">ذخیره</button></div>
       </div>
 
-      <!-- 4. تیکت پشتیبانی (آورده شد پایین) -->
       <div class="card card-blue" style="text-align: right; background: rgba(56, 189, 248, 0.05);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
           <h3 style="color: #38bdf8; font-size: 14px;">🎧 پشتیبانی آنلاین (تیکت)</h3>
@@ -233,7 +228,6 @@
         <div id="userTicketsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;"></div>
       </div>
 
-      <!-- نقطه مخفی ورود به ادمین -->
       <div onclick="openAdminLoginModal()" style="width: 35px; height: 25px; margin: 15px auto 0 auto; cursor: pointer;"></div>
     </div>
   </div>
@@ -249,7 +243,7 @@
   <button class="nav-item" onclick="switchTab('account', this); renderLeaderboard();"><span>👤</span> حساب</button>
 </nav>
 
-<!-- مدال پیام‌های اختصاصی سیستم (جایگزین Alert ها) -->
+<!-- مدال پیام‌های اختصاصی سیستم -->
 <div id="customAlertModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 25000; justify-content: center; align-items: center; padding: 20px;" dir="rtl">
   <div class="card card-yellow" style="max-width: 320px; width: 100%; text-align: center; border-radius: 16px; padding: 20px;">
     <div id="customAlertIcon" style="font-size: 40px; margin-bottom: 10px;">✅</div>
@@ -290,9 +284,11 @@
   </div>
 </div>
 
-<!-- مودال‌های پاپ‌آپ، خرید و کانال -->
+<!-- مودال‌های پاپ‌آپ، خرید و کانال (با دکمه ضربدر جدید) -->
 <div id="announcementModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 4000; justify-content: center; align-items: center; padding: 20px;" dir="rtl"><div class="card card-yellow" style="max-width: 360px; width: 100%; text-align: right; position: relative;"><button onclick="document.getElementById('announcementModal').style.display='none'" style="position: absolute; top: 12px; left: 12px; background: #ef4444; color: white; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer;">✕</button><h3 style="color: #facc15; font-size: 16px; margin-bottom: 10px;" id="announcementTitle">📢 اطلاعیه مهم مدیریت</h3><p style="font-size: 12px; color: #ffffff; line-height: 1.6; margin-bottom: 15px;" id="announcementText"></p><div id="announcementLinkBox" style="display: none;"><a id="announcementLinkBtn" href="#" target="_blank" class="btn-blue" style="display: block; text-align: center; font-size: 12px; padding: 10px;">مشاهده لینک 🔗</a></div></div></div>
-<div id="channelModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px;" dir="rtl"><div class="card card-yellow" style="max-width: 380px; width: 100%; text-align: center;"><h3 style="color: #facc15; font-size: 16px; margin-bottom: 10px;">📢 عضویت اجباری در کانال‌ها</h3><div id="modalChannelsContainer" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;"></div><button class="btn-yellow" id="verifyChannelBtn" onclick="verifyAllMemberships()">تایید عضویت و شروع ⚡</button></div></div>
+
+<div id="channelModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px;" dir="rtl"><div class="card card-yellow" style="max-width: 380px; width: 100%; text-align: center; position: relative;"><button onclick="document.getElementById('channelModal').style.display='none'" style="position: absolute; top: 12px; left: 12px; background: #ef4444; color: white; border: none; width: 26px; height: 26px; border-radius: 50%; font-weight: bold; cursor: pointer;">✕</button><h3 style="color: #facc15; font-size: 16px; margin-bottom: 10px;">📢 عضویت اجباری در کانال‌ها</h3><div id="modalChannelsContainer" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;"></div><button class="btn-yellow" id="verifyChannelBtn" onclick="verifyAllMemberships()">تایید عضویت و شروع ⚡</button></div></div>
+
 <div id="checkoutModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; padding: 15px;" dir="rtl"><div class="card card-yellow" style="max-width: 400px; width: 100%; text-align: right;"><h3 style="color: #facc15; font-size: 17px; margin-bottom: 10px; text-align: center;" id="checkoutTitle">خرید دستگاه</h3><p style="font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 15px;" id="checkoutPriceText">مبلغ:</p><div id="checkoutCardBox" style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; border: 1px solid #1e293b; margin-bottom: 15px;"><div style="background: #030712; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 14px; color: #facc15; text-align: center;" id="displayAdminCard"></div><p style="font-size: 11px; color: #94a3b8; margin-top: 6px;">به نام: <span id="displayAdminName"></span></p></div><div id="checkoutCryptoBox" style="display:none; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; border: 1px solid #1e293b; margin-bottom: 15px;"><div style="background: #030712; padding: 8px; border-radius: 8px; font-family: monospace; font-size: 11px; color: #00ff88; text-align: center; word-break: break-all;" id="displayAdminWallet"></div></div><input type="text" class="select-box" id="receiptInput" placeholder="شماره پیگیری..." style="margin-bottom: 15px;"><div style="display: flex; gap: 10px;"><button class="btn-yellow" style="margin-top:0;" onclick="submitReceipt()">ارسال رسید ✅</button><button class="btn-danger" style="margin-top:0;" onclick="closeCheckout()">انصراف ❌</button></div></div></div>
 
 <!-- ورود ادمین -->
@@ -389,7 +385,6 @@
 </div>
 
 <script>
-  // فعال‌سازی آماده به کار تلگرام مینی‌اپ
   if (window.Telegram && window.Telegram.WebApp) {
       window.Telegram.WebApp.ready();
   }
@@ -414,7 +409,6 @@
   let activeChatTicketId = null;
   let activeChatUsername = null;
 
-  // توابع کنترل مدال پاپ‌آپ اختصاصی
   function showCustomAlert(msg, icon = '✅') {
     document.getElementById('customAlertIcon').innerText = icon;
     document.getElementById('customAlertText').innerText = msg;
@@ -557,7 +551,6 @@
     let tBox = document.getElementById('turboPurchaseBtns');
     if(tBox) tBox.innerHTML = hasTurbo ? '<span style="background: rgba(0,255,136,0.1); padding: 8px; border-radius: 8px; color: #00ff88; font-size: 11px; display: block; text-align: center; width: 100%;">✅ خریداری شده (دائمی)</span>' : `<button class="btn-blue" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Turbo', 2799000, 'toman')">💳 تومانی</button><button class="btn-yellow" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Turbo', 2799000, 'crypto')">🪙 ترون TRC20</button>`;
 
-    // آپدیت زنده وضعیت نشان کاربر در بخش حساب
     let badge = document.getElementById('userTierBadge');
     let card = document.getElementById('userTierCard');
     if(badge && card) {
@@ -587,16 +580,45 @@
     document.getElementById('myMinersList').innerHTML = h;
   }
 
-  function checkChannelAndMining() {
+  // بررسی هوشمندانه وضعیت عضویت هر بار که دکمه شروع زده می‌شود
+  async function checkChannelAndMining() {
     let u = db[currentUser];
     if(!u.isMining) {
-      if(!u.isChannelJoined && mandatoryChannels.length > 0) { 
-        renderModalChannels(); 
-        document.getElementById('channelModal').style.display = 'flex'; 
-        return; 
+      if(mandatoryChannels.length > 0) { 
+        let tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+        let userId = tgUser ? tgUser.id : null;
+        if (userId) {
+            let btn = document.getElementById('startBtn');
+            let origText = btn.innerText;
+            btn.innerText = "بررسی عضویت... ⏳";
+            btn.disabled = true;
+            try {
+                let res = await fetch(`${API_URL}/api/check_membership`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, channels: mandatoryChannels.map(c => c.link) })
+                });
+                let data = await res.json();
+                btn.innerText = origText;
+                btn.disabled = false;
+                
+                // اگر عضویت هنوز برقرار بود بدون باز کردن مودال استخراج را شروع کن
+                if (data.status === "success" && data.joined === true) {
+                   u.isMining = true; u.miningStartTime = Date.now(); u.lastMiningTime = Date.now();
+                   saveDB(); updateUI();
+                   return;
+                }
+            } catch(e) {
+                btn.innerText = origText;
+                btn.disabled = false;
+            }
+        }
+        // اگر عضویت تایید نشد یا خطایی بود، پنجره لیست جدید کانال‌ها را باز کن
+        renderModalChannels(); document.getElementById('channelModal').style.display = 'flex'; return; 
       }
       u.isMining = true; u.miningStartTime = Date.now(); u.lastMiningTime = Date.now();
-    } else u.isMining = false;
+    } else {
+      u.isMining = false;
+    }
     saveDB(); updateUI();
   }
 
@@ -606,7 +628,6 @@
     document.getElementById('modalChannelsContainer').innerHTML = h;
   }
 
-  // بررسی واقعی عضویت کاربر در کانال‌ها از طریق API و ربات تلگرام
   async function verifyAllMemberships() { 
     let tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
     let userId = tgUser ? tgUser.id : null;
@@ -632,10 +653,13 @@
 
         if (data.status === "success" && data.joined === true) {
            db[currentUser].isChannelJoined = true;
+           db[currentUser].isMining = true;
+           db[currentUser].miningStartTime = Date.now();
+           db[currentUser].lastMiningTime = Date.now();
            await saveDB();
            document.getElementById('channelModal').style.display = 'none';
            showCustomAlert("عضویت شما با موفقیت تایید شد! استخراج آغاز می‌شود.", "✅");
-           checkChannelAndMining();
+           updateUI();
         } else {
            showCustomAlert("شما هنوز در تمام کانال‌ها عضو نشده‌اید! لطفاً ابتدا عضو شوید.", "❌");
         }
@@ -712,7 +736,6 @@
     document.getElementById('accountWithdrawHistory').innerHTML = h || "هنوز برداشتی ثبت نشده.";
   }
 
-  // --- سیستم پشتیبانی ---
   function openNewTicketPrompt() {
     let sub = prompt("موضوع تیکت خود را کوتاه بنویسید:"); if(!sub) return;
     let txt = prompt("پیام کامل خود را بنویسید:"); if(!txt) return;
