@@ -199,21 +199,29 @@
       </div>
     </div>
 
-    <!-- تب ۶: حساب کاربری (مرتب شده و اصلاح شده) -->
+    <!-- تب ۶: حساب کاربری (مرتب شده با اولویت‌بندی صحیح) -->
     <div id="tab-account" class="section">
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">👤 حساب کاربری من</h2></header>
       
-      <!-- نشان وضعیت حساب -->
-      <div class="card card-yellow" style="text-align: right; padding: 12px;"><h3 style="color: #facc15; font-size: 16px; margin: 0; text-align: center;" id="userTierBadge">حساب عادی 🥉</h3></div>
-      
-      <!-- تنظیمات حساب -->
+      <!-- 1. نشان وضعیت حساب (با قابلیت آپدیت رنگ زنده) -->
+      <div class="card card-yellow" style="text-align: right; padding: 12px; transition: 0.3s;" id="userTierCard">
+        <h3 style="color: #facc15; font-size: 16px; margin: 0; text-align: center;" id="userTierBadge">حساب عادی 🥉</h3>
+      </div>
+
+      <!-- 2. جدول برترین ها (آورده شد بالا) -->
+      <div class="card card-cyan" style="text-align: right;">
+        <h3 style="color: #00ff88; font-size: 14px; margin-bottom: 10px;">🏆 جدول برترین‌های ماینینگ</h3>
+        <div id="leaderboardList" style="display: flex; flex-direction: column; gap: 6px;"></div>
+      </div>
+
+      <!-- 3. تنظیمات حساب -->
       <div class="card" style="text-align: right;">
         <h3 style="color: #facc15; font-size: 14px; margin-bottom: 10px;">تنظیمات حساب</h3>
         <div style="display: flex; gap: 8px; margin-bottom: 10px;"><input type="text" class="select-box" id="changeUsernameInput" placeholder="نام کاربری جدید..." style="margin-bottom: 0;"><button class="btn-yellow" style="margin-top: 0; width: 90px; padding: 8px; font-size: 11px;" onclick="updateUsername()">ذخیره</button></div>
         <div style="display: flex; gap: 8px;"><input type="password" class="select-box" id="changePasswordInput" placeholder="رمز جدید..." style="margin-bottom: 0;"><button class="btn-yellow" style="margin-top: 0; width: 90px; padding: 8px; font-size: 11px;" onclick="updatePassword()">ذخیره</button></div>
       </div>
 
-      <!-- تیکت پشتیبانی -->
+      <!-- 4. تیکت پشتیبانی (آورده شد پایین) -->
       <div class="card card-blue" style="text-align: right; background: rgba(56, 189, 248, 0.05);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
           <h3 style="color: #38bdf8; font-size: 14px;">🎧 پشتیبانی آنلاین (تیکت)</h3>
@@ -223,12 +231,7 @@
         <div id="userTicketsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;"></div>
       </div>
 
-      <!-- برترین ها -->
-      <div class="card card-cyan" style="text-align: right;">
-        <h3 style="color: #00ff88; font-size: 14px; margin-bottom: 10px;">🏆 جدول برترین‌های ماینینگ</h3>
-        <div id="leaderboardList" style="display: flex; flex-direction: column; gap: 6px;"></div>
-      </div>
-
+      <!-- نقطه مخفی ورود به ادمین -->
       <div onclick="openAdminLoginModal()" style="width: 35px; height: 25px; margin: 15px auto 0 auto; cursor: pointer;"></div>
     </div>
   </div>
@@ -243,6 +246,16 @@
   <button class="nav-item" onclick="switchTab('referral', this)"><span>👥</span> پاداش</button>
   <button class="nav-item" onclick="switchTab('account', this); renderLeaderboard();"><span>👤</span> حساب</button>
 </nav>
+
+<!-- مدال پیام‌های اختصاصی سیستم (جایگزین Alert ها) -->
+<div id="customAlertModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 25000; justify-content: center; align-items: center; padding: 20px;" dir="rtl">
+  <div class="card card-yellow" style="max-width: 320px; width: 100%; text-align: center; border-radius: 16px; padding: 20px;">
+    <div id="customAlertIcon" style="font-size: 40px; margin-bottom: 10px;">✅</div>
+    <h3 style="color: #facc15; font-size: 16px; margin-bottom: 10px;">پیام سیستم</h3>
+    <p id="customAlertText" style="font-size: 12px; color: #ffffff; line-height: 1.7; margin-bottom: 20px;">عملیات با موفقیت انجام شد.</p>
+    <button class="btn-yellow" style="margin: 0; padding: 10px; font-size: 13px;" onclick="closeCustomAlert()">متوجه شدم</button>
+  </div>
+</div>
 
 <!-- مدال راهنمای مینی اپ -->
 <div id="guideModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 5000; justify-content: center; align-items: center; padding: 20px;" dir="rtl">
@@ -394,6 +407,16 @@
   let activeChatTicketId = null;
   let activeChatUsername = null;
 
+  // توابع کنترل مدال پاپ‌آپ اختصاصی
+  function showCustomAlert(msg, icon = '✅') {
+    document.getElementById('customAlertIcon').innerText = icon;
+    document.getElementById('customAlertText').innerText = msg;
+    document.getElementById('customAlertModal').style.display = 'flex';
+  }
+  function closeCustomAlert() {
+    document.getElementById('customAlertModal').style.display = 'none';
+  }
+
   async function loadDataFromServer() {
     try {
       let res = await fetch(`${API_URL}/api/get_all?t=${Date.now()}`, { cache: "no-store" });
@@ -428,13 +451,13 @@
   async function completeRegistration() {
     let u = document.getElementById('usernameInput').value.trim();
     let p = document.getElementById('passwordInput').value.trim();
-    if(!u || !p) { alert("لطفاً نام کاربری و رمز عبور را وارد کنید."); return; }
+    if(!u || !p) { showCustomAlert("لطفاً نام کاربری و رمز عبور را وارد کنید.", "⚠️"); return; }
     await loadDataFromServer();
     currentUser = u;
     if(!db[u]) {
       db[u] = { password: p, mined: 0, miners: [{ name: "ماینر رایگان پایه", hashrate: "68.4 TH/s", maxDaily: 35000 }], withdrawHistory: [], lastMiningTime: Date.now(), miningStartTime: 0, isMining: false, isChannelJoined: false, lastBonusTime: 0, miningCrypto: 'USDT', referrals: 0, tickets: [] };
     } else {
-      if(db[u].password !== p) { alert("رمز عبور اشتباه است!"); return; }
+      if(db[u].password !== p) { showCustomAlert("رمز عبور اشتباه است!", "❌"); return; }
       if(!db[u].tickets) db[u].tickets = []; 
     }
     await saveDB();
@@ -450,7 +473,7 @@
 
   function getInviteMessage() { return adminConfig.bannerText + "\nhttps://t.me/MinerToolsBot?start=" + currentUser; }
   function shareToTelegram() { window.open(`https://t.me/share/url?url=${encodeURIComponent("https://t.me/MinerToolsBot?start=" + currentUser)}&text=${encodeURIComponent(getInviteMessage())}`); }
-  function copyShareText() { navigator.clipboard.writeText(getInviteMessage()).then(() => alert("✅ متن کپی شد!")); }
+  function copyShareText() { navigator.clipboard.writeText(getInviteMessage()).then(() => showCustomAlert("متن بنر و لینک اختصاصی شما با موفقیت کپی شد! حالا برای دوستانتان بفرستید.", "✅")); }
 
   function setMiningCrypto(sym) { db[currentUser].miningCrypto = sym; saveDB(); updateCryptoUI(sym); }
   function updateCryptoUI(sym) { document.querySelectorAll('.crypto-btn').forEach(b => b.style.opacity = '0.5'); let activeBtn = document.getElementById('cryptoBtn-' + sym); if(activeBtn) activeBtn.style.opacity = '1'; }
@@ -463,7 +486,7 @@
     else { btn.innerText = `دریافت ${dailyBonusAmount.toLocaleString()} ت ⚡`; btn.disabled = false; btn.style.opacity = "1"; txt.innerText = `آماده دریافت است!`; }
   }
   function claimDailyBonus() {
-    if(Date.now() - (db[currentUser].lastBonusTime || 0) >= 86400000) { db[currentUser].mined += dailyBonusAmount; db[currentUser].lastBonusTime = Date.now(); saveDB(); updateUI(); checkBonusStatus(); alert(`مبلغ ${dailyBonusAmount.toLocaleString()} تومان اضافه شد.`); }
+    if(Date.now() - (db[currentUser].lastBonusTime || 0) >= 86400000) { db[currentUser].mined += dailyBonusAmount; db[currentUser].lastBonusTime = Date.now(); saveDB(); updateUI(); checkBonusStatus(); showCustomAlert(`مبلغ ${dailyBonusAmount.toLocaleString()} تومان پاداش روزانه به کیف پول شما اضافه شد.`, "🎁"); }
   }
 
   function checkGlobalNotice() {
@@ -527,18 +550,22 @@
     let tBox = document.getElementById('turboPurchaseBtns');
     if(tBox) tBox.innerHTML = hasTurbo ? '<span style="background: rgba(0,255,136,0.1); padding: 8px; border-radius: 8px; color: #00ff88; font-size: 11px; display: block; text-align: center; width: 100%;">✅ خریداری شده (دائمی)</span>' : `<button class="btn-blue" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Turbo', 2799000, 'toman')">💳 تومانی</button><button class="btn-yellow" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Turbo', 2799000, 'crypto')">🪙 ترون TRC20</button>`;
 
-    // آپدیت وضعیت مدال و نام کاربری
+    // آپدیت زنده وضعیت نشان کاربر در بخش حساب
     let badge = document.getElementById('userTierBadge');
-    if(badge) {
+    let card = document.getElementById('userTierCard');
+    if(badge && card) {
       if(hasTurbo) {
         badge.innerText = "حساب توربو (VIP) 💎";
         badge.style.color = "#00ff88";
+        card.style.borderColor = "#00ff88";
       } else if(hasPro) {
         badge.innerText = "حساب پرو (Pro) 🚀";
         badge.style.color = "#38bdf8";
+        card.style.borderColor = "#38bdf8";
       } else {
         badge.innerText = "حساب عادی 🥉";
         badge.style.color = "#facc15";
+        card.style.borderColor = "#facc15";
       }
     }
 
@@ -610,17 +637,19 @@
 
   async function submitTomanWithdraw() {
     let u = db[currentUser], c = document.getElementById('wCardNumber').value, h = document.getElementById('wCardHolder').value, a = parseInt(document.getElementById('wTomanAmount').value);
-    if(c.length < 16 || !h || a <= 0 || a > u.mined) return alert("اطلاعات نامعتبر.");
+    if(c.length < 16 || !h || a <= 0 || a > u.mined) return showCustomAlert("اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست.", "❌");
     u.mined -= a; let w = { id: Date.now(), username: currentUser, type: "تومانی", details: c + " (" + h + ")", amount: a, status: "در حال بررسی ⏳" };
     u.withdrawHistory.unshift(w); allWithdrawals.unshift(w);
-    await saveDB(); await saveGlobalAdminData(); updateUI(); alert("ثبت شد.");
+    await saveDB(); await saveGlobalAdminData(); updateUI(); 
+    showCustomAlert("درخواست برداشت تومانی شما با موفقیت ثبت شد و هم‌اکنون در حال بررسی است.", "✅");
   }
   async function submitCryptoWithdraw() {
     let u = db[currentUser], ad = document.getElementById('wCryptoAddress').value, a = parseInt(document.getElementById('wCryptoAmount').value);
-    if(!ad || a <= 0 || a > u.mined) return alert("اطلاعات نامعتبر.");
+    if(!ad || a <= 0 || a > u.mined) return showCustomAlert("اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست.", "❌");
     u.mined -= a; let w = { id: Date.now(), username: currentUser, type: "TRC20", details: ad, amount: a, status: "در حال بررسی ⏳" };
     u.withdrawHistory.unshift(w); allWithdrawals.unshift(w);
-    await saveDB(); await saveGlobalAdminData(); updateUI(); alert("ثبت شد.");
+    await saveDB(); await saveGlobalAdminData(); updateUI(); 
+    showCustomAlert("درخواست برداشت ترون شما با موفقیت ثبت شد و هم‌اکنون در حال بررسی است.", "✅");
   }
 
   function renderWithdrawHistory() {
@@ -637,7 +666,8 @@
     let sub = prompt("موضوع تیکت خود را کوتاه بنویسید:"); if(!sub) return;
     let txt = prompt("پیام کامل خود را بنویسید:"); if(!txt) return;
     db[currentUser].tickets.unshift({ id: Date.now(), subject: sub, status: "در حال بررسی ⏳", messages: [ { sender: currentUser, text: txt, time: new Date().toLocaleTimeString('fa-IR') } ] });
-    saveDB(); renderUserTickets(); alert("ثبت شد!");
+    saveDB(); renderUserTickets(); 
+    showCustomAlert("تیکت شما با موفقیت ثبت شد و به زودی توسط مدیریت پاسخ داده می‌شود.", "✅");
   }
 
   function renderUserTickets() {
@@ -700,12 +730,12 @@
     await saveDB(activeChatUsername);
     document.getElementById('ticketChatModal').style.display = 'none';
     if(isAdminLoggedIn) renderAdminTickets(); else renderUserTickets();
-    alert("تیکت بسته شد.");
+    showCustomAlert("تیکت با موفقیت برای همیشه بسته شد.", "🔒");
   }
 
   function openCheckout(n, p, m) { selectedMachineToBuy={name:n,price:p,method:m}; document.getElementById('checkoutTitle').innerText="خرید "+n; document.getElementById('checkoutPriceText').innerText="مبلغ: "+p.toLocaleString(); document.getElementById('checkoutCardBox').style.display=m==='toman'?'block':'none'; document.getElementById('checkoutCryptoBox').style.display=m==='crypto'?'block':'none'; document.getElementById('checkoutModal').style.display='flex'; }
   function closeCheckout() { document.getElementById('checkoutModal').style.display = 'none'; }
-  async function submitReceipt() { let r = document.getElementById('receiptInput').value.trim(); if(!r) return alert("وارد کنید."); pendingReceipts.push({ username: currentUser, machine: selectedMachineToBuy.name, receipt: r }); await saveGlobalAdminData(); alert("ارسال شد."); closeCheckout(); }
+  async function submitReceipt() { let r = document.getElementById('receiptInput').value.trim(); if(!r) return showCustomAlert("لطفاً کد پیگیری را وارد کنید.", "⚠️"); pendingReceipts.push({ username: currentUser, machine: selectedMachineToBuy.name, receipt: r }); await saveGlobalAdminData(); showCustomAlert("رسید خرید شما با موفقیت ثبت شد و پس از بررسی، ماینر فعال می‌شود.", "✅"); closeCheckout(); }
 
   function openAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'flex'; }
   function closeAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'none'; }
@@ -726,7 +756,7 @@
       if(globalNotice) { document.getElementById('adminNoticeTitle').value = globalNotice.title||''; document.getElementById('adminNoticeText').value = globalNotice.text||''; document.getElementById('adminNoticeLink').value = globalNotice.link||''; }
       
       document.getElementById('adminDashboardPanel').style.display = 'block';
-    } else alert("اشتباه است!");
+    } else showCustomAlert("رمز عبور ادمین اشتباه است!", "❌");
   }
   function closeAdminDashboard() { document.getElementById('adminDashboardPanel').style.display = 'none'; isAdminLoggedIn = false; }
 
@@ -761,10 +791,10 @@
     document.getElementById('adminTicketsList').innerHTML = h || "هیچ تیکتی وجود ندارد.";
   }
 
-  function saveAdminBanner() { adminConfig.bannerText = document.getElementById('editBannerText').value.trim(); saveGlobalAdminData(); alert("ذخیره شد!"); updateUI(); }
-  function saveAdminDailyBonus() { dailyBonusAmount = parseInt(document.getElementById('editBonusAmount').value); alert("ذخیره شد!"); }
-  function saveAdminAnnouncement() { globalNotice = { title: document.getElementById('adminNoticeTitle').value.trim(), text: document.getElementById('adminNoticeText').value.trim(), link: document.getElementById('adminNoticeLink').value.trim() }; alert("ارسال شد!"); }
-  function saveAdminFinancialSettings() { adminConfig.card = document.getElementById('editCardInput').value; adminConfig.name = document.getElementById('editNameInput').value; adminConfig.wallet = document.getElementById('editWalletInput').value; alert("ذخیره شد!"); }
+  function saveAdminBanner() { adminConfig.bannerText = document.getElementById('editBannerText').value.trim(); saveGlobalAdminData(); showCustomAlert("متن بنر بروزرسانی شد!", "✅"); updateUI(); }
+  function saveAdminDailyBonus() { dailyBonusAmount = parseInt(document.getElementById('editBonusAmount').value); showCustomAlert("مبلغ پاداش ذخیره شد.", "✅"); }
+  function saveAdminAnnouncement() { globalNotice = { title: document.getElementById('adminNoticeTitle').value.trim(), text: document.getElementById('adminNoticeText').value.trim(), link: document.getElementById('adminNoticeLink').value.trim() }; showCustomAlert("پیام عمومی ارسال شد.", "🚀"); }
+  function saveAdminFinancialSettings() { adminConfig.card = document.getElementById('editCardInput').value; adminConfig.name = document.getElementById('editNameInput').value; adminConfig.wallet = document.getElementById('editWalletInput').value; showCustomAlert("تنظیمات مالی ادمین ذخیره شد.", "✅"); }
 
   function renderAdminWithdrawals() {
     let pendingHTML = "", doneHTML = "", rejectedHTML = "";
@@ -811,7 +841,7 @@
     }
     await saveGlobalAdminData(); 
     renderAdminWithdrawals(); 
-    alert("تایید شد.");
+    showCustomAlert("درخواست برداشت با موفقیت تایید شد.", "✅");
   }
 
   async function rejectW(id) {
@@ -831,7 +861,7 @@
     await saveGlobalAdminData(); 
     renderAdminWithdrawals(); 
     renderAdminStats(); 
-    alert("رد شد.");
+    showCustomAlert("درخواست رد شد و وجه به کیف پول کاربر بازگشت.", "✅");
   }
 
   function renderAdminChannelsManager() {
@@ -841,9 +871,9 @@
   }
   function adminAddChannel() {
     let n = document.getElementById('newChannelName').value.trim(), l = document.getElementById('newChannelUrl').value.trim();
-    if(!n || !l) return alert("کامل کنید.");
+    if(!n || !l) return showCustomAlert("لطفاً مشخصات کانال را کامل کنید.", "⚠️");
     mandatoryChannels.push({ name: n, link: l }); document.getElementById('newChannelName').value = ''; document.getElementById('newChannelUrl').value = '';
-    saveGlobalAdminData(); renderAdminChannelsManager(); alert("اضافه شد!");
+    saveGlobalAdminData(); renderAdminChannelsManager(); showCustomAlert("کانال جدید اضافه شد.", "✅");
   }
   function deleteChannel(idx) { mandatoryChannels.splice(idx, 1); saveGlobalAdminData(); renderAdminChannelsManager(); }
   
@@ -855,18 +885,18 @@
   async function approveReceipt(i) {
     let r = pendingReceipts[i]; await loadDataFromServer();
     if(db[r.username]) { db[r.username].miners.push(r.machine === 'Pro' ? {name:"ماینر پرو (Pro)", hashrate:"320 TH/s", maxDaily:150000} : {name:"ماینر توربو (Turbo)", hashrate:"650 TH/s", maxDaily:250000}); await saveDB(r.username); }
-    pendingReceipts.splice(i, 1); await saveGlobalAdminData(); renderAdminReceipts(); renderAdminStats(); alert("تایید شد!");
+    pendingReceipts.splice(i, 1); await saveGlobalAdminData(); renderAdminReceipts(); renderAdminStats(); showCustomAlert("رسید تایید و ماینر فعال شد.", "✅");
   }
   
   async function updateUsername() {
     let n = document.getElementById('changeUsernameInput').value.trim();
-    if(!n || db[n] || n === '_ADMIN_DATA_') return alert("نامعتبر یا تکراری.");
-    db[n] = db[currentUser]; delete db[currentUser]; currentUser = n; await saveDB(); document.getElementById('userGreeting').innerText = "کاربر: " + currentUser; alert("تغییر کرد.");
+    if(!n || db[n] || n === '_ADMIN_DATA_') return showCustomAlert("نام کاربری نامعتبر یا تکراری است.", "❌");
+    db[n] = db[currentUser]; delete db[currentUser]; currentUser = n; await saveDB(); document.getElementById('userGreeting').innerText = "کاربر: " + currentUser; showCustomAlert("نام کاربری با موفقیت تغییر کرد.", "✅");
   }
   async function updatePassword() {
     let p = document.getElementById('changePasswordInput').value.trim();
-    if(!p) return alert("خالی است.");
-    db[currentUser].password = p; await saveDB(); alert("تغییر کرد.");
+    if(!p) return showCustomAlert("رمز عبور نمی‌تواند خالی باشد.", "⚠️");
+    db[currentUser].password = p; await saveDB(); showCustomAlert("رمز عبور با موفقیت تغییر کرد.", "✅");
   }
 </script>
 </body>
