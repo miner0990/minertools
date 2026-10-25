@@ -5,11 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>MinerTools Cloud Mining</title>
   <style>
-    :root {
-      --bg: #060913; --card-bg: #0f172a; --card-border: #1e293b;
-      --cyan: #00ff88; --yellow: #facc15; --blue: #38bdf8;
-      --text-main: #ffffff; --text-secondary: #94a3b8; --danger: #ef4444;
-    }
+    :root { --bg: #060913; --card-bg: #0f172a; --card-border: #1e293b; --cyan: #00ff88; --yellow: #facc15; --blue: #38bdf8; --text-main: #ffffff; --text-secondary: #94a3b8; --danger: #ef4444; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: Tahoma, Arial, sans-serif; }
     html, body { background-color: #060913 !important; color: #ffffff !important; min-height: 100vh; }
     body { display: flex; justify-content: center; align-items: flex-start; padding-bottom: 85px; }
@@ -23,7 +19,7 @@
     .miner-box-container.active-mining { border-color: #facc15 !important; box-shadow: 0 0 35px rgba(250, 204, 21, 0.5) !important; }
     .hologram-glow { position: absolute; top: -30px; left: 50%; transform: translateX(-50%); width: 70%; height: 90px; background: linear-gradient(180deg, rgba(250, 204, 21, 0.45) 0%, rgba(56, 189, 248, 0) 100%); clip-path: polygon(20% 100%, 80% 100%, 100% 0%, 0% 0%); opacity: 0; transition: 0.4s; pointer-events: none; }
     .active-mining .hologram-glow { opacity: 1; animation: glowPulse 1.5s infinite alternate; }
-    .floating-coins { position: absolute; top: 0; left: 0; right: 0; height: 100%; pointer-events: none; opacity: 0; }
+    .floating-coins { position: absolute; top: 0; left: 0; right: 0; height: 100%; pointer-events: none; opacity: 0; transition: 0.3s; }
     .active-mining .floating-coins { opacity: 1; }
     .coin { position: absolute; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: bold; font-size: 10px; background: #030712; border: 2px solid; animation: floatUp 2.5s ease-in-out infinite; bottom: 20px; }
     .c-btc { color: #f7931a; border-color: #f7931a; left: 25%; } .c-usdt { color: #26a17b; border-color: #26a17b; right: 25%; animation-delay: -0.7s; } .c-trx { color: #ff0033; border-color: #ff0033; left: 50%; animation-delay: -1.4s; }
@@ -46,93 +42,54 @@
 <body>
 
 <main class="scene" dir="rtl">
-  <!-- صفحه خوش‌آمدگویی و ورود -->
+  <!-- صفحه ورود -->
   <div id="tab-welcome" class="section active" style="text-align: right; padding: 15px 0;">
     <div class="card card-yellow" style="background: linear-gradient(180deg, #0f172a 0%, #030712 100%);">
-      
-      <!-- آیکون کلنگ همراه با سکه‌های معلق -->
       <div style="position: relative; width: 75px; height: 75px; margin: 0 auto 15px auto;">
         <div style="position: absolute; inset: -15px; pointer-events: none;">
           <div class="coin c-btc" style="animation: floatUp 2.5s infinite; bottom: -5px; width:18px; height:18px; font-size:8px;">₿</div>
           <div class="coin c-usdt" style="animation: floatUp 2.2s infinite; bottom: 5px; width:18px; height:18px; font-size:8px;">₮</div>
           <div class="coin c-trx" style="animation: floatUp 2.8s infinite; bottom: 0; width:18px; height:18px; font-size:8px; left:40%;">💎</div>
         </div>
-        <div style="width: 100%; height: 100%; background: rgba(250,204,21,0.08); border: 2px solid #facc15; border-radius: 50%; display: grid; place-items: center; position: relative; z-index: 2; background-color: #0f172a;">
-          <span style="font-size: 32px;">⛏️</span>
-        </div>
+        <div style="width: 100%; height: 100%; background: rgba(250,204,21,0.08); border: 2px solid #facc15; border-radius: 50%; display: grid; place-items: center; position: relative; z-index: 2; background-color: #0f172a;"><span style="font-size: 32px;">⛏️</span></div>
       </div>
       
       <h2 style="color: #facc15; font-size: 19px; margin-bottom: 6px; text-align: center; font-weight: bold;">مزرعه ابری هوشمند MinerTools</h2>
-      <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 18px;">پلتفرم پیشرفته و مکانیزه استخراج ابری ارز دیجیتال</p>
+      <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 18px;">پلتفرم پیشرفته استخراج ابری ارز دیجیتال</p>
       
-      <!-- ۳ کادر اصلی صفحه اول -->
       <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; text-align: right;">
-        <div style="background: rgba(250,204,21,0.1); border: 1.5px solid #facc15; padding: 12px; border-radius: 12px; font-size: 12px; color: #ffffff; line-height: 1.6;">
-          ⚡ <b style="color: #facc15;">ماینر رایگان پایه:</b> به محض ورود، یک دستگاه ASIC پایه با قدرت 68.4 TH/s و سقف درآمدی <b>۳۵,۰۰۰ تومان در ۲۴ ساعت</b> به شما هدیه داده می‌شود.
-        </div>
-        <div style="background: rgba(56,189,248,0.1); border: 1.5px solid #38bdf8; padding: 12px; border-radius: 12px; font-size: 12px; color: #ffffff; line-height: 1.6;">
-          🚀 <b style="color: #38bdf8;">ماینر پرو و توربو:</b> با تهیه دستگاه‌های پیشرفته از فروشگاه، سرعت و سود خود را چندین برابر کنید.
-        </div>
-        <div style="background: rgba(0,255,136,0.1); border: 1.5px solid #00ff88; padding: 12px; border-radius: 12px; font-size: 12px; color: #ffffff; line-height: 1.6;">
-          💰 <b style="color: #00ff88;">برداشت آنی و امن:</b> دارایی استخراج شده خود را به صورت تومانی یا ارزی مستقیماً برداشت کنید.
-        </div>
+        <div style="background: rgba(250,204,21,0.1); border: 1.5px solid #facc15; padding: 12px; border-radius: 12px; font-size: 12px; color: #ffffff; line-height: 1.6;">⚡ <b style="color: #facc15;">ماینر رایگان پایه:</b> استخراج روزانه تا <b>۳۵,۰۰۰ تومان در ۲۴ ساعت</b>.</div>
+        <div style="background: rgba(56,189,248,0.1); border: 1.5px solid #38bdf8; padding: 12px; border-radius: 12px; font-size: 12px; color: #ffffff; line-height: 1.6;">🚀 <b style="color: #38bdf8;">ارتقای ماینر:</b> با تهیه دستگاه‌های پیشرفته سرعت خود را چندبرابر کنید.</div>
+        <div style="background: rgba(0,255,136,0.1); border: 1.5px solid #00ff88; padding: 12px; border-radius: 12px; font-size: 12px; color: #ffffff; line-height: 1.6;">💰 <b style="color: #00ff88;">برداشت آنی و امن:</b> دارایی خود را مستقیماً به کارت یا ولت ترون واریز کنید.</div>
       </div>
 
-      <!-- هشدار فراموشی رمز -->
-      <div style="background: rgba(239,68,68,0.1); border: 1px solid #ef4444; padding: 10px; border-radius: 8px; font-size: 11px; color: #fff; margin-bottom: 15px; line-height:1.6; text-align: right;">
-        ⚠️ <b style="color: #ef4444;">توجه مهم:</b> نام کاربری و رمز عبور خود را حتماً در جایی یادداشت کنید. در صورت فراموشی، امکان بازیابی حساب و موجودی شما وجود ندارد!
-      </div>
+      <div style="background: rgba(239,68,68,0.1); border: 1px solid #ef4444; padding: 10px; border-radius: 8px; font-size: 11px; color: #fff; margin-bottom: 15px; line-height:1.6; text-align: right;">⚠️ <b style="color: #ef4444;">توجه مهم:</b> نام کاربری و رمز عبور خود را یادداشت کنید. امکان بازیابی وجود ندارد!</div>
 
-      <label style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 6px;">نام کاربری:</label>
-      <input type="text" class="select-box" id="usernameInput" placeholder="نام کاربری..." style="margin-bottom: 10px; text-align: right;" autocapitalize="none">
-
-      <label style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 6px;">رمز عبور:</label>
-      <input type="password" class="select-box" id="passwordInput" placeholder="رمز عبور..." style="margin-bottom: 15px; text-align: right;">
-
-      <button class="btn-yellow" onclick="completeRegistration()">ورود به مزرعه و شروع استخراج ⛏️</button>
+      <input type="text" class="select-box" id="usernameInput" placeholder="نام کاربری..." style="margin-bottom: 10px;" autocapitalize="none">
+      <input type="password" class="select-box" id="passwordInput" placeholder="رمز عبور..." style="margin-bottom: 15px;">
+      <button class="btn-yellow" onclick="completeRegistration()">ورود به مزرعه و شروع ⛏️</button>
     </div>
   </div>
 
   <!-- صحنه اصلی برنامه -->
   <div id="mainScene" style="display: none;">
-    
     <!-- تب ۱: مزرعه (خانه) -->
     <div id="tab-home" class="section active">
       <div class="top-header">
-        <div>
-          <h3 style="font-size: 16px; color: #00ff88;" id="userGreeting">سلام کاربر</h3>
-          <span style="font-size: 10px; color: #94a3b8;" id="statusText">وضعیت: آماده به کار 💤</span>
-        </div>
-        <div class="wallet-box">
-          <span style="font-size: 9px; color: #94a3b8; display: block;">موجودی کل ولت</span>
-          <span style="font-size: 12px; font-weight: bold; color: #00ff88;" id="headerWallet">0.0000 USDT</span>
-        </div>
+        <div><h3 style="font-size: 16px; color: #00ff88;" id="userGreeting">سلام کاربر</h3><span style="font-size: 10px; color: #94a3b8;" id="statusText">وضعیت: آماده به کار 💤</span></div>
+        <div class="wallet-box"><span style="font-size: 9px; color: #94a3b8; display: block;">موجودی کل ولت</span><span style="font-size: 12px; font-weight: bold; color: #00ff88;" id="headerWallet">0.0000 USDT</span></div>
       </div>
-
-      <!-- دکمه راهنمای مینی اپ -->
       <button class="btn-blue" style="width: 100%; margin: 0 0 14px 0; background: #1e293b !important; border: 1px solid #38bdf8 !important; padding: 10px; font-size: 12px;" onclick="document.getElementById('guideModal').style.display='flex'">📖 راهنمای استفاده از مزرعه و فروشگاه</button>
-
       <div class="card card-cyan" style="text-align: right; padding: 12px; margin-bottom: 14px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <b style="color: #00ff88; font-size: 13px;">🎁 پاداش ورود روزانه</b>
-            <p style="font-size: 11px; color: #94a3b8; margin-top: 2px;" id="dailyBonusStatus">هر ۲۴ ساعت هدیه نقدی بگیرید!</p>
-          </div>
+          <div><b style="color: #00ff88; font-size: 13px;">🎁 پاداش ورود روزانه</b><p style="font-size: 11px; color: #94a3b8; margin-top: 2px;" id="dailyBonusStatus">هر ۲۴ ساعت هدیه نقدی بگیرید!</p></div>
           <button class="btn" style="width: auto; margin-top:0; padding: 8px 14px; font-size: 12px;" id="claimBonusBtn" onclick="claimDailyBonus()">دریافت هدیه ⚡</button>
         </div>
       </div>
-
       <div class="dashboard-grid">
-        <div class="mini-stat" style="border-color: #00ff88;">
-          <span style="font-size: 11px; color: #94a3b8;">قدرت هش‌ریت کل</span>
-          <h4 style="font-size: 15px; color: #00ff88; margin-top: 4px;" id="totalHashrate">68.4 TH/s</h4>
-        </div>
-        <div class="mini-stat" style="border-color: #facc15;">
-          <span style="font-size: 11px; color: #94a3b8;">دستگاه فعال</span>
-          <h4 style="font-size: 15px; color: #facc15; margin-top: 4px;" id="activeMachineName">ماینر رایگان</h4>
-        </div>
+        <div class="mini-stat" style="border-color: #00ff88;"><span style="font-size: 11px; color: #94a3b8;">قدرت هش‌ریت کل</span><h4 style="font-size: 15px; color: #00ff88; margin-top: 4px;" id="totalHashrate">68.4 TH/s</h4></div>
+        <div class="mini-stat" style="border-color: #facc15;"><span style="font-size: 11px; color: #94a3b8;">دستگاه فعال</span><h4 style="font-size: 15px; color: #facc15; margin-top: 4px;" id="activeMachineName">ماینر رایگان</h4></div>
       </div>
-
       <div class="card card-blue" style="text-align: right; margin-bottom: 14px;">
         <label style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 8px;">انتخاب ارز برای استخراج:</label>
         <div style="display: flex; gap: 8px;">
@@ -141,31 +98,22 @@
           <button onclick="setMiningCrypto('TRX', this)" class="crypto-btn" id="cryptoBtn-TRX" style="flex:1; background: #030712; border: 1.5px solid #ff0033; padding: 8px; border-radius: 8px; color: #ff0033; font-weight: bold; cursor: pointer; font-size: 11px;"><span>💎</span> ترون</button>
         </div>
       </div>
-
       <div class="miner-box-container" id="minerContainer">
         <div class="hologram-glow"></div>
         <div class="floating-coins"><div class="coin c-btc">₿</div><div class="coin c-usdt">₮</div><div class="coin c-trx">💎</div></div>
         <div class="miner-svg-wrap">
           <svg viewBox="0 0 240 140" width="100%" height="100%">
-            <rect x="20" y="30" width="200" height="95" rx="10" fill="#0f172a" stroke="#334155" stroke-width="2"/>
-            <rect x="35" y="45" width="70" height="65" rx="6" fill="#030712" stroke="#1e293b" stroke-width="2"/>
-            <text x="45" y="70" fill="#facc15" font-size="9" font-family="monospace">ASIC MINER</text>
-            <g transform="translate(140, 42)">
-              <circle cx="35" cy="35" r="26" fill="#030712" stroke="#00ff88" stroke-width="2" stroke-dasharray="5 3"/>
-              <g class="fan-slow-spin" style="transform-origin: 35px 35px;"><line x1="15" y1="35" x2="55" y2="35" stroke="#94a3b8" stroke-width="3.5"/><line x1="35" y1="15" x2="35" y2="55" stroke="#94a3b8" stroke-width="3.5"/><circle cx="35" cy="35" r="5" fill="#1e293b" stroke="#00ff88" stroke-width="2"/></g>
-            </g>
+            <rect x="20" y="30" width="200" height="95" rx="10" fill="#0f172a" stroke="#334155" stroke-width="2"/><rect x="35" y="45" width="70" height="65" rx="6" fill="#030712" stroke="#1e293b" stroke-width="2"/><text x="45" y="70" fill="#facc15" font-size="9" font-family="monospace">ASIC MINER</text>
+            <g transform="translate(140, 42)"><circle cx="35" cy="35" r="26" fill="#030712" stroke="#00ff88" stroke-width="2" stroke-dasharray="5 3"/><g class="fan-slow-spin" style="transform-origin: 35px 35px;"><line x1="15" y1="35" x2="55" y2="35" stroke="#94a3b8" stroke-width="3.5"/><line x1="35" y1="15" x2="35" y2="55" stroke="#94a3b8" stroke-width="3.5"/><circle cx="35" cy="35" r="5" fill="#1e293b" stroke="#00ff88" stroke-width="2"/></g></g>
           </svg>
         </div>
         <h3 style="font-size: 14px; color: #facc15;" id="machineTitle">ماینر رایگان (آماده استخراج)</h3>
       </div>
-
       <div class="card card-yellow">
         <span style="color: #94a3b8; font-size: 13px;" id="dailyLimitLabel">موجودی استخراج شده (مجموع سقف درآمدی فعال)</span>
         <h2 id="minedAmount" style="font-size: 26px; color: #facc15; margin: 8px 0;">0 تومان</h2>
         <span id="minedUsdt" style="font-size: 13px; color: #38bdf8;">≈ 0.00 USDT</span>
-        <div style="margin-top: 12px; background: #060913; height: 8px; border-radius: 4px; overflow: hidden; border: 1px solid #1e293b;">
-          <div id="progressBar" style="width: 0%; background: #facc15; height: 100%;"></div>
-        </div>
+        <div style="margin-top: 12px; background: #060913; height: 8px; border-radius: 4px; overflow: hidden; border: 1px solid #1e293b;"><div id="progressBar" style="width: 0%; background: #facc15; height: 100%;"></div></div>
         <span id="progressText" style="font-size: 11px; color: #94a3b8; margin-top: 6px; display: block;">0% از ظرفیت کلی</span>
         <button class="btn-yellow" id="startBtn" onclick="checkChannelAndMining()">شروع استخراج رایگان 🚀</button>
       </div>
@@ -182,31 +130,19 @@
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">فروشگاه ماینرها</h2></header>
       <div class="card card-cyan" style="text-align: right; background: rgba(0, 255, 136, 0.05); margin-bottom: 15px;">
         <h3 style="color: #00ff88; font-size: 14px; margin-bottom: 8px;">💡 راهنمای ارتقا</h3>
-        <p style="font-size: 11px; color: #94a3b8; line-height: 1.6;">
-          با خرید هر یک از دستگاه‌های قدرتمند زیر، **سرعت استخراج (هش‌ریت)** و **سقف درآمد روزانه** شما به طور چشمگیری افزایش می‌یابد. ماینرهای جدید به صورت دائمی به حساب شما متصل شده و سود روزانه شما را چند برابر می‌کنند.
-        </p>
+        <p style="font-size: 11px; color: #94a3b8; line-height: 1.6;">خرید هر دستگاه سرعت استخراج شما را به طور دائمی افزایش می‌دهد.</p>
       </div>
-      
-      <div class="card card-blue" style="text-align: right; margin-bottom: 15px; display: flex; align-items: center; gap: 12px;">
-        <div style="background: rgba(56,189,248,0.1); border: 1px solid #38bdf8; padding: 10px; border-radius: 12px; display: grid; place-items: center; min-width: 60px;">
-          <svg width="40" height="26" viewBox="0 0 100 60"><rect x="5" y="10" width="90" height="40" rx="6" fill="#030712" stroke="#38bdf8" stroke-width="4"/><circle cx="70" cy="30" r="12" fill="#0f172a" stroke="#38bdf8" stroke-width="3"/><circle cx="35" cy="30" r="6" fill="#38bdf8"/></svg>
-        </div>
+      <div class="card card-blue" style="text-align: right; display: flex; align-items: center; gap: 12px;">
+        <div style="background: rgba(56,189,248,0.1); border: 1px solid #38bdf8; padding: 10px; border-radius: 12px; min-width: 60px;"><svg width="40" height="26" viewBox="0 0 100 60"><rect x="5" y="10" width="90" height="40" rx="6" fill="#030712" stroke="#38bdf8" stroke-width="4"/><circle cx="70" cy="30" r="12" fill="#0f172a" stroke="#38bdf8" stroke-width="3"/><circle cx="35" cy="30" r="6" fill="#38bdf8"/></svg></div>
         <div style="flex: 1;">
-          <b style="color: #38bdf8; font-size: 14px;">ماینر پرو (Pro)</b>
-          <p style="font-size: 10px; color: #94a3b8;">درآمد: ۱۵۰,۰۰۰ ت | ۳۲۰ TH/s</p>
-          <p style="font-size: 12px; color: #fff; margin: 4px 0;">قیمت: <b>۱,۹۹۹,۰۰۰ ت</b></p>
+          <b style="color: #38bdf8; font-size: 14px;">ماینر پرو (Pro)</b><p style="font-size: 10px; color: #94a3b8;">درآمد: ۱۵۰,۰۰۰ ت | ۳۲۰ TH/s</p><p style="font-size: 12px; color: #fff; margin: 4px 0;">قیمت: <b>۱,۹۹۹,۰۰۰ ت</b></p>
           <div id="proPurchaseBtns" style="display: flex; gap: 6px;"></div>
         </div>
       </div>
-
       <div class="card card-yellow" style="text-align: right; display: flex; align-items: center; gap: 12px;">
-        <div style="background: rgba(250,204,21,0.1); border: 1px solid #facc15; padding: 10px; border-radius: 12px; display: grid; place-items: center; min-width: 60px;">
-          <svg width="40" height="26" viewBox="0 0 100 60"><rect x="5" y="10" width="90" height="40" rx="6" fill="#030712" stroke="#facc15" stroke-width="4"/><circle cx="70" cy="30" r="12" fill="#0f172a" stroke="#facc15" stroke-width="3"/><line x1="25" y1="20" x2="45" y2="20" stroke="#facc15" stroke-width="3"/><line x1="25" y1="40" x2="45" y2="40" stroke="#facc15" stroke-width="3"/></svg>
-        </div>
+        <div style="background: rgba(250,204,21,0.1); border: 1px solid #facc15; padding: 10px; border-radius: 12px; min-width: 60px;"><svg width="40" height="26" viewBox="0 0 100 60"><rect x="5" y="10" width="90" height="40" rx="6" fill="#030712" stroke="#facc15" stroke-width="4"/><circle cx="70" cy="30" r="12" fill="#0f172a" stroke="#facc15" stroke-width="3"/><line x1="25" y1="20" x2="45" y2="20" stroke="#facc15" stroke-width="3"/><line x1="25" y1="40" x2="45" y2="40" stroke="#facc15" stroke-width="3"/></svg></div>
         <div style="flex: 1;">
-          <b style="color: #facc15; font-size: 14px;">ماینر توربو (Turbo)</b>
-          <p style="font-size: 10px; color: #94a3b8;">درآمد: ۲۵۰,۰۰۰ ت | ۶۵۰ TH/s</p>
-          <p style="font-size: 12px; color: #fff; margin: 4px 0;">قیمت: <b>۲,۷۹۹,۰۰۰ ت</b></p>
+          <b style="color: #facc15; font-size: 14px;">ماینر توربو (Turbo)</b><p style="font-size: 10px; color: #94a3b8;">درآمد: ۲۵۰,۰۰۰ ت | ۶۵۰ TH/s</p><p style="font-size: 12px; color: #fff; margin: 4px 0;">قیمت: <b>۲,۷۹۹,۰۰۰ ت</b></p>
           <div id="turboPurchaseBtns" style="display: flex; gap: 6px;"></div>
         </div>
       </div>
@@ -215,41 +151,22 @@
     <!-- تب ۴: کیف پول -->
     <div id="tab-wallet" class="section">
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">💳 کیف پول من</h2></header>
-      <div class="card card-cyan" style="text-align: right;">
-        <span style="font-size: 12px; color: #94a3b8;">موجودی کل قابل برداشت</span>
-        <h2 style="color: #00ff88; font-size: 22px; margin: 6px 0;" id="walletTotalToman">0 تومان</h2>
-      </div>
-      <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-        <button class="btn-yellow" style="margin-top:0; font-size: 12px; padding: 10px;" onclick="switchWithdrawTab('toman')">💳 برداشت تومانی</button>
-        <button class="btn-blue" style="margin-top:0; font-size: 12px; padding: 10px;" onclick="switchWithdrawTab('crypto')">🪙 برداشت ترون (TRC20)</button>
-      </div>
-
+      <div class="card card-cyan" style="text-align: right;"><span style="font-size: 12px; color: #94a3b8;">موجودی کل قابل برداشت</span><h2 style="color: #00ff88; font-size: 22px; margin: 6px 0;" id="walletTotalToman">0 تومان</h2></div>
+      <div style="display: flex; gap: 8px; margin-bottom: 15px;"><button class="btn-yellow" style="margin-top:0; font-size: 12px; padding: 10px;" onclick="switchWithdrawTab('toman')">💳 برداشت تومانی</button><button class="btn-blue" style="margin-top:0; font-size: 12px; padding: 10px;" onclick="switchWithdrawTab('crypto')">🪙 برداشت ترون (TRC20)</button></div>
       <div id="withdrawTomanSection" class="card card-yellow" style="text-align: right;">
         <h3 style="color: #facc15; font-size: 14px; margin-bottom: 12px;">انتقال وجه به کارت بانکی</h3>
-        <label style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 6px;">شماره کارت (۱۶ رقمی):</label>
-        <input type="text" class="select-box" id="wCardNumber" placeholder="6037xxxxxxxxxxxx" style="margin-bottom: 10px; text-align: center; font-family: monospace;" maxlength="16">
-        <label style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 6px;">نام صاحب کارت:</label>
-        <input type="text" class="select-box" id="wCardHolder" placeholder="مثلاً: علی رضایی" style="margin-bottom: 10px; text-align: right;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-          <label style="font-size: 12px; color: #94a3b8;">مقدار برداشت (تومان):</label>
-          <span style="font-size: 11px; color: #00ff88; cursor: pointer;" onclick="setMaxToman()">کل موجودی ⚡</span>
-        </div>
-        <input type="number" class="select-box" id="wTomanAmount" placeholder="مثلاً: 100000" style="margin-bottom: 15px; text-align: right;">
+        <input type="text" class="select-box" id="wCardNumber" placeholder="شماره کارت ۱۶ رقمی" style="margin-bottom: 10px; text-align: center;" maxlength="16">
+        <input type="text" class="select-box" id="wCardHolder" placeholder="نام صاحب کارت" style="margin-bottom: 10px; text-align: right;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;"><label style="font-size: 12px; color: #94a3b8;">مقدار برداشت (تومان):</label><span style="font-size: 11px; color: #00ff88; cursor: pointer;" onclick="setMaxToman()">کل موجودی ⚡</span></div>
+        <input type="number" class="select-box" id="wTomanAmount" placeholder="مبلغ..." style="margin-bottom: 15px; text-align: right;">
         <button class="btn-yellow" style="margin-top:0;" onclick="submitTomanWithdraw()">ثبت برداشت تومانی ✅</button>
       </div>
-
       <div id="withdrawCryptoSection" class="card card-blue" style="text-align: right; display: none;">
         <h3 style="color: #38bdf8; font-size: 14px; margin-bottom: 6px;">برداشت ترون روی شبکه TRC20</h3>
-        <p style="font-size: 11px; color: #94a3b8; margin-bottom: 12px;">توجه: برداشت ارزی صرفاً به صورت ارز ترون و روی شبکه TRC20 واریز می‌شود.</p>
-        <label style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 6px;">انتخاب شبکه:</label>
-        <input type="text" class="select-box" value="شبکه ترون (TRC20)" readonly style="margin-bottom: 10px; color: #00ff88 !important; background: #030712;">
-        <label style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 6px;">آدرس ولت ترون (TRC20):</label>
-        <input type="text" class="select-box" id="wCryptoAddress" placeholder="آدرس ولت ترون..." style="margin-bottom: 10px; text-align: left; font-family: monospace;" dir="ltr">
-        <label style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 6px;">مقدار برداشت (تومان معادل):</label>
-        <input type="number" class="select-box" id="wCryptoAmount" placeholder="مثلاً: 100000" style="margin-bottom: 15px; text-align: right;">
-        <button class="btn-blue" style="margin-top:0;" onclick="submitCryptoWithdraw()">ثبت برداشت ترون TRC20 🪙</button>
+        <input type="text" class="select-box" id="wCryptoAddress" placeholder="آدرس ولت ترون (TRC20)..." style="margin-bottom: 10px; text-align: left;" dir="ltr">
+        <input type="number" class="select-box" id="wCryptoAmount" placeholder="مبلغ درخواستی معادل تومان..." style="margin-bottom: 15px; text-align: right;">
+        <button class="btn-blue" style="margin-top:0;" onclick="submitCryptoWithdraw()">ثبت برداشت ترون 🪙</button>
       </div>
-      
       <div class="card" style="text-align: right; margin-top: 15px;">
         <h3 style="color: #ffffff; font-size: 14px; margin-bottom: 10px;">📜 درخواست‌ها و تاریخچه برداشت</h3>
         <div id="accountWithdrawHistory" style="font-size: 12px; color: #94a3b8;">هنوز برداشتی ثبت نشده است.</div>
@@ -265,12 +182,10 @@
       </div>
       <div class="card card-cyan" style="text-align: right;">
         <h3 style="color: #ffffff; font-size: 13px; margin-bottom: 8px;">📤 اشتراک‌گذاری سریع بنر</h3>
-        <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; border: 1px solid #1e293b; font-size: 11px; color: #94a3b8; line-height: 1.5; margin-bottom: 10px;" id="shareTextTemplate">
-          <!-- با جاوااسکریپت پر میشود -->
-        </div>
+        <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; border: 1px solid #1e293b; font-size: 11px; color: #94a3b8; line-height: 1.5; margin-bottom: 10px;" id="shareTextTemplate"></div>
         <div style="display: flex; gap: 8px;">
-          <button class="btn-yellow" style="margin-top:0; font-size: 11px; padding: 10px;" onclick="shareToTelegram()">ارسال مستقیم ↗</button>
-          <button class="btn" style="margin-top:0; font-size: 11px; padding: 10px;" onclick="copyShareText()">کپی متن 📋</button>
+          <button class="btn-yellow" style="margin-top:0; font-size: 11px; padding: 10px;" onclick="shareToTelegram()">ارسال مستقیم به دوستان ↗</button>
+          <button class="btn" style="margin-top:0; font-size: 11px; padding: 10px;" onclick="copyShareText()">کپی متن بنر 📋</button>
         </div>
       </div>
     </div>
@@ -279,42 +194,29 @@
     <div id="tab-account" class="section">
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">👤 حساب کاربری من</h2></header>
       
-      <!-- بخش تیکت پشتیبانی -->
+      <!-- تیکت پشتیبانی -->
       <div class="card card-blue" style="text-align: right; background: rgba(56, 189, 248, 0.05);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
           <h3 style="color: #38bdf8; font-size: 14px;">🎧 پشتیبانی آنلاین (تیکت)</h3>
           <button class="btn-blue" style="width: auto; margin:0; padding: 6px 12px; font-size: 11px;" onclick="openNewTicketPrompt()">ثبت تیکت ➕</button>
         </div>
         <p style="font-size: 11px; color: #94a3b8; margin-bottom: 10px;">مشکلات یا سوالات خود را با مدیریت در میان بگذارید.</p>
-        <div id="userTicketsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;">
-          <!-- تیکت‌های کاربر -->
-        </div>
+        <div id="userTicketsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;"></div>
       </div>
 
-      <div class="card card-yellow" style="text-align: right;">
-        <h3 style="color: #facc15; font-size: 16px;" id="userTierBadge">حساب عادی 🥉</h3>
-      </div>
+      <div class="card card-yellow" style="text-align: right;"><h3 style="color: #facc15; font-size: 16px;" id="userTierBadge">حساب عادی 🥉</h3></div>
 
+      <!-- برترین ها -->
       <div class="card card-cyan" style="text-align: right;">
-        <h3 style="color: #00ff88; font-size: 14px; margin-bottom: 10px;">🏆 جدول برترین‌های ماینینگ (Top Miners)</h3>
+        <h3 style="color: #00ff88; font-size: 14px; margin-bottom: 10px;">🏆 جدول برترین‌های ماینینگ</h3>
         <div id="leaderboardList" style="display: flex; flex-direction: column; gap: 6px;"></div>
       </div>
 
       <div class="card" style="text-align: right;">
         <h3 style="color: #facc15; font-size: 14px; margin-bottom: 10px;">تنظیمات حساب</h3>
-        <label style="font-size: 11px; color: #94a3b8; display: block; margin-bottom: 4px;">تغییر نام کاربری:</label>
-        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-          <input type="text" class="select-box" id="changeUsernameInput" placeholder="نام جدید..." style="margin-bottom: 0;">
-          <button class="btn-yellow" style="margin-top: 0; width: 90px; padding: 8px; font-size: 11px;" onclick="updateUsername()">ذخیره</button>
-        </div>
-        <label style="font-size: 11px; color: #94a3b8; display: block; margin-bottom: 4px;">تغییر رمز عبور:</label>
-        <div style="display: flex; gap: 8px;">
-          <input type="password" class="select-box" id="changePasswordInput" placeholder="رمز جدید..." style="margin-bottom: 0;">
-          <button class="btn-yellow" style="margin-top: 0; width: 90px; padding: 8px; font-size: 11px;" onclick="updatePassword()">ذخیره</button>
-        </div>
+        <div style="display: flex; gap: 8px; margin-bottom: 10px;"><input type="text" class="select-box" id="changeUsernameInput" placeholder="نام کاربری جدید..." style="margin-bottom: 0;"><button class="btn-yellow" style="margin-top: 0; width: 90px; padding: 8px; font-size: 11px;" onclick="updateUsername()">ذخیره</button></div>
+        <div style="display: flex; gap: 8px;"><input type="password" class="select-box" id="changePasswordInput" placeholder="رمز جدید..." style="margin-bottom: 0;"><button class="btn-yellow" style="margin-top: 0; width: 90px; padding: 8px; font-size: 11px;" onclick="updatePassword()">ذخیره</button></div>
       </div>
-
-      <!-- نقطه مخفی ورود به ادمین -->
       <div onclick="openAdminLoginModal()" style="width: 35px; height: 25px; margin: 15px auto 0 auto; cursor: pointer;"></div>
     </div>
   </div>
@@ -337,69 +239,70 @@
     <div style="font-size: 12px; color: #94a3b8; line-height: 1.7;">
       <b style="color: #fff;">🏠 بخش مزرعه:</b> اینجا محل استخراج است. پس از زدن دکمه شروع، سیستم 24 ساعت استخراج می‌کند. هر روز باید برای استخراج جدید مراجعه کنید.<br><br>
       <b style="color: #fff;">⚙️ بخش ماینرها:</b> لیست دستگاه‌های فعال شما و سقف درآمد آن‌ها را نشان می‌دهد.<br><br>
-      <b style="color: #fff;">🛒 بخش فروشگاه:</b> می‌توانید ماینرهای قدرتمندتری بخرید تا سرعت استخراج و سقف درآمدتان برای همیشه بیشتر شود. خریدها بعد از تایید ادمین قفل می‌شوند تا تکراری خرید نکنید.<br><br>
-      <b style="color: #fff;">💳 بخش کیف پول:</b> درخواست برداشت وجه به صورت تومانی یا ترون (TRC20) در این قسمت انجام و تاریخچه آن ذخیره می‌شود.<br><br>
-      <b style="color: #fff;">👤 بخش حساب و پشتیبانی:</b> برای ارسال تیکت مستقیم به مدیریت و تغییر رمز عبور.
+      <b style="color: #fff;">🛒 بخش فروشگاه:</b> خرید دستگاه باعث افزایش دائمی سقف درآمد و سرعت استخراج شما می‌شود.<br><br>
+      <b style="color: #fff;">💳 بخش کیف پول:</b> برداشت به صورت تومانی یا ترون در این قسمت انجام می‌شود.<br><br>
+      <b style="color: #fff;">👤 بخش حساب و پشتیبانی:</b> ثبت تیکت پشتیبانی و تغییر مشخصات اکانت.
     </div>
     <button class="btn-blue" onclick="document.getElementById('guideModal').style.display='none'">متوجه شدم ✕</button>
   </div>
 </div>
 
-<!-- مدال چت تیکت (با z-index بسیار بالا برای باز شدن روی پنل ادمین) -->
-<div id="ticketChatModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 12000; justify-content: center; align-items: center; padding: 15px;" dir="rtl">
-  <div class="card card-blue" style="max-width: 400px; width: 100%; text-align: right;">
+<!-- مدال چت تیکت (روی پنل ادمین باز می‌شود) -->
+<div id="ticketChatModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 15000; justify-content: center; align-items: center; padding: 15px;" dir="rtl">
+  <div class="card card-blue" style="max-width: 400px; width: 100%; text-align: right; position: relative;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #1e293b; padding-bottom: 10px;">
       <h3 style="color: #38bdf8; font-size: 14px;" id="tcTitle">تیکت پشتیبانی</h3>
       <button onclick="document.getElementById('ticketChatModal').style.display='none'" style="background:none; border:none; color:#ef4444; font-size:16px; cursor:pointer;">✕</button>
     </div>
     <div id="tcMessages" style="height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; padding: 5px;"></div>
-    
     <div id="tcInputArea" style="display: flex; gap: 8px;">
       <input type="text" class="select-box" id="tcReplyInput" placeholder="پاسخ خود را بنویسید..." style="margin-bottom: 0;">
       <button class="btn-blue" style="margin-top:0; width: 80px; padding: 8px; font-size: 12px;" onclick="sendTicketMessage()">ارسال</button>
     </div>
-    <!-- دکمه بستن تیکت مخصوص ادمین -->
-    <button id="tcAdminCloseBtn" class="btn-danger" style="display:none; margin-top:10px; font-size:12px; padding:8px;" onclick="adminCloseActiveTicket()">بستن دائمی این تیکت 🔒</button>
+    <button id="tcCloseBtnUniversal" class="btn-danger" style="margin-top:10px; font-size:12px; padding:8px;" onclick="closeActiveTicket()">بستن دائمی این تیکت 🔒</button>
   </div>
 </div>
 
-<!-- مودال‌های قبلی (خرید، عضویت و پاپ آپ) -->
-<div id="announcementModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 4000; justify-content: center; align-items: center; padding: 20px;" dir="rtl"><div class="card card-yellow" style="max-width: 360px; width: 100%; text-align: right; position: relative;"><button onclick="document.getElementById('announcementModal').style.display='none'" style="position: absolute; top: 12px; left: 12px; background: #ef4444; color: white; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer;">✕</button><h3 style="color: #facc15; font-size: 16px; margin-bottom: 10px;" id="announcementTitle">📢 اطلاعیه مهم مدیریت</h3><p style="font-size: 12px; color: #ffffff; line-height: 1.6; margin-bottom: 15px;" id="announcementText"></p><div id="announcementLinkBox" style="display: none;"><a id="announcementLinkBtn" href="#" target="_blank" class="btn-blue" style="display: block; text-align: center; font-size: 12px; padding: 10px;">مشاهده لینک مربوطه 🔗</a></div></div></div>
+<!-- مودال‌های پاپ‌آپ، خرید و کانال -->
+<div id="announcementModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 4000; justify-content: center; align-items: center; padding: 20px;" dir="rtl"><div class="card card-yellow" style="max-width: 360px; width: 100%; text-align: right; position: relative;"><button onclick="document.getElementById('announcementModal').style.display='none'" style="position: absolute; top: 12px; left: 12px; background: #ef4444; color: white; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer;">✕</button><h3 style="color: #facc15; font-size: 16px; margin-bottom: 10px;" id="announcementTitle">📢 اطلاعیه مهم مدیریت</h3><p style="font-size: 12px; color: #ffffff; line-height: 1.6; margin-bottom: 15px;" id="announcementText"></p><div id="announcementLinkBox" style="display: none;"><a id="announcementLinkBtn" href="#" target="_blank" class="btn-blue" style="display: block; text-align: center; font-size: 12px; padding: 10px;">مشاهده لینک 🔗</a></div></div></div>
 <div id="channelModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px;" dir="rtl"><div class="card card-yellow" style="max-width: 380px; width: 100%; text-align: center;"><h3 style="color: #facc15; font-size: 16px; margin-bottom: 10px;">📢 عضویت اجباری در کانال‌ها</h3><div id="modalChannelsContainer" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;"></div><button class="btn-yellow" onclick="verifyAllMemberships()">تایید عضویت و شروع ⚡</button></div></div>
-<div id="checkoutModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; padding: 15px;" dir="rtl"><div class="card card-yellow" style="max-width: 400px; width: 100%; text-align: right;"><h3 style="color: #facc15; font-size: 17px; margin-bottom: 10px; text-align: center;" id="checkoutTitle">خرید دستگاه</h3><p style="font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 15px;" id="checkoutPriceText"></p><div id="checkoutCardBox" style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; border: 1px solid #1e293b; margin-bottom: 15px;"><div style="background: #030712; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 14px; color: #facc15; text-align: center;" id="displayAdminCard"></div><p style="font-size: 11px; color: #94a3b8; margin-top: 6px;">به نام: <span id="displayAdminName"></span></p></div><div id="checkoutCryptoBox" style="display:none; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; border: 1px solid #1e293b; margin-bottom: 15px;"><div style="background: #030712; padding: 8px; border-radius: 8px; font-family: monospace; font-size: 11px; color: #00ff88; text-align: center; word-break: break-all;" id="displayAdminWallet"></div></div><input type="text" class="select-box" id="receiptInput" placeholder="شماره پیگیری..." style="margin-bottom: 15px;"><div style="display: flex; gap: 10px;"><button class="btn-yellow" style="margin-top:0;" onclick="submitReceipt()">ارسال رسید ✅</button><button class="btn-danger" style="margin-top:0;" onclick="document.getElementById('checkoutModal').style.display='none'">انصراف ❌</button></div></div></div>
-<div id="adminLoginModal" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center;" dir="rtl"><div style="background: #1e1e2f; padding: 30px; border-radius: 14px; width: 340px; text-align: center; color: white; border: 1px solid #e74c3c;"><h3 style="margin-bottom: 8px; color: #facc15;">ورودی ادمین</h3><input type="password" id="adminPasswordInput" placeholder="رمز عبور ادمین..." style="width: 100%; padding: 12px; background: #2a2a40; border: 1px solid #444; color: white; border-radius: 8px; margin-bottom: 15px;"><button onclick="verifyAdminPassword()" style="width: 100%; background: #2ecc71; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">ورود</button><button onclick="document.getElementById('adminLoginModal').style.display='none'" style="width: 100%; background: #c0392b; color: white; padding: 10px; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px;">انصراف</button></div></div>
+<div id="checkoutModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; padding: 15px;" dir="rtl"><div class="card card-yellow" style="max-width: 400px; width: 100%; text-align: right;"><h3 style="color: #facc15; font-size: 17px; margin-bottom: 10px; text-align: center;" id="checkoutTitle">خرید دستگاه</h3><p style="font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 15px;" id="checkoutPriceText">مبلغ:</p><div id="checkoutCardBox" style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; border: 1px solid #1e293b; margin-bottom: 15px;"><div style="background: #030712; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 14px; color: #facc15; text-align: center;" id="displayAdminCard"></div><p style="font-size: 11px; color: #94a3b8; margin-top: 6px;">به نام: <span id="displayAdminName"></span></p></div><div id="checkoutCryptoBox" style="display:none; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; border: 1px solid #1e293b; margin-bottom: 15px;"><div style="background: #030712; padding: 8px; border-radius: 8px; font-family: monospace; font-size: 11px; color: #00ff88; text-align: center; word-break: break-all;" id="displayAdminWallet"></div></div><input type="text" class="select-box" id="receiptInput" placeholder="شماره پیگیری..." style="margin-bottom: 15px;"><div style="display: flex; gap: 10px;"><button class="btn-yellow" style="margin-top:0;" onclick="submitReceipt()">ارسال رسید ✅</button><button class="btn-danger" style="margin-top:0;" onclick="closeCheckout()">انصراف ❌</button></div></div></div>
 
-<!-- کنترل پنل ادمین -->
+<!-- ورود ادمین -->
+<div id="adminLoginModal" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center;" dir="rtl"><div style="background: #1e1e2f; padding: 30px; border-radius: 14px; width: 340px; text-align: center; color: white; border: 1px solid #e74c3c;"><h3 style="margin-bottom: 8px; color: #facc15;">ورودی ادمین</h3><input type="password" id="adminPasswordInput" placeholder="رمز عبور ادمین..." style="width: 100%; padding: 12px; background: #2a2a40; border: 1px solid #444; color: white; border-radius: 8px; margin-bottom: 15px;"><button onclick="verifyAdminPassword()" style="width: 100%; background: #2ecc71; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">ورود به مدیریت</button><button onclick="document.getElementById('adminLoginModal').style.display='none'" style="width: 100%; background: #c0392b; color: white; padding: 10px; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px;">انصراف</button></div></div>
+
+<!-- پنل ادمین -->
 <div id="adminDashboardPanel" style="display:none; position: fixed; inset: 0; background: #12121a; z-index: 10001; overflow-y: auto; padding: 20px; color: white; direction: rtl; text-align: right;">
   <div style="max-width: 800px; margin: 0 auto; background: #1a1a2e; padding: 25px; border-radius: 16px; border: 1px solid #e74c3c;">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px;">
-      <h2>🛠️ مدیریت مرکزی</h2>
-      <button onclick="document.getElementById('adminDashboardPanel').style.display='none'" style="background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer;">بستن ❌</button>
+      <h2>🛠️ کنترل پنل مرکزی مدیریت</h2>
+      <button onclick="closeAdminDashboard()" style="background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer;">بستن ❌</button>
     </div>
     <div style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;">
-      <button onclick="switchAdminTab('stats')" style="background: #e67e22; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📊 آمار کاربران</button>
-      <button onclick="switchAdminTab('tickets')" style="background: #f1c40f; color: black; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight:bold;">🎫 تیکت‌ها</button>
+      <button onclick="switchAdminTab('stats')" style="background: #e67e22; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📊 آمار</button>
+      <button onclick="switchAdminTab('tickets')" style="background: #f1c40f; color: black; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🎫 تیکت‌ها</button>
       <button onclick="switchAdminTab('receipts')" style="background: #27ae60; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🧾 رسیدها</button>
       <button onclick="switchAdminTab('withdrawals')" style="background: #e74c3c; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">💸 برداشت‌ها</button>
       <button onclick="switchAdminTab('referralCfg')" style="background: #3498db; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📝 متن دعوت</button>
-      <button onclick="switchAdminTab('broadcast')" style="background: #9b59b6; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📢 پیام</button>
+      <button onclick="switchAdminTab('channels')" style="background: #34495e; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📢 کانال‌ها</button>
+      <button onclick="switchAdminTab('bonus')" style="background: #d35400; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🎁 سایر</button>
     </div>
 
-    <!-- آمار با جستجو -->
+    <!-- آمار کاربران -->
     <div id="adminTab-stats" class="admin-tab-content">
       <div style="background: #252538; padding: 12px; border-radius: 8px; margin-bottom: 15px;"><p style="font-size: 11px; color: #aaa;">تعداد کل کاربران ثبت‌نامی</p><h3 id="statTotalUsers" style="color: #3498db; margin-top: 5px;">0</h3></div>
       <input type="text" id="adminSearchInput" onkeyup="renderAdminStats()" placeholder="🔍 جستجوی نام کاربری..." class="select-box" style="margin-bottom: 15px; background: #252538 !important; border: 1px solid #444 !important;">
-      <h4 style="color: #facc15; border-bottom: 1px solid #444; padding-bottom: 8px;">لیست کاربران:</h4>
+      <h4 style="color: #facc15; border-bottom: 1px solid #444; padding-bottom: 8px;">لیست تفکیک شده کاربران:</h4>
       <div id="adminUsersListDetailed" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
     
-    <!-- تیکت‌های ادمین -->
+    <!-- تیکت‌ها -->
     <div id="adminTab-tickets" class="admin-tab-content" style="display: none;">
       <h4>مدیریت تیکت‌های پشتیبانی کاربران</h4>
       <div id="adminTicketsList" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">هیچ تیکتی وجود ندارد.</div>
     </div>
 
-    <!-- برداشت‌ها (با کدگذاری رنگی) -->
+    <!-- برداشت‌ها (با دسته‌بندی دقیق) -->
     <div id="adminTab-withdrawals" class="admin-tab-content" style="display: none;">
       <h4>تایید و مدیریت برداشت‌ها</h4>
       <div id="adminWithdrawalsList" style="margin-top: 15px;"></div>
@@ -409,12 +312,45 @@
     <div id="adminTab-referralCfg" class="admin-tab-content" style="display: none;">
       <h4>ویرایش متن بنر دعوت دوستان</h4>
       <p style="font-size:11px; color:#aaa; margin-bottom:10px;">متن دلخواه خود را بنویسید. لینک زیرمجموعه‌گیری کاربر به صورت خودکار به انتهای این متن اضافه می‌شود.</p>
-      <textarea id="editBannerText" class="select-box" style="height:120px; margin-bottom:15px;"></textarea>
+      <textarea id="editBannerText" class="select-box" style="height:120px; margin-bottom:15px; line-height: 1.6;"></textarea>
       <button onclick="saveAdminBanner()" class="btn-yellow">ذخیره متن بنر ✅</button>
     </div>
 
-    <div id="adminTab-receipts" class="admin-tab-content" style="display: none;"><div id="adminReceiptsList"></div></div>
-    <div id="adminTab-broadcast" class="admin-tab-content" style="display: none;"><input type="text" id="adminNoticeTitle" placeholder="عنوان پیام..." class="select-box" style="margin-bottom: 10px;"><textarea id="adminNoticeText" placeholder="متن اطلاعیه..." style="width: 100%; height: 80px; padding: 10px; background: #030712; color: white; border: 1px solid #334155; border-radius: 8px; margin-bottom: 10px;"></textarea><input type="text" id="adminNoticeLink" placeholder="لینک (https://...)" class="select-box" style="margin-bottom: 15px;" dir="ltr"><button onclick="saveAdminAnnouncement()" class="btn-yellow">انتشار 🚀</button></div>
+    <!-- کانال‌های اجباری (برگردانده شد) -->
+    <div id="adminTab-channels" class="admin-tab-content" style="display: none;">
+      <h4>مدیریت کانال‌های تلگرام (عضویت اجباری)</h4>
+      <div style="display: flex; gap: 8px; margin: 10px 0;">
+        <input type="text" id="newChannelName" placeholder="نام کانال..." style="flex:1; padding:8px; background:#252538; border:1px solid #444; color:white; border-radius:6px;">
+        <input type="text" id="newChannelUrl" placeholder="لینک (https://...)" style="flex:2; padding:8px; background:#252538; border:1px solid #444; color:white; border-radius:6px;" dir="ltr">
+        <button onclick="adminAddChannel()" style="background:#2ecc71; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">افزودن ➕</button>
+      </div>
+      <div id="adminChannelsList" style="margin-top: 10px; font-size: 12px; color: #aaa;"></div>
+    </div>
+
+    <!-- پاداش و سایر تنظیمات -->
+    <div id="adminTab-bonus" class="admin-tab-content" style="display: none;">
+      <div style="margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom:15px;">
+        <h4>پاداش ورود روزانه (تومان)</h4>
+        <input type="number" id="editBonusAmount" class="select-box" style="margin-bottom: 10px;">
+        <button onclick="saveAdminDailyBonus()" class="btn-yellow">ذخیره پاداش روزانه</button>
+      </div>
+      <div style="margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom:15px;">
+        <h4>پیام پاپ‌آپ همگانی</h4>
+        <input type="text" id="adminNoticeTitle" placeholder="عنوان پیام..." class="select-box" style="margin-bottom: 10px;">
+        <textarea id="adminNoticeText" placeholder="متن اطلاعیه..." style="width: 100%; height: 80px; padding: 10px; background: #030712; color: white; border: 1px solid #334155; border-radius: 8px; margin-bottom: 10px;"></textarea>
+        <input type="text" id="adminNoticeLink" placeholder="لینک (https://...)" class="select-box" style="margin-bottom: 10px;" dir="ltr">
+        <button onclick="saveAdminAnnouncement()" class="btn-yellow">انتشار پیام 🚀</button>
+      </div>
+      <div>
+        <h4>تنظیم کارت و ولت واریزی ادمین</h4>
+        <input type="text" id="editCardInput" class="select-box" style="margin-bottom: 10px;" placeholder="شماره کارت">
+        <input type="text" id="editNameInput" class="select-box" style="margin-bottom: 10px;" placeholder="نام صاحب کارت">
+        <input type="text" id="editWalletInput" class="select-box" style="margin-bottom: 15px;" dir="ltr" placeholder="آدرس ولت ترون">
+        <button onclick="saveAdminFinancialSettings()" class="btn-yellow">ذخیره تغییرات مالی</button>
+      </div>
+    </div>
+    
+    <div id="adminTab-receipts" class="admin-tab-content" style="display: none;"><h4>رسیدهای خرید</h4><div id="adminReceiptsList"></div></div>
   </div>
 </div>
 
@@ -422,6 +358,8 @@
   const API_URL = "https://alinew.pythonanywhere.com";
   let currentUser = null;
   let db = {};
+  let isAdminLoggedIn = false; // بررسی وضعیت لاگین ادمین
+  
   let adminConfig = { 
     card: "6037-9974-1234-5678", name: "شرکت تجارت ابری ماینرتولز", wallet: "TRC20WalletAddressExample123",
     bannerText: "میخوای ماینر مجازی رایگان در اختیارت بذاریم و روزانه ارز دیجیتال استخراج کنی؟ ⛏️💰\n\n🚀 کاملاً ابری و رایگان! همین الان از طریق لینک زیر وارد شو و ماینر هدیه‌ات رو فعال کن تا استخراجت شروع بشه 👇"
@@ -434,7 +372,6 @@
   let miningInterval = null;
   let selectedMachineToBuy = null;
   
-  // متغیرهای چت تیکت
   let activeChatTicketId = null;
   let activeChatUsername = null;
 
@@ -448,6 +385,7 @@
           allWithdrawals = db['_ADMIN_DATA_'].allWithdrawals || [];
           pendingReceipts = db['_ADMIN_DATA_'].pendingReceipts || [];
           if(db['_ADMIN_DATA_'].bannerText) adminConfig.bannerText = db['_ADMIN_DATA_'].bannerText;
+          if(db['_ADMIN_DATA_'].channels) mandatoryChannels = db['_ADMIN_DATA_'].channels;
         }
       }
     } catch (err) { console.log(err); }
@@ -458,6 +396,7 @@
     db['_ADMIN_DATA_'].allWithdrawals = allWithdrawals;
     db['_ADMIN_DATA_'].pendingReceipts = pendingReceipts;
     db['_ADMIN_DATA_'].bannerText = adminConfig.bannerText;
+    db['_ADMIN_DATA_'].channels = mandatoryChannels;
     await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
   }
 
@@ -490,9 +429,7 @@
     updateUI(); renderMyMiners(); startMiningLoop(); checkGlobalNotice(); checkBonusStatus(); updateCryptoUI(db[currentUser].miningCrypto || 'USDT');
   }
 
-  function getInviteMessage() { 
-    return adminConfig.bannerText + "\nhttps://t.me/MinerToolsBot?start=" + currentUser; 
-  }
+  function getInviteMessage() { return adminConfig.bannerText + "\nhttps://t.me/MinerToolsBot?start=" + currentUser; }
   function shareToTelegram() { window.open(`https://t.me/share/url?url=${encodeURIComponent("https://t.me/MinerToolsBot?start=" + currentUser)}&text=${encodeURIComponent(getInviteMessage())}`); }
   function copyShareText() { navigator.clipboard.writeText(getInviteMessage()).then(() => alert("✅ متن کپی شد!")); }
 
@@ -522,15 +459,14 @@
   function checkBackgroundMining() {
     let u = db[currentUser];
     if(u && u.isMining) {
-      let now = Date.now();
-      let elapsedSinceStart = now - (u.miningStartTime || now);
-      if(elapsedSinceStart >= 86400000) {
+      let now = Date.now(), elapsed = now - (u.miningStartTime || now);
+      if(elapsed >= 86400000) {
         let valid = (u.miningStartTime + 86400000) - u.lastMiningTime;
         if(valid > 0) u.mined += (valid / 1000) * (getTotalMaxDaily(u) / 86400);
         u.isMining = false; u.lastMiningTime = now;
       } else {
-        let elapsedSeconds = (now - u.lastMiningTime) / 1000;
-        if(elapsedSeconds > 0) u.mined += elapsedSeconds * (getTotalMaxDaily(u) / 86400);
+        let es = (now - u.lastMiningTime) / 1000;
+        if(es > 0) u.mined += es * (getTotalMaxDaily(u) / 86400);
         u.lastMiningTime = now;
       }
       saveDB();
@@ -554,8 +490,7 @@
     document.getElementById('dailyLimitLabel').innerText = `موجودی استخراج شده (سقف: ${tMax.toLocaleString()})`;
     document.getElementById('progressBar').style.width = (tMax > 0 ? Math.min(100, (u.mined / tMax) * 100) : 0) + "%";
 
-    let btn = document.getElementById('startBtn');
-    let con = document.getElementById('minerContainer');
+    let btn = document.getElementById('startBtn'), con = document.getElementById('minerContainer');
     if(u.isMining) {
       btn.innerText = "توقف ماینر ⏸️"; btn.className = "btn-danger"; con.classList.add('active-mining');
       document.getElementById('statusText').innerText = `در حال استخراج ⚡️`;
@@ -564,17 +499,16 @@
       document.getElementById('statusText').innerText = "متوقف شده ⏸️";
     }
     
-    // آپدیت قالب بنر دعوت با متن داینامیک ادمین
     document.getElementById('shareTextTemplate').innerHTML = adminConfig.bannerText.replace(/\n/g, '<br>') + '<br><span style="color: #00ff88;">https://t.me/MinerToolsBot?start=' + currentUser + '</span>';
     
     let hasPro = u.miners.some(m => m.name.includes("پرو"));
     let hasTurbo = u.miners.some(m => m.name.includes("توربو"));
     let pBox = document.getElementById('proPurchaseBtns');
-    if(pBox) pBox.innerHTML = hasPro ? '<span style="background: rgba(0,255,136,0.1); padding: 8px; border-radius: 8px; color: #00ff88; font-size: 11px; display: block; text-align: center; width: 100%;">✅ خریداری شده (فعال)</span>' : `<button class="btn-blue" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Pro', 1999000, 'toman')">💳 تومانی</button><button class="btn-yellow" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Pro', 1999000, 'crypto')">🪙 ترون TRC20</button>`;
+    if(pBox) pBox.innerHTML = hasPro ? '<span style="background: rgba(0,255,136,0.1); padding: 8px; border-radius: 8px; color: #00ff88; font-size: 11px; display: block; text-align: center; width: 100%;">✅ خریداری شده (دائمی)</span>' : `<button class="btn-blue" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Pro', 1999000, 'toman')">💳 تومانی</button><button class="btn-yellow" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Pro', 1999000, 'crypto')">🪙 ترون TRC20</button>`;
     let tBox = document.getElementById('turboPurchaseBtns');
-    if(tBox) tBox.innerHTML = hasTurbo ? '<span style="background: rgba(0,255,136,0.1); padding: 8px; border-radius: 8px; color: #00ff88; font-size: 11px; display: block; text-align: center; width: 100%;">✅ خریداری شده (فعال)</span>' : `<button class="btn-blue" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Turbo', 2799000, 'toman')">💳 تومانی</button><button class="btn-yellow" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Turbo', 2799000, 'crypto')">🪙 ترون TRC20</button>`;
+    if(tBox) tBox.innerHTML = hasTurbo ? '<span style="background: rgba(0,255,136,0.1); padding: 8px; border-radius: 8px; color: #00ff88; font-size: 11px; display: block; text-align: center; width: 100%;">✅ خریداری شده (دائمی)</span>' : `<button class="btn-blue" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Turbo', 2799000, 'toman')">💳 تومانی</button><button class="btn-yellow" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Turbo', 2799000, 'crypto')">🪙 ترون TRC20</button>`;
 
-    renderWithdrawHistory(); renderMyMiners(); renderUserTickets();
+    renderWithdrawHistory(); renderMyMiners(); renderUserTickets(); renderLeaderboard();
   }
 
   function renderMyMiners() {
@@ -587,9 +521,36 @@
 
   function checkChannelAndMining() {
     let u = db[currentUser];
-    if(!u.isMining) { u.isMining = true; u.miningStartTime = Date.now(); u.lastMiningTime = Date.now(); } 
-    else { u.isMining = false; }
+    if(!u.isMining) {
+      if(!u.isChannelJoined && mandatoryChannels.length > 0) { renderModalChannels(); document.getElementById('channelModal').style.display = 'flex'; return; }
+      u.isMining = true; u.miningStartTime = Date.now(); u.lastMiningTime = Date.now();
+    } else u.isMining = false;
     saveDB(); updateUI();
+  }
+
+  function renderModalChannels() {
+    let h = "";
+    mandatoryChannels.forEach(ch => { h += `<a href="${ch.link}" target="_blank" class="btn-blue" style="display:block; text-decoration:none; padding:10px; font-size:12px; margin-bottom:6px;">عضویت در ${ch.name} 🔗</a>`; });
+    document.getElementById('modalChannelsContainer').innerHTML = h;
+  }
+  function verifyAllMemberships() { db[currentUser].isChannelJoined = true; saveDB(); document.getElementById('channelModal').style.display = 'none'; checkChannelAndMining(); }
+
+  function renderLeaderboard() {
+    let usersArr = [];
+    for(let username in db) {
+      if(username !== '_ADMIN_DATA_') {
+        usersArr.push({ name: username, mined: db[username].mined || 0 });
+      }
+    }
+    usersArr.sort((a, b) => b.mined - a.mined);
+    let top3 = usersArr.slice(0, 3);
+    if(top3.length === 0) { document.getElementById('leaderboardList').innerHTML = "<p style='font-size:11px; color:#aaa;'>کاربری ثبت نشده.</p>"; return; }
+
+    let medals = ['🥇', '🥈', '🥉'], h = "";
+    top3.forEach((u, idx) => {
+      h += `<div style="background: rgba(255,255,255,0.04); padding: 8px 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 12px;"><span>${medals[idx]} <b>${u.name}</b></span><span style="color: #00ff88; font-weight: bold;">${Math.floor(u.mined).toLocaleString()} ت</span></div>`;
+    });
+    document.getElementById('leaderboardList').innerHTML = h;
   }
 
   function startMiningLoop() {
@@ -616,16 +577,14 @@
   async function submitTomanWithdraw() {
     let u = db[currentUser], c = document.getElementById('wCardNumber').value, h = document.getElementById('wCardHolder').value, a = parseInt(document.getElementById('wTomanAmount').value);
     if(c.length < 16 || !h || a <= 0 || a > u.mined) return alert("اطلاعات نامعتبر.");
-    u.mined -= a;
-    let w = { id: Date.now(), username: currentUser, type: "تومانی", details: c + " (" + h + ")", amount: a, status: "در حال بررسی ⏳" };
+    u.mined -= a; let w = { id: Date.now(), username: currentUser, type: "تومانی", details: c + " (" + h + ")", amount: a, status: "در حال بررسی ⏳" };
     u.withdrawHistory.unshift(w); allWithdrawals.unshift(w);
     await saveDB(); await saveGlobalAdminData(); updateUI(); alert("ثبت شد.");
   }
   async function submitCryptoWithdraw() {
     let u = db[currentUser], ad = document.getElementById('wCryptoAddress').value, a = parseInt(document.getElementById('wCryptoAmount').value);
     if(!ad || a <= 0 || a > u.mined) return alert("اطلاعات نامعتبر.");
-    u.mined -= a;
-    let w = { id: Date.now(), username: currentUser, type: "TRC20", details: ad, amount: a, status: "در حال بررسی ⏳" };
+    u.mined -= a; let w = { id: Date.now(), username: currentUser, type: "TRC20", details: ad, amount: a, status: "در حال بررسی ⏳" };
     u.withdrawHistory.unshift(w); allWithdrawals.unshift(w);
     await saveDB(); await saveGlobalAdminData(); updateUI(); alert("ثبت شد.");
   }
@@ -639,27 +598,24 @@
     document.getElementById('accountWithdrawHistory').innerHTML = h || "هنوز برداشتی ثبت نشده.";
   }
 
-  // --- سیستم پشتیبانی و تیکتینگ ---
+  // --- سیستم پشتیبانی کاملاً اصلاح شده ---
   function openNewTicketPrompt() {
-    let sub = prompt("موضوع تیکت خود را کوتاه بنویسید (مثلاً: مشکل در برداشت):");
-    if(!sub) return;
-    let txt = prompt("پیام کامل خود را بنویسید:");
-    if(!txt) return;
-    let ticket = { id: Date.now(), subject: sub, status: "در حال بررسی ⏳", messages: [ { sender: currentUser, text: txt, time: new Date().toLocaleTimeString('fa-IR') } ] };
-    db[currentUser].tickets.unshift(ticket);
-    saveDB(); renderUserTickets(); alert("تیکت شما ثبت شد و به زودی توسط مدیریت پاسخ داده می‌شود.");
+    let sub = prompt("موضوع تیکت خود را کوتاه بنویسید:"); if(!sub) return;
+    let txt = prompt("پیام کامل خود را بنویسید:"); if(!txt) return;
+    db[currentUser].tickets.unshift({ id: Date.now(), subject: sub, status: "در حال بررسی ⏳", messages: [ { sender: currentUser, text: txt, time: new Date().toLocaleTimeString('fa-IR') } ] });
+    saveDB(); renderUserTickets(); alert("ثبت شد!");
   }
 
   function renderUserTickets() {
     let h = "";
     db[currentUser].tickets.forEach(t => {
-      let col = t.status.includes('بسته') ? '#94a3b8' : (t.status.includes('پاسخ') ? '#00ff88' : '#facc15');
+      let col = t.status.includes('بسته') ? '#94a3b8' : (t.status.includes('پاسخ داده شده') ? '#00ff88' : '#facc15');
       h += `<div style="background: #0f172a; border: 1px solid #1e293b; padding: 10px; border-radius: 8px; cursor: pointer; margin-bottom: 6px;" onclick="openTicketChat('${currentUser}', ${t.id})">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><b style="color:#fff; font-size:12px;">${t.subject}</b><span style="color:${col}; font-size:10px;">${t.status}</span></div>
               <div style="font-size:11px; color:#94a3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">آخرین پیام: ${t.messages[t.messages.length-1].text}</div>
             </div>`;
     });
-    document.getElementById('userTicketsList').innerHTML = h || "<p style='color:#94a3b8; font-size:11px;'>تیکتی یافت نشد.</p>";
+    document.getElementById('userTicketsList').innerHTML = h || "<p style='color:#94a3b8; font-size:11px;'>تیکتی ثبت نکرده‌اید.</p>";
   }
 
   function openTicketChat(username, ticketId) {
@@ -667,9 +623,10 @@
     let t = db[username].tickets.find(x => x.id === ticketId);
     document.getElementById('tcTitle').innerText = t.subject;
     
-    let isAdmin = (currentUser === 'admin');
-    document.getElementById('tcAdminCloseBtn').style.display = (isAdmin && !t.status.includes('بسته')) ? 'block' : 'none';
-    document.getElementById('tcInputArea').style.display = t.status.includes('بسته') ? 'none' : 'flex';
+    // دکمه بستن و فرم ارسال پیام برای تیکت‌های بسته شده مخفی می‌شود
+    let isClosed = t.status.includes('بسته');
+    document.getElementById('tcCloseBtnUniversal').style.display = isClosed ? 'none' : 'block';
+    document.getElementById('tcInputArea').style.display = isClosed ? 'none' : 'flex';
     
     renderTicketMessages();
     document.getElementById('ticketChatModal').style.display = 'flex';
@@ -679,103 +636,89 @@
     let t = db[activeChatUsername].tickets.find(x => x.id === activeChatTicketId);
     let h = "";
     t.messages.forEach(m => {
-      let isAdmin = m.sender === 'admin';
-      h += `<div style="background: ${isAdmin ? '#1e293b' : 'rgba(56,189,248,0.1)'}; padding: 8px; border-radius: 8px; font-size: 11px; align-self: ${isAdmin ? 'flex-start' : 'flex-end'}; max-width: 85%; border: 1px solid ${isAdmin ? '#334155' : 'rgba(56,189,248,0.3)'}; color: #fff;">
-              <div style="font-weight:bold; margin-bottom:2px; color:${isAdmin ? '#facc15' : '#38bdf8'};">${isAdmin ? 'مدیریت 🛠️' : 'شما 👤'}</div>
+      let isAdminMsg = m.sender === 'admin';
+      h += `<div style="background: ${isAdminMsg ? '#1e293b' : 'rgba(56,189,248,0.1)'}; padding: 8px; border-radius: 8px; font-size: 11px; align-self: ${isAdminMsg ? 'flex-start' : 'flex-end'}; max-width: 85%; border: 1px solid ${isAdminMsg ? '#334155' : 'rgba(56,189,248,0.3)'}; color: #fff;">
+              <div style="font-weight:bold; margin-bottom:2px; color:${isAdminMsg ? '#facc15' : '#38bdf8'};">${isAdminMsg ? 'مدیریت 🛠️' : 'کاربر 👤'}</div>
               <div>${m.text}</div>
               <div style="font-size:9px; color:#94a3b8; text-align:left; margin-top:4px;">${m.time}</div>
             </div>`;
     });
-    let container = document.getElementById('tcMessages');
-    container.innerHTML = h;
-    container.scrollTop = container.scrollHeight;
+    let c = document.getElementById('tcMessages');
+    c.innerHTML = h; c.scrollTop = c.scrollHeight;
   }
 
   async function sendTicketMessage() {
     let inp = document.getElementById('tcReplyInput');
-    let text = inp.value.trim();
-    if(!text) return;
+    let text = inp.value.trim(); if(!text) return;
+    
     let t = db[activeChatUsername].tickets.find(x => x.id === activeChatTicketId);
-    t.messages.push({ sender: currentUser === 'admin' ? 'admin' : activeChatUsername, text: text, time: new Date().toLocaleTimeString('fa-IR') });
+    t.messages.push({ sender: isAdminLoggedIn ? 'admin' : activeChatUsername, text: text, time: new Date().toLocaleTimeString('fa-IR') });
     
-    // تنظیم دقیق وضعیت
-    t.status = (currentUser === 'admin') ? "پاسخ داده شده 💬" : "در حال بررسی ⏳";
+    // وقتی ادمین جواب می‌دهد سبز می‌شود، وقتی کاربر پیام می‌دهد در حال بررسی می‌شود
+    t.status = isAdminLoggedIn ? "پاسخ داده شده 💬" : "در حال بررسی ⏳";
+    inp.value = ''; renderTicketMessages();
     
-    inp.value = '';
-    renderTicketMessages();
-    
-    if(currentUser !== 'admin') { 
-      await saveDB(); 
-      renderUserTickets(); 
-    } 
-    else { 
-      await saveDB(activeChatUsername); 
-      renderAdminTickets(); 
-    }
+    if(!isAdminLoggedIn) { await saveDB(); renderUserTickets(); } 
+    else { await saveDB(activeChatUsername); renderAdminTickets(); }
   }
 
-  async function adminCloseActiveTicket() {
+  async function closeActiveTicket() {
     let t = db[activeChatUsername].tickets.find(x => x.id === activeChatTicketId);
     t.status = "بسته شده 🔒";
     await saveDB(activeChatUsername);
     document.getElementById('ticketChatModal').style.display = 'none';
-    renderAdminTickets(); alert("تیکت بسته شد.");
+    if(isAdminLoggedIn) renderAdminTickets(); else renderUserTickets();
+    alert("تیکت بسته شد.");
   }
   // ------------------------------------
 
-  function openCheckout(n, p, m) {
-    selectedMachineToBuy = { name: n, price: p, method: m };
-    document.getElementById('checkoutTitle').innerText = "خرید " + n;
-    document.getElementById('checkoutPriceText').innerText = "مبلغ: " + p.toLocaleString();
-    document.getElementById('checkoutCardBox').style.display = m==='toman'?'block':'none';
-    document.getElementById('checkoutCryptoBox').style.display = m==='crypto'?'block':'none';
-    document.getElementById('checkoutModal').style.display = 'flex';
-  }
-  async function submitReceipt() {
-    let r = document.getElementById('receiptInput').value.trim();
-    if(!r) return alert("وارد کنید.");
-    pendingReceipts.push({ username: currentUser, machine: selectedMachineToBuy.name, receipt: r });
-    await saveGlobalAdminData(); alert("ارسال شد."); document.getElementById('checkoutModal').style.display='none';
-  }
+  function openCheckout(n, p, m) { selectedMachineToBuy={name:n,price:p,method:m}; document.getElementById('checkoutTitle').innerText="خرید "+n; document.getElementById('checkoutPriceText').innerText="مبلغ: "+p.toLocaleString(); document.getElementById('checkoutCardBox').style.display=m==='toman'?'block':'none'; document.getElementById('checkoutCryptoBox').style.display=m==='crypto'?'block':'none'; document.getElementById('checkoutModal').style.display='flex'; }
+  function closeCheckout() { document.getElementById('checkoutModal').style.display = 'none'; }
+  async function submitReceipt() { let r = document.getElementById('receiptInput').value.trim(); if(!r) return alert("وارد کنید."); pendingReceipts.push({ username: currentUser, machine: selectedMachineToBuy.name, receipt: r }); await saveGlobalAdminData(); alert("ارسال شد."); closeCheckout(); }
 
   function openAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'flex'; }
+  function closeAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'none'; }
+
   async function verifyAdminPassword() {
     if(document.getElementById('adminPasswordInput').value === "Safasafa0990@") {
-      document.getElementById('adminLoginModal').style.display = 'none';
+      closeAdminLoginModal();
       await loadDataFromServer();
-      let tmp = currentUser; currentUser = 'admin'; // دسترسی موقت برای توابع
-      renderAdminStats(); renderAdminTickets(); renderAdminReceipts(); renderAdminWithdrawals();
+      
+      isAdminLoggedIn = true; // تشخیص قطعی ادمین
+      
+      renderAdminStats(); renderAdminTickets(); renderAdminReceipts(); renderAdminWithdrawals(); renderAdminChannelsManager();
       document.getElementById('editBannerText').value = adminConfig.bannerText;
-      currentUser = tmp;
+      document.getElementById('editCardInput').value = adminConfig.card;
+      document.getElementById('editNameInput').value = adminConfig.name;
+      document.getElementById('editWalletInput').value = adminConfig.wallet;
+      document.getElementById('editBonusAmount').value = dailyBonusAmount;
+      if(globalNotice) { document.getElementById('adminNoticeTitle').value = globalNotice.title||''; document.getElementById('adminNoticeText').value = globalNotice.text||''; document.getElementById('adminNoticeLink').value = globalNotice.link||''; }
+      
       document.getElementById('adminDashboardPanel').style.display = 'block';
     } else alert("اشتباه است!");
   }
+  function closeAdminDashboard() { document.getElementById('adminDashboardPanel').style.display = 'none'; isAdminLoggedIn = false; }
 
   function switchAdminTab(t) { document.querySelectorAll('.admin-tab-content').forEach(e => e.style.display='none'); document.getElementById('adminTab-'+t).style.display='block'; }
 
-  // جستجو و آمار ادمین
   function renderAdminStats() {
-    let q = document.getElementById('adminSearchInput').value.toLowerCase().trim();
-    let total = 0, h = "";
+    let q = document.getElementById('adminSearchInput').value.toLowerCase().trim(); let total = 0, h = "";
     for(let u in db) {
       if(u !== '_ADMIN_DATA_') {
         total++;
         if(q && !u.toLowerCase().includes(q)) continue;
-        let usr = db[u];
-        h += `<div style="background:#252538; padding:10px; border-radius:8px; font-size:12px;"><b>یوزر: <span style="color:#38bdf8;">${u}</span></b><br><span style="color:#aaa;">موجودی:</span> <span style="color:#00ff88;">${Math.floor(usr.mined).toLocaleString()} ت</span><br><span style="color:#aaa;">دستگاه‌ها:</span> ${usr.miners.map(m=>m.name).join('، ')}</div>`;
+        h += `<div style="background:#252538; padding:10px; border-radius:8px; font-size:12px;"><b>یوزر: <span style="color:#38bdf8;">${u}</span></b><br><span style="color:#aaa;">موجودی:</span> <span style="color:#00ff88;">${Math.floor(db[u].mined).toLocaleString()} ت</span><br><span style="color:#aaa;">دستگاه‌ها:</span> ${db[u].miners.map(m=>m.name).join('، ')}</div>`;
       }
     }
-    document.getElementById('statTotalUsers').innerText = total;
-    document.getElementById('adminUsersListDetailed').innerHTML = h || "<p style='color:#aaa; font-size:12px;'>کاربری یافت نشد.</p>";
+    document.getElementById('statTotalUsers').innerText = total; document.getElementById('adminUsersListDetailed').innerHTML = h || "<p style='color:#aaa; font-size:12px;'>یافت نشد.</p>";
   }
 
-  // تیکت‌های ادمین
   function renderAdminTickets() {
     let h = "";
     for(let u in db) {
       if(u !== '_ADMIN_DATA_' && db[u].tickets) {
         db[u].tickets.forEach(t => {
-          let col = t.status.includes('بسته') ? '#94a3b8' : (t.status.includes('پاسخ') ? '#00ff88' : '#facc15');
+          let col = t.status.includes('بسته') ? '#94a3b8' : (t.status.includes('پاسخ داده شده') ? '#00ff88' : '#facc15');
           h += `<div style="background: #252538; padding: 10px; border-radius: 8px; margin-bottom: 8px;">
                   <div style="display:flex; justify-content:space-between;"><b style="color:#38bdf8;">کاربر: ${u}</b><span style="color:${col}; font-size:10px;">${t.status}</span></div>
                   <div style="font-size:11px; color:#fff; margin:6px 0;">موضوع: ${t.subject}</div>
@@ -787,59 +730,82 @@
     document.getElementById('adminTicketsList').innerHTML = h || "هیچ تیکتی وجود ندارد.";
   }
 
-  function saveAdminBanner() {
-    adminConfig.bannerText = document.getElementById('editBannerText').value.trim();
-    saveGlobalAdminData();
-    alert("متن بنر بروزرسانی شد!");
-  }
+  function saveAdminBanner() { adminConfig.bannerText = document.getElementById('editBannerText').value.trim(); saveGlobalAdminData(); alert("ذخیره شد!"); updateUI(); }
+  function saveAdminDailyBonus() { dailyBonusAmount = parseInt(document.getElementById('editBonusAmount').value); alert("ذخیره شد!"); }
+  function saveAdminAnnouncement() { globalNotice = { title: document.getElementById('adminNoticeTitle').value.trim(), text: document.getElementById('adminNoticeText').value.trim(), link: document.getElementById('adminNoticeLink').value.trim() }; alert("ارسال شد!"); }
+  function saveAdminFinancialSettings() { adminConfig.card = document.getElementById('editCardInput').value; adminConfig.name = document.getElementById('editNameInput').value; adminConfig.wallet = document.getElementById('editWalletInput').value; alert("ذخیره شد!"); }
 
-  function renderAdminReceipts() {
-    let h = "";
-    pendingReceipts.forEach((r, i) => {
-      h += `<div style="background:#252538; padding:10px; border-radius:6px; margin-bottom:8px;">کاربر: <b>${r.username}</b> | دستگاه: <b>${r.machine}</b><br>کد: <span style="color:#facc15;">${r.receipt}</span><br><button class="btn-yellow" style="padding:6px; margin-top:6px;" onclick="approveReceipt(${i})">تایید ✅</button></div>`;
-    });
-    document.getElementById('adminReceiptsList').innerHTML = h || "رسید منتظری نیست.";
-  }
-  async function approveReceipt(i) {
-    let r = pendingReceipts[i];
-    await loadDataFromServer();
-    if(db[r.username]) {
-      db[r.username].miners.push(r.machine === 'Pro' ? {name:"ماینر پرو (Pro)", hashrate:"320 TH/s", maxDaily:150000} : {name:"ماینر توربو (Turbo)", hashrate:"650 TH/s", maxDaily:250000});
-      await saveDB(r.username);
-    }
-    pendingReceipts.splice(i, 1); await saveGlobalAdminData(); renderAdminReceipts(); renderAdminStats(); alert("تایید شد!");
-  }
-
+  // تفکیک رنگی و دسته‌بندی درخواست‌های برداشت ادمین
   function renderAdminWithdrawals() {
-    let h = "";
-    allWithdrawals.forEach((w, i) => {
+    let pending = "", done = "", rejected = "";
+    
+    allWithdrawals.forEach(w => {
       let isDone = w.status.includes('واریز شد');
       let isRej = w.status.includes('رد شد');
-      let bgColor = isDone ? 'rgba(0, 255, 136, 0.1)' : (isRej ? 'rgba(239, 68, 68, 0.1)' : '#252538');
-      let borderColor = isDone ? '1px solid #00ff88' : (isRej ? '1px solid #ef4444' : '1px solid transparent');
       
-      h += `<div style="background:${bgColor}; border:${borderColor}; padding:10px; border-radius:6px; margin-bottom:8px;">
+      let card = `<div style="background:#252538; border-right:4px solid ${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}; padding:10px; border-radius:6px; margin-bottom:8px;">
         کاربر: <b>${w.username}</b> | <b style="color:#facc15;">${w.amount.toLocaleString()} ت</b><br>
         آدرس: <span style="color:#38bdf8;">${w.details}</span><br>
         وضعیت: <span style="color:${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}">${w.status}</span>
-        ${!isDone && !isRej ? `<div style="display:flex; gap:6px; margin-top:8px;"><button class="btn" style="padding:6px;" onclick="approveW(${w.id})">تایید (واریز شد) ✅</button><button class="btn-danger" style="padding:6px;" onclick="rejectW(${w.id})">رد درخواست ❌</button></div>`:''}
+        ${!isDone && !isRej ? `<div style="display:flex; gap:6px; margin-top:8px;"><button class="btn" style="padding:6px;" onclick="approveW(${w.id})">تایید پرداخت ✅</button><button class="btn-danger" style="padding:6px;" onclick="rejectW(${w.id})">رد ❌</button></div>`:''}
       </div>`;
+      
+      if(isDone) done += card;
+      else if(isRej) rejected += card;
+      else pending += card;
     });
-    document.getElementById('adminWithdrawalsList').innerHTML = h || "درخواستی نیست.";
+    
+    document.getElementById('adminWithdrawalsList').innerHTML = 
+      `<h5 style="color:#facc15; margin-bottom:8px; margin-top:10px;">⏳ در حال بررسی</h5>` + (pending || `<p style="font-size:11px; color:#aaa; margin-bottom:15px;">هیچ موردی نیست.</p>`) +
+      `<h5 style="color:#00ff88; margin-bottom:8px; margin-top:15px;">✅ واریز شده</h5>` + (done || `<p style="font-size:11px; color:#aaa; margin-bottom:15px;">هیچ موردی نیست.</p>`) +
+      `<h5 style="color:#ef4444; margin-bottom:8px; margin-top:15px;">❌ رد شده</h5>` + (rejected || `<p style="font-size:11px; color:#aaa; margin-bottom:15px;">هیچ موردی نیست.</p>`);
   }
+
   async function approveW(id) {
     let w = allWithdrawals.find(x => x.id === id); w.status = "واریز شد ✅";
-    await loadDataFromServer();
-    let uw = db[w.username].withdrawHistory.find(x => x.id === id); if(uw) uw.status = "واریز شد ✅";
+    await loadDataFromServer(); let uw = db[w.username].withdrawHistory.find(x => x.id === id); if(uw) uw.status = "واریز شد ✅";
     await saveDB(w.username); await saveGlobalAdminData(); renderAdminWithdrawals(); alert("تایید شد.");
   }
   async function rejectW(id) {
     let r = prompt("دلیل رد (مبلغ به حساب کاربر برمی‌گردد):"); if(!r) return;
     let w = allWithdrawals.find(x => x.id === id); w.status = "رد شد ❌"; w.rejectReason = r;
-    await loadDataFromServer();
-    let uw = db[w.username].withdrawHistory.find(x => x.id === id); if(uw){ uw.status = "رد شد ❌"; uw.rejectReason = r; }
-    db[w.username].mined += w.amount;
-    await saveDB(w.username); await saveGlobalAdminData(); renderAdminWithdrawals(); renderAdminStats(); alert("رد شد.");
+    await loadDataFromServer(); let uw = db[w.username].withdrawHistory.find(x => x.id === id); if(uw){ uw.status = "رد شد ❌"; uw.rejectReason = r; }
+    db[w.username].mined += w.amount; await saveDB(w.username); await saveGlobalAdminData(); renderAdminWithdrawals(); renderAdminStats(); alert("رد شد.");
+  }
+
+  function renderAdminChannelsManager() {
+    let h = "";
+    mandatoryChannels.forEach((ch, idx) => { h += `<div style="background:#252538; padding:8px; border-radius:6px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;"><span><b>${ch.name}</b> (${ch.link})</span><button onclick="deleteChannel(${idx})" style="background:#e74c3c; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">حذف</button></div>`; });
+    document.getElementById('adminChannelsList').innerHTML = h || "کانالی ثبت نشده.";
+  }
+  function adminAddChannel() {
+    let n = document.getElementById('newChannelName').value.trim(), l = document.getElementById('newChannelUrl').value.trim();
+    if(!n || !l) return alert("کامل کنید.");
+    mandatoryChannels.push({ name: n, link: l }); document.getElementById('newChannelName').value = ''; document.getElementById('newChannelUrl').value = '';
+    saveGlobalAdminData(); renderAdminChannelsManager(); alert("اضافه شد!");
+  }
+  function deleteChannel(idx) { mandatoryChannels.splice(idx, 1); saveGlobalAdminData(); renderAdminChannelsManager(); }
+  
+  function renderAdminReceipts() {
+    let h = "";
+    pendingReceipts.forEach((r, i) => { h += `<div style="background:#252538; padding:10px; border-radius:6px; margin-bottom:8px;">کاربر: <b>${r.username}</b> | درخواست: <b>${r.machine}</b><br>کد: <span style="color:#facc15;">${r.receipt}</span><br><button class="btn-yellow" style="padding:6px; margin-top:6px;" onclick="approveReceipt(${i})">تایید ✅</button></div>`; });
+    document.getElementById('adminReceiptsList').innerHTML = h || "رسیدی نیست.";
+  }
+  async function approveReceipt(i) {
+    let r = pendingReceipts[i]; await loadDataFromServer();
+    if(db[r.username]) { db[r.username].miners.push(r.machine === 'Pro' ? {name:"ماینر پرو (Pro)", hashrate:"320 TH/s", maxDaily:150000} : {name:"ماینر توربو (Turbo)", hashrate:"650 TH/s", maxDaily:250000}); await saveDB(r.username); }
+    pendingReceipts.splice(i, 1); await saveGlobalAdminData(); renderAdminReceipts(); renderAdminStats(); alert("تایید شد!");
+  }
+  
+  async function updateUsername() {
+    let n = document.getElementById('changeUsernameInput').value.trim();
+    if(!n || db[n] || n === '_ADMIN_DATA_') return alert("نامعتبر یا تکراری.");
+    db[n] = db[currentUser]; delete db[currentUser]; currentUser = n; await saveDB(); document.getElementById('userGreeting').innerText = "کاربر: " + currentUser; alert("تغییر کرد.");
+  }
+  async function updatePassword() {
+    let p = document.getElementById('changePasswordInput').value.trim();
+    if(!p) return alert("خالی است.");
+    db[currentUser].password = p; await saveDB(); alert("تغییر کرد.");
   }
 </script>
 </body>
