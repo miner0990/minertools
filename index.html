@@ -200,7 +200,7 @@
       </div>
     </div>
 
-    <!-- تب ۶: حساب کاربری (شامل جزئیات دارایی‌ها و تاریخچه خریدهای فروشگاه) -->
+    <!-- تب ۶: حساب کاربری -->
     <div id="tab-account" class="section">
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">👤 حساب کاربری من</h2></header>
       
@@ -433,7 +433,7 @@
       </div>
     </div>
     
-    <!-- رسیدهای خرید (آپدیت شده با دکمه رد و دلیل) -->
+    <!-- رسیدهای خرید -->
     <div id="adminTab-receipts" class="admin-tab-content" style="display: none;">
       <h4>رسیدهای خرید</h4>
       <div id="adminReceiptsList" style="margin-top: 15px;"></div>
@@ -927,11 +927,12 @@
     let r = document.getElementById('receiptInput').value.trim(); 
     if(!r) return showCustomAlert("لطفاً اطلاعات پیگیری را وارد کنید.", "⚠️"); 
     
-    let recObj = { id: Date.now(), username: currentUser, machine: selectedMachineToBuy.name, receipt: r, status: "در حال بررسی ⏳" };
+    let uniqueId = Date.now();
+    let recObj = { id: uniqueId, username: currentUser, machine: selectedMachineToBuy.name, receipt: r, status: "در حال بررسی ⏳" };
     pendingReceipts.push(recObj); 
     
     if(!db[currentUser].purchaseHistory) db[currentUser].purchaseHistory = [];
-    db[currentUser].purchaseHistory.unshift({ id: recObj.id, machine: selectedMachineToBuy.name, receipt: r, status: "در حال بررسی ⏳" });
+    db[currentUser].purchaseHistory.unshift({ id: uniqueId, machine: selectedMachineToBuy.name, receipt: r, status: "در حال بررسی ⏳" });
     
     await saveDB();
     await saveGlobalAdminData(); 
@@ -1107,7 +1108,7 @@
       db[r.username].miners.push(r.machine === 'Pro' ? {name:"ماینر پرو (Pro)", hashrate:"320 TH/s", maxDaily:150000} : {name:"ماینر توربو (Turbo)", hashrate:"650 TH/s", maxDaily:250000}); 
       
       if(db[r.username].purchaseHistory) {
-        let p = db[r.username].purchaseHistory.find(x => x.id === r.id || x.receipt === r.receipt);
+        let p = db[r.username].purchaseHistory.find(x => x.id === r.id);
         if(p) p.status = "تایید شد و ماینر فعال گردید ✅";
       }
       await saveDB(r.username); 
@@ -1131,7 +1132,7 @@
     r.rejectReason = reason;
 
     if(db[r.username] && db[r.username].purchaseHistory) {
-      let p = db[r.username].purchaseHistory.find(x => x.id === r.id || x.receipt === r.receipt);
+      let p = db[r.username].purchaseHistory.find(x => x.id === r.id);
       if(p) { p.status = "رد شد ❌"; p.rejectReason = reason; }
       await saveDB(r.username);
     }
