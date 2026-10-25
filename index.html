@@ -200,17 +200,36 @@
       </div>
     </div>
 
-    <!-- تب ۶: حساب کاربری -->
+    <!-- تب ۶: حساب کاربری (با جزئیات دارایی‌ها و استخراج در بالای صفحه) -->
     <div id="tab-account" class="section">
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">👤 حساب کاربری من</h2></header>
       
+      <!-- کادر جدید نمایش جزئیات دارایی‌ها در بالای حساب -->
+      <div class="card card-cyan" style="text-align: right; margin-bottom: 15px; background: rgba(0, 255, 136, 0.04);">
+        <h3 style="color: #00ff88; font-size: 13px; margin-bottom: 8px;">💎 جزئیات دارایی‌های شما</h3>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 4px;">
+          <span style="color: #94a3b8;">موجودی کل (تومان):</span>
+          <b id="accValToman" style="color: #facc15;">0 تومان</b>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 4px;">
+          <span style="color: #94a3b8;">معادل تتر (USDT):</span>
+          <b id="accValUsdt" style="color: #26a17b;">0.00 USDT</b>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 4px;">
+          <span style="color: #94a3b8;">معادل ترون (TRX):</span>
+          <b id="accValTrx" style="color: #ff0033;">0.00 TRX</b>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 4px;">
+          <span style="color: #94a3b8;">معادل بیت‌کوین (BTC):</span>
+          <b id="accValBtc" style="color: #f7931a;">0.00000 BTC</b>
+        </div>
+        <div style="font-size: 11px; color: #fff; background: rgba(56,189,248,0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(56,189,248,0.2);">
+          ارز فعال در حال استخراج: <b id="accActiveCryptoName" style="color: #38bdf8;">تتر (USDT)</b> ⚡
+        </div>
+      </div>
+      
       <div class="card card-yellow" style="text-align: right; padding: 12px; transition: 0.3s;" id="userTierCard">
         <h3 style="color: #facc15; font-size: 16px; margin: 0; text-align: center;" id="userTierBadge">حساب عادی 🥉</h3>
-      </div>
-
-      <div class="card card-cyan" style="text-align: right;">
-        <h3 style="color: #00ff88; font-size: 14px; margin-bottom: 10px;">🏆 جدول برترین‌های ماینینگ</h3>
-        <div id="leaderboardList" style="display: flex; flex-direction: column; gap: 6px;"></div>
       </div>
 
       <div class="card" style="text-align: right;">
@@ -226,6 +245,11 @@
         </div>
         <p style="font-size: 11px; color: #94a3b8; margin-bottom: 10px;">مشکلات یا سوالات خود را با مدیریت در میان بگذارید.</p>
         <div id="userTicketsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;"></div>
+      </div>
+
+      <div class="card card-cyan" style="text-align: right;">
+        <h3 style="color: #00ff88; font-size: 14px; margin-bottom: 10px;">🏆 جدول برترین‌های ماینینگ</h3>
+        <div id="leaderboardList" style="display: flex; flex-direction: column; gap: 6px;"></div>
       </div>
 
       <div onclick="openAdminLoginModal()" style="width: 35px; height: 25px; margin: 15px auto 0 auto; cursor: pointer;"></div>
@@ -284,12 +308,35 @@
   </div>
 </div>
 
-<!-- مودال‌های پاپ‌آپ، خرید و کانال (با دکمه ضربدر جدید) -->
+<!-- مودال‌های پاپ‌آپ، خرید و کانال -->
 <div id="announcementModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 4000; justify-content: center; align-items: center; padding: 20px;" dir="rtl"><div class="card card-yellow" style="max-width: 360px; width: 100%; text-align: right; position: relative;"><button onclick="document.getElementById('announcementModal').style.display='none'" style="position: absolute; top: 12px; left: 12px; background: #ef4444; color: white; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer;">✕</button><h3 style="color: #facc15; font-size: 16px; margin-bottom: 10px;" id="announcementTitle">📢 اطلاعیه مهم مدیریت</h3><p style="font-size: 12px; color: #ffffff; line-height: 1.6; margin-bottom: 15px;" id="announcementText"></p><div id="announcementLinkBox" style="display: none;"><a id="announcementLinkBtn" href="#" target="_blank" class="btn-blue" style="display: block; text-align: center; font-size: 12px; padding: 10px;">مشاهده لینک 🔗</a></div></div></div>
 
 <div id="channelModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px;" dir="rtl"><div class="card card-yellow" style="max-width: 380px; width: 100%; text-align: center; position: relative;"><button onclick="document.getElementById('channelModal').style.display='none'" style="position: absolute; top: 12px; left: 12px; background: #ef4444; color: white; border: none; width: 26px; height: 26px; border-radius: 50%; font-weight: bold; cursor: pointer;">✕</button><h3 style="color: #facc15; font-size: 16px; margin-bottom: 10px;">📢 عضویت اجباری در کانال‌ها</h3><div id="modalChannelsContainer" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;"></div><button class="btn-yellow" id="verifyChannelBtn" onclick="verifyAllMemberships()">تایید عضویت و شروع ⚡</button></div></div>
 
-<div id="checkoutModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; padding: 15px;" dir="rtl"><div class="card card-yellow" style="max-width: 400px; width: 100%; text-align: right;"><h3 style="color: #facc15; font-size: 17px; margin-bottom: 10px; text-align: center;" id="checkoutTitle">خرید دستگاه</h3><p style="font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 15px;" id="checkoutPriceText">مبلغ:</p><div id="checkoutCardBox" style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; border: 1px solid #1e293b; margin-bottom: 15px;"><div style="background: #030712; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 14px; color: #facc15; text-align: center;" id="displayAdminCard"></div><p style="font-size: 11px; color: #94a3b8; margin-top: 6px;">به نام: <span id="displayAdminName"></span></p></div><div id="checkoutCryptoBox" style="display:none; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; border: 1px solid #1e293b; margin-bottom: 15px;"><div style="background: #030712; padding: 8px; border-radius: 8px; font-family: monospace; font-size: 11px; color: #00ff88; text-align: center; word-break: break-all;" id="displayAdminWallet"></div></div><input type="text" class="select-box" id="receiptInput" placeholder="شماره پیگیری..." style="margin-bottom: 15px;"><div style="display: flex; gap: 10px;"><button class="btn-yellow" style="margin-top:0;" onclick="submitReceipt()">ارسال رسید ✅</button><button class="btn-danger" style="margin-top:0;" onclick="closeCheckout()">انصراف ❌</button></div></div></div>
+<!-- مودال خرید اصلاح شده با نمایش درست کارت و ولت ادمین -->
+<div id="checkoutModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; padding: 15px;" dir="rtl">
+  <div class="card card-yellow" style="max-width: 400px; width: 100%; text-align: right;">
+    <h3 style="color: #facc15; font-size: 17px; margin-bottom: 10px; text-align: center;" id="checkoutTitle">خرید دستگاه</h3>
+    <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 15px;" id="checkoutPriceText">مبلغ:</p>
+    
+    <div id="checkoutCardBox" style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; border: 1px solid #1e293b; margin-bottom: 15px;">
+      <div style="background: #030712; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 14px; color: #facc15; text-align: center;" id="displayAdminCard"></div>
+      <p style="font-size: 11px; color: #94a3b8; margin-top: 6px;">به نام: <span id="displayAdminName"></span></p>
+    </div>
+    
+    <div id="checkoutCryptoBox" style="display:none; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; border: 1px solid #1e293b; margin-bottom: 15px;">
+      <div style="background: #030712; padding: 8px; border-radius: 8px; font-family: monospace; font-size: 11px; color: #00ff88; text-align: center; word-break: break-all;" id="displayAdminWallet"></div>
+    </div>
+    
+    <label id="receiptLabel" style="font-size: 11px; color: #facc15; display: block; margin-bottom: 6px;"></label>
+    <input type="text" class="select-box" id="receiptInput" placeholder="" style="margin-bottom: 15px;">
+    
+    <div style="display: flex; gap: 10px;">
+      <button class="btn-yellow" style="margin-top:0;" onclick="submitReceipt()">ارسال رسید ✅</button>
+      <button class="btn-danger" style="margin-top:0;" onclick="closeCheckout()">انصراف ❌</button>
+    </div>
+  </div>
+</div>
 
 <!-- ورود ادمین -->
 <div id="adminLoginModal" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center;" dir="rtl"><div style="background: #1e1e2f; padding: 30px; border-radius: 14px; width: 340px; text-align: center; color: white; border: 1px solid #e74c3c;"><h3 style="margin-bottom: 8px; color: #facc15;">ورودی ادمین</h3><input type="password" id="adminPasswordInput" placeholder="رمز عبور ادمین..." style="width: 100%; padding: 12px; background: #2a2a40; border: 1px solid #444; color: white; border-radius: 8px; margin-bottom: 15px;"><button onclick="verifyAdminPassword()" style="width: 100%; background: #2ecc71; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">ورود به مدیریت</button><button onclick="document.getElementById('adminLoginModal').style.display='none'" style="width: 100%; background: #c0392b; color: white; padding: 10px; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px;">انصراف</button></div></div>
@@ -429,6 +476,9 @@
           pendingReceipts = db['_ADMIN_DATA_'].pendingReceipts || [];
           if(db['_ADMIN_DATA_'].bannerText) adminConfig.bannerText = db['_ADMIN_DATA_'].bannerText;
           if(db['_ADMIN_DATA_'].channels) mandatoryChannels = db['_ADMIN_DATA_'].channels;
+          if(db['_ADMIN_DATA_'].card) adminConfig.card = db['_ADMIN_DATA_'].card;
+          if(db['_ADMIN_DATA_'].name) adminConfig.name = db['_ADMIN_DATA_'].name;
+          if(db['_ADMIN_DATA_'].wallet) adminConfig.wallet = db['_ADMIN_DATA_'].wallet;
         }
       }
     } catch (err) { console.log(err); }
@@ -440,6 +490,9 @@
     db['_ADMIN_DATA_'].pendingReceipts = pendingReceipts;
     db['_ADMIN_DATA_'].bannerText = adminConfig.bannerText;
     db['_ADMIN_DATA_'].channels = mandatoryChannels;
+    db['_ADMIN_DATA_'].card = adminConfig.card;
+    db['_ADMIN_DATA_'].name = adminConfig.name;
+    db['_ADMIN_DATA_'].wallet = adminConfig.wallet;
     await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
   }
 
@@ -476,7 +529,7 @@
   function shareToTelegram() { window.open(`https://t.me/share/url?url=${encodeURIComponent("https://t.me/MinerToolsBot?start=" + currentUser)}&text=${encodeURIComponent(getInviteMessage())}`); }
   function copyShareText() { navigator.clipboard.writeText(getInviteMessage()).then(() => showCustomAlert("متن بنر و لینک اختصاصی شما با موفقیت کپی شد! حالا برای دوستانتان بفرستید.", "✅")); }
 
-  function setMiningCrypto(sym) { db[currentUser].miningCrypto = sym; saveDB(); updateCryptoUI(sym); }
+  function setMiningCrypto(sym) { db[currentUser].miningCrypto = sym; saveDB(); updateCryptoUI(sym); updateUI(); }
   function updateCryptoUI(sym) { document.querySelectorAll('.crypto-btn').forEach(b => b.style.opacity = '0.5'); let activeBtn = document.getElementById('cryptoBtn-' + sym); if(activeBtn) activeBtn.style.opacity = '1'; }
 
   function checkBonusStatus() {
@@ -522,6 +575,8 @@
     let tMax = getTotalMaxDaily(u);
     let toman = Math.floor(u.mined);
     let usdt = (toman / 60000).toFixed(4);
+    let trx = (toman / 6000).toFixed(2);
+    let btc = (toman / 4200000000).toFixed(5);
 
     document.getElementById('headerWallet').innerText = usdt + " USDT";
     document.getElementById('walletTotalToman').innerText = toman.toLocaleString() + " تومان";
@@ -532,6 +587,16 @@
     document.getElementById('activeMachineName').innerText = u.miners[u.miners.length - 1].name;
     document.getElementById('dailyLimitLabel').innerText = `موجودی استخراج شده (سقف: ${tMax.toLocaleString()})`;
     document.getElementById('progressBar').style.width = (tMax > 0 ? Math.min(100, (u.mined / tMax) * 100) : 0) + "%";
+
+    // آپدیت مقادیر دارایی‌ها در تب حساب
+    document.getElementById('accValToman').innerText = toman.toLocaleString() + " تومان";
+    document.getElementById('accValUsdt').innerText = usdt + " USDT";
+    document.getElementById('accValTrx').innerText = trx + " TRX";
+    document.getElementById('accValBtc').innerText = btc + " BTC";
+    
+    let crypt = u.miningCrypto || 'USDT';
+    let cName = crypt === 'BTC' ? 'بیت‌کوین (BTC)' : (crypt === 'TRX' ? 'ترون (TRX)' : 'تتر (USDT)');
+    document.getElementById('accActiveCryptoName').innerText = cName;
 
     let btn = document.getElementById('startBtn'), con = document.getElementById('minerContainer');
     if(u.isMining) {
@@ -580,7 +645,6 @@
     document.getElementById('myMinersList').innerHTML = h;
   }
 
-  // بررسی هوشمندانه وضعیت عضویت هر بار که دکمه شروع زده می‌شود
   async function checkChannelAndMining() {
     let u = db[currentUser];
     if(!u.isMining) {
@@ -601,7 +665,6 @@
                 btn.innerText = origText;
                 btn.disabled = false;
                 
-                // اگر عضویت هنوز برقرار بود بدون باز کردن مودال استخراج را شروع کن
                 if (data.status === "success" && data.joined === true) {
                    u.isMining = true; u.miningStartTime = Date.now(); u.lastMiningTime = Date.now();
                    saveDB(); updateUI();
@@ -612,7 +675,6 @@
                 btn.disabled = false;
             }
         }
-        // اگر عضویت تایید نشد یا خطایی بود، پنجره لیست جدید کانال‌ها را باز کن
         renderModalChannels(); document.getElementById('channelModal').style.display = 'flex'; return; 
       }
       u.isMining = true; u.miningStartTime = Date.now(); u.lastMiningTime = Date.now();
@@ -807,9 +869,45 @@
     showCustomAlert("تیکت با موفقیت برای همیشه بسته شد.", "🔒");
   }
 
-  function openCheckout(n, p, m) { selectedMachineToBuy={name:n,price:p,method:m}; document.getElementById('checkoutTitle').innerText="خرید "+n; document.getElementById('checkoutPriceText').innerText="مبلغ: "+p.toLocaleString(); document.getElementById('checkoutCardBox').style.display=m==='toman'?'block':'none'; document.getElementById('checkoutCryptoBox').style.display=m==='crypto'?'block':'none'; document.getElementById('checkoutModal').style.display='flex'; }
+  // --- مدیریت نمایش اطلاعات در پاپ‌آپ خرید ---
+  function openCheckout(n, p, m) { 
+    selectedMachineToBuy = {name: n, price: p, method: m}; 
+    document.getElementById('checkoutTitle').innerText = "خرید " + n; 
+    document.getElementById('checkoutPriceText').innerText = "مبلغ: " + p.toLocaleString() + " تومان"; 
+    
+    let rLabel = document.getElementById('receiptLabel');
+    let rInput = document.getElementById('receiptInput');
+    
+    if(m === 'toman') {
+       rLabel.innerText = "شماره پیگیری داخل رسید واریزی را بنویسید:";
+       rInput.placeholder = "مثلاً: 12345678";
+       document.getElementById('checkoutCardBox').style.display = 'block'; 
+       document.getElementById('checkoutCryptoBox').style.display = 'none';
+    } else {
+       rLabel.innerText = "هش تراکنش واریزی (TxID) را قرار دهید:";
+       rInput.placeholder = "مثلاً: 0x4f8a... (TxID)";
+       document.getElementById('checkoutCardBox').style.display = 'none'; 
+       document.getElementById('checkoutCryptoBox').style.display = 'block';
+    }
+
+    // بارگذاری اطلاعات ادمین
+    document.getElementById('displayAdminCard').innerText = adminConfig.card;
+    document.getElementById('displayAdminName').innerText = adminConfig.name;
+    document.getElementById('displayAdminWallet').innerText = adminConfig.wallet;
+
+    document.getElementById('checkoutModal').style.display = 'flex'; 
+  }
+  
   function closeCheckout() { document.getElementById('checkoutModal').style.display = 'none'; }
-  async function submitReceipt() { let r = document.getElementById('receiptInput').value.trim(); if(!r) return showCustomAlert("لطفاً کد پیگیری را وارد کنید.", "⚠️"); pendingReceipts.push({ username: currentUser, machine: selectedMachineToBuy.name, receipt: r }); await saveGlobalAdminData(); showCustomAlert("رسید خرید شما با موفقیت ثبت شد و پس از بررسی، ماینر فعال می‌شود.", "✅"); closeCheckout(); }
+  
+  async function submitReceipt() { 
+    let r = document.getElementById('receiptInput').value.trim(); 
+    if(!r) return showCustomAlert("لطفاً اطلاعات پیگیری را وارد کنید.", "⚠️"); 
+    pendingReceipts.push({ username: currentUser, machine: selectedMachineToBuy.name, receipt: r }); 
+    await saveGlobalAdminData(); 
+    showCustomAlert("رسید خرید شما با موفقیت ثبت شد و پس از بررسی توسط مدیریت، ماینر فعال می‌شود.", "✅"); 
+    closeCheckout(); 
+  }
 
   function openAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'flex'; }
   function closeAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'none'; }
