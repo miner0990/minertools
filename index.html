@@ -447,9 +447,12 @@
       <div style="margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom:15px;">
         <h4 style="color: #38bdf8; margin-bottom: 10px;">پیام پاپ‌آپ همگانی (اطلاعیه)</h4>
         <input type="text" id="adminNoticeTitle" placeholder="عنوان پیام..." class="select-box" style="margin-bottom: 8px;">
-        <textarea id="adminNoticeText" placeholder="متن اطلاعیه (خالی بگذارید تا غیرفعال شود)..." style="width: 100%; height: 80px; padding: 10px; background: #030712; color: white; border: 1px solid #334155; border-radius: 8px; margin-bottom: 8px;"></textarea>
+        <textarea id="adminNoticeText" placeholder="متن اطلاعیه..." style="width: 100%; height: 80px; padding: 10px; background: #030712; color: white; border: 1px solid #334155; border-radius: 8px; margin-bottom: 8px;"></textarea>
         <input type="text" id="adminNoticeLink" placeholder="لینک دکمه (https://...)" class="select-box" style="margin-bottom: 10px;" dir="ltr">
-        <button onclick="saveAdminAnnouncement()" class="btn-yellow">انتشار پیام 🚀</button>
+        <div style="display: flex; gap: 8px;">
+            <button onclick="saveAdminAnnouncement()" class="btn-yellow" style="flex: 1; margin-top: 0;">انتشار پیام 🚀</button>
+            <button onclick="deleteAdminAnnouncement()" class="btn-danger" style="flex: 1; margin-top: 0;">🗑️ حذف اطلاعیه</button>
+        </div>
       </div>
       
       <div style="margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom:15px;">
@@ -912,10 +915,10 @@
             btn.innerText = "بررسی عضویت... ⏳";
             btn.disabled = true;
             try {
-                let res = await fetch(`${API_URL}/api/check_membership?t=${Date.now()}`, {
+                // ارسال درخواست مستقیم و تمیز به سرور، بدون پسوند اضافی
+                let res = await fetch(`${API_URL}/api/check_membership`, {
                     method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' },
-                    cache: 'no-store',
+                    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
                     body: JSON.stringify({ user_id: userId, channels: mandatoryChannels.map(c => c.link) })
                 });
                 let data = await res.json();
@@ -926,13 +929,10 @@
                    saveDB(); updateUI();
                    return;
                 } else {
-                   // اگر عضو نبود، تاخیر می‌دهیم تا سرور تلگرام به اشتباه اسپم نشود
-                   btn.innerText = "ارتباط با سرور... ⏳";
-                   setTimeout(() => { btn.innerText = origText; btn.disabled = false; }, 3000);
+                   btn.innerText = origText; btn.disabled = false;
                 }
             } catch(e) {
-                btn.innerText = "ارتباط با سرور... ⏳";
-                setTimeout(() => { btn.innerText = origText; btn.disabled = false; }, 3000);
+                btn.innerText = origText; btn.disabled = false;
             }
         }
         renderModalChannels(); document.getElementById('channelModal').style.display = 'flex'; return; 
@@ -966,10 +966,10 @@
 
     try {
         let channelLinks = mandatoryChannels.map(c => c.link);
-        let res = await fetch(`${API_URL}/api/check_membership?t=${Date.now()}`, {
+        // درخواست مستقیم، سریع و بدون کش
+        let res = await fetch(`${API_URL}/api/check_membership`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            cache: 'no-store',
+            headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
             body: JSON.stringify({ user_id: userId, channels: channelLinks })
         });
         let data = await res.json();
@@ -986,19 +986,14 @@
            btn.innerText = originalText;
            btn.disabled = false;
         } else {
-           btn.innerText = "درحال استعلام از تلگرام... ⏳";
-           setTimeout(() => {
-               showCustomAlert("شما هنوز در تمام کانال‌ها عضو نشده‌اید یا تلگرام با تاخیر بروزرسانی می‌شود. لطفاً مجدداً کلیک کنید.", "❌");
-               btn.innerText = originalText;
-               btn.disabled = false;
-           }, 4000); // 4 ثانیه تاخیر برای شکستن کش تلگرام
+           showCustomAlert("شما هنوز در تمام کانال‌ها عضو نشده‌اید. لطفاً ابتدا عضو شوید.", "❌");
+           btn.innerText = originalText;
+           btn.disabled = false;
         }
     } catch(err) {
-        btn.innerText = "درحال استعلام از تلگرام... ⏳";
-        setTimeout(() => {
-             btn.innerText = originalText;
-             btn.disabled = false;
-        }, 4000);
+        showCustomAlert("خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.", "❌");
+        btn.innerText = originalText;
+        btn.disabled = false;
     }
   }
 
@@ -1322,6 +1317,17 @@
       }; 
       saveGlobalAdminData().then(() => {
           showCustomAlert("پیام عمومی با موفقیت در دیتابیس ذخیره و برای کاربران فعال شد.", "🚀");
+      });
+  }
+
+  // --- حذف قطعی اطلاعیه ادمین ---
+  function deleteAdminAnnouncement() {
+      document.getElementById('adminNoticeTitle').value = "";
+      document.getElementById('adminNoticeText').value = "";
+      document.getElementById('adminNoticeLink').value = "";
+      globalNotice = { title: "", text: "", link: "" };
+      saveGlobalAdminData().then(() => {
+          showCustomAlert("اطلاعیه با موفقیت حذف شد و دیگر برای کاربران نمایش داده نمی‌شود.", "🗑️");
       });
   }
   
