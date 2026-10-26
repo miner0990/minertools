@@ -334,7 +334,7 @@
 
 <div id="channelModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px;" dir="rtl"><div class="card card-yellow" style="max-width: 380px; width: 100%; text-align: center; position: relative;"><button onclick="document.getElementById('channelModal').style.display='none'" style="position: absolute; top: 12px; left: 12px; background: #ef4444; color: white; border: none; width: 26px; height: 26px; border-radius: 50%; font-weight: bold; cursor: pointer;">✕</button><h3 style="color: #facc15; font-size: 16px; margin-bottom: 10px;">📢 عضویت اجباری در کانال‌ها</h3><div id="modalChannelsContainer" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;"></div><button class="btn-yellow" id="verifyChannelBtn" onclick="verifyAllMemberships()">تایید عضویت و شروع ⚡</button></div></div>
 
-<!-- مودال خرید -->
+<!-- مودال خرید با راهنمای شبکه TRC20 -->
 <div id="checkoutModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; padding: 15px;" dir="rtl">
   <div class="card card-yellow" style="max-width: 400px; width: 100%; text-align: right;">
     <h3 style="color: #facc15; font-size: 17px; margin-bottom: 10px; text-align: center;" id="checkoutTitle">خرید دستگاه</h3>
@@ -478,6 +478,7 @@
   let allWithdrawals = [];
   let miningInterval = null;
   let selectedMachineToBuy = null;
+  let inviterSyncCounter = 0; // متغیر برای کنترل ذخیره‌سازی سود معرف
   
   let activeChatTicketId = null;
   let activeChatUsername = null;
@@ -534,14 +535,48 @@
     if(!u || !p) { showCustomAlert("لطفاً نام کاربری و رمز عبور را وارد کنید.", "⚠️"); return; }
     await loadDataFromServer();
     currentUser = u;
+    
+    let isNewUser = false;
+    let inviter = null;
+
     if(!db[u]) {
-      db[u] = { password: p, mined: 0, miners: [{ name: "ماینر رایگان پایه", hashrate: "68.4 TH/s", maxDaily: 35000 }], withdrawHistory: [], purchaseHistory: [], lastMiningTime: Date.now(), miningStartTime: 0, isMining: false, isChannelJoined: false, lastBonusTime: 0, miningCrypto: 'USDT', referrals: 0, tickets: [] };
+      isNewUser = true;
+      let tgData = window.Telegram?.WebApp?.initDataUnsafe;
+      let startParam = tgData ? tgData.start_param : null;
+      if (startParam && db[startParam] && startParam !== u) {
+          inviter = startParam;
+      }
+
+      db[u] = { 
+        password: p, 
+        mined: inviter ? 5000 : 0, 
+        miners: [{ name: "ماینر رایگان پایه", hashrate: "68.4 TH/s", maxDaily: 35000 }], 
+        withdrawHistory: [], 
+        purchaseHistory: [], 
+        lastMiningTime: Date.now(), 
+        miningStartTime: 0, 
+        isMining: false, 
+        isChannelJoined: false, 
+        lastBonusTime: 0, 
+        miningCrypto: 'USDT', 
+        referrals: 0, 
+        tickets: [],
+        referredBy: inviter
+      };
+
+      if (inviter) {
+          db[inviter].mined += 10000;
+          db[inviter].referrals = (db[inviter].referrals || 0) + 1;
+      }
     } else {
       if(db[u].password !== p) { showCustomAlert("رمز عبور اشتباه است!", "❌"); return; }
       if(!db[u].tickets) db[u].tickets = []; 
       if(!db[u].purchaseHistory) db[u].purchaseHistory = []; 
     }
+    
     await saveDB();
+    if (inviter) await saveDB(inviter);
+
     checkBackgroundMining();
     document.getElementById('tab-welcome').classList.remove('active');
     document.getElementById('tab-welcome').style.display = 'none';
@@ -550,6 +585,10 @@
     document.getElementById('userGreeting').innerText = "کاربر: " + currentUser;
     document.getElementById('changeUsernameInput').value = currentUser;
     updateUI(); renderMyMiners(); startMiningLoop(); checkGlobalNotice(); checkBonusStatus(); updateCryptoUI(db[currentUser].miningCrypto || 'USDT');
+
+    if (isNewUser && inviter) {
+        setTimeout(() => showCustomAlert(`ثبت‌نام موفق! شما با دعوت ${inviter} وارد شدید و ۵,۰۰۰ تومان پاداش ورود گرفتید.`, "🎁"), 1000);
+    }
   }
 
   function getInviteMessage() { return adminConfig.bannerText + "\nhttps://t.me/minernew_vibot?start=" + currentUser; }
@@ -583,14 +622,23 @@
     let u = db[currentUser];
     if(u && u.isMining) {
       let now = Date.now(), elapsed = now - (u.miningStartTime || now);
+      let minedAmount = 0;
       if(elapsed >= 86400000) {
         let valid = (u.miningStartTime + 86400000) - u.lastMiningTime;
-        if(valid > 0) u.mined += (valid / 1000) * (getTotalMaxDaily(u) / 86400);
+        if(valid > 0) minedAmount = (valid / 1000) * (getTotalMaxDaily(u) / 86400);
         u.isMining = false; u.lastMiningTime = now;
       } else {
         let es = (now - u.lastMiningTime) / 1000;
-        if(es > 0) u.mined += es * (getTotalMaxDaily(u) / 86400);
+        if(es > 0) minedAmount = es * (getTotalMaxDaily(u) / 86400);
         u.lastMiningTime = now;
+      }
+      
+      if (minedAmount > 0) {
+         u.mined += minedAmount;
+         if (u.referredBy && db[u.referredBy]) {
+             db[u.referredBy].mined += (minedAmount * 0.05);
+             saveDB(u.referredBy);
+         }
       }
       saveDB();
     }
@@ -806,7 +854,22 @@
       let u = db[currentUser];
       if(u && u.isMining) {
         if(Date.now() - (u.miningStartTime || Date.now()) >= 86400000) { checkBackgroundMining(); updateUI(); }
-        else { u.mined += (getTotalMaxDaily(u) / 86400); u.lastMiningTime = Date.now(); saveDB(); updateUI(); }
+        else { 
+           let amount = (getTotalMaxDaily(u) / 86400);
+           u.mined += amount; 
+           
+           if (u.referredBy && db[u.referredBy]) {
+               db[u.referredBy].mined += (amount * 0.05);
+               inviterSyncCounter++;
+               if (inviterSyncCounter >= 10) {
+                   saveDB(u.referredBy);
+                   inviterSyncCounter = 0;
+               }
+           }
+           
+           u.lastMiningTime = Date.now(); 
+           saveDB(); updateUI(); 
+        }
       }
     }, 1000);
   }
