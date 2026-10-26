@@ -529,7 +529,7 @@
     await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u, userData: db[u] }) });
   }
 
-  // --- توابع جدید برای کشف هوشمند و دقیق معرف ---
+  // --- سیستم اسخراج هوشمند لینک با آیدی عددی تلگرام ---
   function extractInviter() {
     let inviter = null;
     try {
@@ -550,16 +550,7 @@
     } catch (e) { console.log(e); }
     return inviter ? inviter.trim() : null;
   }
-
-  function findRealUsername(usernameToFind) {
-    if(!usernameToFind) return null;
-    let lower = usernameToFind.toLowerCase();
-    for(let key in db) {
-      if(key.toLowerCase() === lower && key !== '_ADMIN_DATA_') return key;
-    }
-    return null;
-  }
-  // ---------------------------------------------
+  // ----------------------------------------------------
 
   async function completeRegistration() {
     let u = document.getElementById('usernameInput').value.trim();
@@ -571,14 +562,27 @@
 
     currentUser = u;
     
+    // دریافت آیدی عددی تلگرام کاربر جاری
+    let tgData = window.Telegram?.WebApp?.initDataUnsafe;
+    let myTgId = (tgData && tgData.user && tgData.user.id) ? tgData.user.id : Date.now();
+    
     let isNewUser = false;
     let realInviter = null;
 
     if(!db[u]) {
       isNewUser = true;
       
-      let rawInviter = extractInviter();
-      realInviter = findRealUsername(rawInviter);
+      let rawInviterId = extractInviter();
+      
+      // پیدا کردن صاحب این آیدی عددی در دیتابیس
+      if (rawInviterId) {
+          for(let key in db) {
+              if(key !== '_ADMIN_DATA_' && db[key].tgId && db[key].tgId.toString() === rawInviterId.toString()) {
+                  realInviter = key;
+                  break;
+              }
+          }
+      }
       
       if (realInviter && realInviter.toLowerCase() === u.toLowerCase()) {
           realInviter = null;
@@ -598,6 +602,7 @@
         miningCrypto: 'USDT', 
         referrals: 0, 
         tickets: [],
+        tgId: myTgId, // ذخیره آیدی عددی برای ساخت لینک دعوت
         referredBy: realInviter
       };
 
@@ -609,6 +614,7 @@
       if(db[u].password !== p) { showCustomAlert("رمز عبور اشتباه است!", "❌"); return; }
       if(!db[u].tickets) db[u].tickets = []; 
       if(!db[u].purchaseHistory) db[u].purchaseHistory = []; 
+      if(!db[u].tgId) db[u].tgId = myTgId; // سازگاری با کاربران قدیمی
     }
     
     await saveDB();
@@ -630,9 +636,19 @@
     }
   }
 
-  function getInviteMessage() { return adminConfig.bannerText + "\nhttps://t.me/minernew_vibot/minertools?startapp=" + currentUser; }
-  function shareToTelegram() { window.open(`https://t.me/share/url?url=${encodeURIComponent("https://t.me/minernew_vibot/minertools?startapp=" + currentUser)}&text=${encodeURIComponent(getInviteMessage())}`); }
-  function copyShareText() { navigator.clipboard.writeText(getInviteMessage()).then(() => showCustomAlert("متن بنر و لینک اختصاصی شما با موفقیت کپی شد! حالا برای دوستانتان بفرستید.", "✅")); }
+  function getInviteMessage() { 
+      let myInviteId = db[currentUser]?.tgId || currentUser;
+      return adminConfig.bannerText + "\nhttps://t.me/minernew_vibot/minertools?startapp=" + myInviteId; 
+  }
+  
+  function shareToTelegram() { 
+      let myInviteId = db[currentUser]?.tgId || currentUser;
+      window.open('https://t.me/share/url?url=' + encodeURIComponent("https://t.me/minernew_vibot/minertools?startapp=" + myInviteId) + '&text=' + encodeURIComponent(getInviteMessage())); 
+  }
+  
+  function copyShareText() { 
+      navigator.clipboard.writeText(getInviteMessage()).then(() => showCustomAlert("متن بنر و لینک اختصاصی شما با موفقیت کپی شد! حالا برای دوستانتان بفرستید.", "✅")); 
+  }
 
   function setMiningCrypto(sym) { db[currentUser].miningCrypto = sym; saveDB(); updateCryptoUI(sym); updateUI(); }
   function updateCryptoUI(sym) { document.querySelectorAll('.crypto-btn').forEach(b => b.style.opacity = '0.5'); let activeBtn = document.getElementById('cryptoBtn-' + sym); if(activeBtn) activeBtn.style.opacity = '1'; }
@@ -728,7 +744,8 @@
       document.getElementById('statusText').innerText = "متوقف شده ⏸️";
     }
     
-    document.getElementById('shareTextTemplate').innerHTML = adminConfig.bannerText.replace(/\n/g, '<br>') + '<br><span style="color: #00ff88;">https://t.me/minernew_vibot/minertools?startapp=' + currentUser + '</span>';
+    let myInviteId = db[currentUser]?.tgId || currentUser;
+    document.getElementById('shareTextTemplate').innerHTML = adminConfig.bannerText.replace(/\n/g, '<br>') + '<br><span style="color: #00ff88;">https://t.me/minernew_vibot/minertools?startapp=' + myInviteId + '</span>';
     
     let hasPro = u.miners.some(m => m.name.includes("پرو"));
     let hasTurbo = u.miners.some(m => m.name.includes("توربو"));
