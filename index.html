@@ -490,6 +490,25 @@
   let activeChatTicketId = null;
   let activeChatUsername = null;
 
+  // --- سیستم قیمت زنده ارزها (از نوبیتکس) ---
+  let cryptoRates = { usdt: 60000, trx: 6000, btc: 4200000000 };
+  async function fetchCryptoRates() {
+      try {
+          let res = await fetch('https://api.nobitex.ir/market/stats?srcCurrency=usdt,trx,btc&dstCurrency=rls');
+          let data = await res.json();
+          if(data.status === 'ok') {
+              if(data.stats['usdt-rls']) cryptoRates.usdt = parseFloat(data.stats['usdt-rls'].latest) / 10;
+              if(data.stats['trx-rls']) cryptoRates.trx = parseFloat(data.stats['trx-rls'].latest) / 10;
+              if(data.stats['btc-rls']) cryptoRates.btc = parseFloat(data.stats['btc-rls'].latest) / 10;
+          }
+          if (currentUser) updateUI();
+      } catch(e) { console.log('خطا در دریافت قیمت زنده، استفاده از قیمت پیش‌فرض.'); }
+  }
+  // آپدیت قیمت‌ها در لحظه باز شدن اپ و هر ۶۰ ثانیه
+  fetchCryptoRates();
+  setInterval(fetchCryptoRates, 60000);
+  // ------------------------------------------
+
   function showCustomAlert(msg, icon = '✅') {
     document.getElementById('customAlertIcon').innerText = icon;
     document.getElementById('customAlertText').innerText = msg;
@@ -660,7 +679,10 @@
     document.getElementById('mainNav').style.display = 'flex';
     document.getElementById('userGreeting').innerText = "کاربر: " + currentUser;
     document.getElementById('changeUsernameInput').value = currentUser;
-    updateUI(); renderMyMiners(); startMiningLoop(); checkGlobalNotice(); checkBonusStatus(); updateCryptoUI(db[currentUser].miningCrypto || 'USDT');
+    
+    // دریافت مجدد قیمت‌ها برای نمایش دقیق
+    await fetchCryptoRates();
+    updateUI(); renderMyMiners(); startMiningLoop(); checkBonusStatus(); updateCryptoUI(db[currentUser].miningCrypto || 'USDT');
 
     btn.innerText = origBtnText;
     btn.disabled = false;
@@ -674,6 +696,9 @@
     } else {
         setTimeout(() => showCustomAlert(`ورود موفق! خوش آمدید.`, "✅"), 1000);
     }
+    
+    // نمایش شیک اطلاعیه ادمین بعد از ۱.۵ ثانیه (اگر وجود داشت)
+    setTimeout(() => { checkGlobalNotice(); }, 1500);
   }
 
   function getInviteMessage() { 
@@ -706,8 +731,14 @@
 
   function checkGlobalNotice() {
     if(globalNotice && globalNotice.text) {
-      document.getElementById('announcementTitle').innerText = globalNotice.title || "اطلاعیه";
+      document.getElementById('announcementTitle').innerText = globalNotice.title || "اطلاعیه مهم";
       document.getElementById('announcementText').innerText = globalNotice.text;
+      if (globalNotice.link) {
+          document.getElementById('announcementLinkBox').style.display = 'block';
+          document.getElementById('announcementLinkBtn').href = globalNotice.link;
+      } else {
+          document.getElementById('announcementLinkBox').style.display = 'none';
+      }
       document.getElementById('announcementModal').style.display = 'flex';
     }
   }
@@ -747,9 +778,11 @@
     
     let tMax = getTotalMaxDaily(u);
     let toman = Math.floor(u.mined);
-    let usdt = (toman / 60000).toFixed(4);
-    let trx = (toman / 6000).toFixed(2);
-    let btc = (toman / 4200000000).toFixed(5);
+    
+    // استفاده از قیمت‌های زنده صرافی
+    let usdt = (toman / cryptoRates.usdt).toFixed(4);
+    let trx = (toman / cryptoRates.trx).toFixed(2);
+    let btc = (toman / cryptoRates.btc).toFixed(6);
 
     document.getElementById('headerWallet').innerText = usdt + " USDT";
     document.getElementById('walletTotalToman').innerText = toman.toLocaleString() + " تومان";
@@ -856,8 +889,11 @@
             btn.innerText = "بررسی عضویت... ⏳";
             btn.disabled = true;
             try {
-                let res = await fetch(`${API_URL}/api/check_membership`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                // ضد کش (Anti-Cache) برای دریافت وضعیت لایو از تلگرام
+                let res = await fetch(`${API_URL}/api/check_membership?t=${Date.now()}`, {
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' },
+                    cache: 'no-store',
                     body: JSON.stringify({ user_id: userId, channels: mandatoryChannels.map(c => c.link) })
                 });
                 let data = await res.json();
@@ -905,9 +941,10 @@
 
     try {
         let channelLinks = mandatoryChannels.map(c => c.link);
-        let res = await fetch(`${API_URL}/api/check_membership`, {
+        let res = await fetch(`${API_URL}/api/check_membership?t=${Date.now()}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            cache: 'no-store',
             body: JSON.stringify({ user_id: userId, channels: channelLinks })
         });
         let data = await res.json();
@@ -1218,7 +1255,12 @@
       if(u !== '_ADMIN_DATA_') {
         total++;
         if(q && !u.toLowerCase().includes(q)) continue;
-        h += `<div style="background:#252538; padding:10px; border-radius:8px; font-size:12px;"><b>یوزر: <span style="color:#38bdf8;">${u}</span></b><br><span style="color:#aaa;">موجودی:</span> <span style="color:#00ff88;">${Math.floor(db[u].mined).toLocaleString()} ت</span><br><span style="color:#aaa;">دستگاه‌ها:</span> ${db[u].miners.map(m=>m.name).join('، ')}</div>`;
+        h += `<div style="background:#252538; padding:10px; border-radius:8px; font-size:12px; margin-bottom: 8px;">
+                <b>یوزر: <span style="color:#38bdf8;">${u}</span></b><br>
+                <span style="color:#aaa;">موجودی:</span> <span style="color:#00ff88;">${Math.floor(db[u].mined).toLocaleString()} ت</span><br>
+                <span style="color:#aaa;">تعداد زیرمجموعه‌ها:</span> <b style="color:#facc15;">${db[u].referrals || 0} نفر</b><br>
+                <span style="color:#aaa;">دستگاه‌ها:</span> ${db[u].miners.map(m=>m.name).join('، ')}
+              </div>`;
       }
     }
     document.getElementById('statTotalUsers').innerText = total; document.getElementById('adminUsersListDetailed').innerHTML = h || "<p style='color:#aaa; font-size:12px;'>یافت نشد.</p>";
