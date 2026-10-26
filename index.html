@@ -67,7 +67,8 @@
       <div style="background: rgba(239,68,68,0.1); border: 1px solid #ef4444; padding: 10px; border-radius: 8px; font-size: 11px; color: #fff; margin-bottom: 15px; line-height:1.6; text-align: right;">⚠️ <b style="color: #ef4444;">توجه مهم:</b> نام کاربری و رمز عبور خود را یادداشت کنید. امکان بازیابی وجود ندارد!</div>
 
       <input type="text" class="select-box" id="usernameInput" placeholder="نام کاربری..." style="margin-bottom: 10px;" autocapitalize="none">
-      <input type="password" class="select-box" id="passwordInput" placeholder="رمز عبور..." style="margin-bottom: 15px;">
+      <input type="password" class="select-box" id="passwordInput" placeholder="رمز عبور..." style="margin-bottom: 10px;">
+      <input type="text" class="select-box" id="refCodeInput" placeholder="کد معرف (اختیاری)..." style="margin-bottom: 15px;" autocapitalize="none">
       <button class="btn-yellow" id="registerBtn" onclick="completeRegistration()">ورود به مزرعه و شروع ⛏️</button>
     </div>
   </div>
@@ -188,12 +189,12 @@
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">👥 دعوت + پاداش</h2></header>
       <div class="card card-yellow" style="text-align: right; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);">
         <h3 style="color: #facc15; font-size: 15px; margin-bottom: 8px; text-align: center;">⚡ استخراج مشترک!</h3>
-        <p style="font-size: 11px; color: #94a3b8; line-height: 1.6; text-align: center; margin-bottom: 12px;">دوستت با لینک اختصاصی تو بیاد، <b>۵,۰۰۰ تومان پاداش ورود</b> می‌گیره و تو هم <b>۱۰,۰۰۰ تومان پول نقد + ۵٪ از سود استخراجش</b> رو برای همیشه دریافت می‌کنی!</p>
+        <p style="font-size: 11px; color: #94a3b8; line-height: 1.6; text-align: center; margin-bottom: 12px;">زیرمجموعه شما باید <b style="color: #fff;">کد معرف شما را در صفحه ثبت‌نام وارد کند</b> تا <b>۱۰,۰۰۰ تومان پول نقد</b> و <b>۵٪ از سود استخراجش</b> برای همیشه مال شما شود. او نیز <b>۵,۰۰۰ تومان پاداش ورود</b> می‌گیرد!</p>
       </div>
       
       <!-- باکس نمایش کد دعوت اختصاصی -->
       <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; border: 1.5px dashed #facc15; font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 14px;">
-         <b style="color:#facc15;">کد دعوت اختصاصی شما:</b> <span id="myRefCodeDisplay" style="color:#fff; font-family: monospace; font-size: 15px; font-weight: bold; margin-right: 5px;">---</span>
+         <b style="color:#facc15;">کد معرف اختصاصی شما:</b> <span id="myRefCodeDisplay" style="color:#fff; font-family: monospace; font-size: 15px; font-weight: bold; margin-right: 5px;">---</span>
       </div>
 
       <div class="card card-cyan" style="text-align: right; background: rgba(0, 255, 136, 0.04); margin-bottom: 14px;">
@@ -517,41 +518,27 @@
     } catch (err) { console.log(err); }
   }
 
-  // --- سیستم ذخیره سازی قطعی و ترتیبی به سرور ---
-  async function saveDB(forceUser = null) {
+  let saveQueue = Promise.resolve();
+  function saveDB(forceUser = null) {
     let u = forceUser || currentUser;
-    if(!u) return;
-    try {
-        await fetch(`${API_URL}/api/update`, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ username: u, userData: db[u] }) 
+    if(!u) return Promise.resolve();
+    
+    let p = new Promise(resolve => {
+        saveQueue = saveQueue.then(async () => {
+          try {
+            await fetch(`${API_URL}/api/update`, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ username: u, userData: db[u] }) 
+            });
+            await new Promise(r => setTimeout(r, 400)); 
+          } catch(e) { console.log(e); }
+          resolve();
         });
-        await new Promise(r => setTimeout(r, 200)); // استراحت سرور برای جلوگیری از تداخل
-    } catch(e) { console.log(e); }
+    });
+    return p;
   }
 
-  async function saveGlobalAdminData() {
-    if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
-    db['_ADMIN_DATA_'].allWithdrawals = allWithdrawals;
-    db['_ADMIN_DATA_'].pendingReceipts = pendingReceipts;
-    db['_ADMIN_DATA_'].bannerText = adminConfig.bannerText;
-    db['_ADMIN_DATA_'].channels = mandatoryChannels;
-    db['_ADMIN_DATA_'].card = adminConfig.card;
-    db['_ADMIN_DATA_'].name = adminConfig.name;
-    db['_ADMIN_DATA_'].wallet = adminConfig.wallet;
-    try {
-        await fetch(`${API_URL}/api/update`, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) 
-        });
-        await new Promise(r => setTimeout(r, 200));
-    } catch(e) { console.log(e); }
-  }
-  // ----------------------------------------------------
-
-  // --- استخراج‌گر هوشمند لینک ---
   function extractInviter() {
     let inviter = null;
     try {
@@ -574,18 +561,15 @@
     return inviter ? inviter.trim() : null;
   }
 
-  // پیدا کردن معرف بر اساس "کد دعوت اختصاصی" یا "نام کاربری قدیمی"
   function findRealUsername(rawCode) {
     if(!rawCode) return null;
     let lower = rawCode.toString().toLowerCase();
     
-    // ۱. جستجو بر اساس کد دعوت اختصاصی (اولولیت اول)
     for(let key in db) {
         if(key !== '_ADMIN_DATA_' && db[key].refCode && db[key].refCode.toLowerCase() === lower) {
             return key;
         }
     }
-    // ۲. پشتیبانی از نام‌های کاربری یا لینک‌های قدیمی
     for(let key in db) {
         if(key !== '_ADMIN_DATA_' && key.toLowerCase() === lower) {
             return key;
@@ -593,14 +577,12 @@
     }
     return null;
   }
-  // ----------------------------------------------------
 
   async function completeRegistration() {
     let u = document.getElementById('usernameInput').value.trim();
     let p = document.getElementById('passwordInput').value.trim();
     if(!u || !p) { showCustomAlert("لطفاً نام کاربری و رمز عبور را وارد کنید.", "⚠️"); return; }
     
-    // قفل کردن دکمه برای جلوگیری از کلیک‌های تکراری و تداخل
     let btn = document.getElementById('registerBtn');
     let origBtnText = btn.innerText;
     btn.innerText = "در حال ایجاد ارتباط با سرور... ⏳";
@@ -615,21 +597,23 @@
     }
 
     currentUser = u;
+    
     let isNewUser = false;
     let realInviter = null;
 
     if(!db[u]) {
       isNewUser = true;
       
-      let rawCode = extractInviter();
+      let manualCode = document.getElementById('refCodeInput').value.trim();
+      let autoCode = extractInviter();
+      let rawCode = manualCode ? manualCode : autoCode;
+      
       realInviter = findRealUsername(rawCode);
       
-      // جلوگیری از اینکه کاربر خودش را به عنوان زیرمجموعه ثبت کند
       if (realInviter && realInviter.toLowerCase() === u.toLowerCase()) {
           realInviter = null;
       }
 
-      // ایجاد کاربر جدید همراه با کد دعوت اختصاصی
       db[u] = { 
         password: p, 
         mined: realInviter ? 5000 : 0, 
@@ -644,11 +628,10 @@
         miningCrypto: 'USDT', 
         referrals: 0, 
         tickets: [],
-        refCode: "REF" + Math.floor(10000 + Math.random() * 90000), // کد رفرال اختصاصی
+        refCode: "REF" + Math.floor(10000 + Math.random() * 90000), 
         referredBy: realInviter
       };
 
-      // اضافه کردن پاداش به حساب دعوت کننده
       if (realInviter) {
           db[realInviter].mined += 10000;
           db[realInviter].referrals = (db[realInviter].referrals || 0) + 1;
@@ -662,11 +645,9 @@
       isNewUser = false;
       if(!db[u].tickets) db[u].tickets = []; 
       if(!db[u].purchaseHistory) db[u].purchaseHistory = []; 
-      // ساخت کد اختصاصی برای اکانت‌های قدیمی اگر نداشتند
       if(!db[u].refCode) db[u].refCode = "REF" + Math.floor(10000 + Math.random() * 90000); 
     }
     
-    // ذخیره سازی ترتیبی در سرور پایتون برای جلوگیری از حذف دیتابیس
     await saveDB(u); 
     if (isNewUser && realInviter) {
         await saveDB(realInviter); 
@@ -684,12 +665,11 @@
     btn.innerText = origBtnText;
     btn.disabled = false;
 
-    // تمایز دادن پیام ثبت نام جدید با پیام لاگین
     if (isNewUser) {
         if (realInviter) {
             setTimeout(() => showCustomAlert(`ثبت‌نام موفق! شما با دعوت ${realInviter} وارد شدید و ۵,۰۰۰ تومان پاداش ورود گرفتید.`, "🎁"), 1000);
         } else {
-            setTimeout(() => showCustomAlert(`ثبت‌نام شما با موفقیت انجام شد. کد دعوت شما ساخته شد.`, "✅"), 1000);
+            setTimeout(() => showCustomAlert(`ثبت‌نام شما با موفقیت انجام شد.`, "✅"), 1000);
         }
     } else {
         setTimeout(() => showCustomAlert(`ورود موفق! خوش آمدید.`, "✅"), 1000);
@@ -698,7 +678,7 @@
 
   function getInviteMessage() { 
       let myCode = db[currentUser]?.refCode || currentUser;
-      return adminConfig.bannerText + "\nhttps://t.me/minernew_vibot/minertools?startapp=" + myCode; 
+      return adminConfig.bannerText + "\n\n🎁 کد معرف من: " + myCode + "\nلینک ورود:\nhttps://t.me/minernew_vibot/minertools?startapp=" + myCode; 
   }
   
   function shareToTelegram() { 
@@ -707,7 +687,7 @@
   }
   
   function copyShareText() { 
-      navigator.clipboard.writeText(getInviteMessage()).then(() => showCustomAlert("متن بنر و لینک اختصاصی شما با موفقیت کپی شد! حالا برای دوستانتان بفرستید.", "✅")); 
+      navigator.clipboard.writeText(getInviteMessage()).then(() => showCustomAlert("متن بنر و کد اختصاصی شما با موفقیت کپی شد! حالا برای دوستانتان بفرستید.", "✅")); 
   }
 
   function setMiningCrypto(sym) { db[currentUser].miningCrypto = sym; saveDB(); updateCryptoUI(sym); updateUI(); }
@@ -763,7 +743,6 @@
     let u = db[currentUser];
     if(!u) return;
     
-    // اطمینان از وجود کد دعوت برای نمایش
     if(!u.refCode) { u.refCode = "REF" + Math.floor(10000 + Math.random() * 90000); saveDB(); }
     
     let tMax = getTotalMaxDaily(u);
@@ -808,9 +787,11 @@
       document.getElementById('statusText').innerText = "متوقف شده ⏸️";
     }
     
-    // نمایش واضح کد رفرال اختصاصی
     document.getElementById('myRefCodeDisplay').innerText = u.refCode;
-    document.getElementById('shareTextTemplate').innerHTML = adminConfig.bannerText.replace(/\n/g, '<br>') + '<br><span style="color: #00ff88;">https://t.me/minernew_vibot/minertools?startapp=' + u.refCode + '</span>';
+    let shareHTML = adminConfig.bannerText.replace(/\n/g, '<br>') + 
+                    '<br><br>🎁 کد معرف من: <b style="color:#facc15;">' + u.refCode + '</b><br>' + 
+                    '<span style="color: #00ff88;">https://t.me/minernew_vibot/minertools?startapp=' + u.refCode + '</span>';
+    document.getElementById('shareTextTemplate').innerHTML = shareHTML;
     
     let hasPro = u.miners.some(m => m.name.includes("پرو"));
     let hasTurbo = u.miners.some(m => m.name.includes("توربو"));
@@ -1012,7 +993,21 @@
     u.withdrawHistory.unshift(w); allWithdrawals.unshift(w);
     
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
-    await saveDB(); await saveGlobalAdminData(); updateUI(); 
+    await saveDB(); 
+    
+    let p2 = function() {
+        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
+        db['_ADMIN_DATA_'].allWithdrawals = allWithdrawals;
+        return saveQueue = saveQueue.then(async () => {
+          try {
+            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
+            await new Promise(r => setTimeout(r, 400));
+          } catch(e) {}
+        });
+    };
+    await p2();
+    
+    updateUI(); 
     btn.innerText = orig; btn.disabled = false;
     showCustomAlert("درخواست برداشت تومانی شما با موفقیت ثبت شد و هم‌اکنون در حال بررسی است.", "✅");
   }
@@ -1023,7 +1018,21 @@
     u.withdrawHistory.unshift(w); allWithdrawals.unshift(w);
     
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
-    await saveDB(); await saveGlobalAdminData(); updateUI(); 
+    await saveDB(); 
+    
+    let p2 = function() {
+        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
+        db['_ADMIN_DATA_'].allWithdrawals = allWithdrawals;
+        return saveQueue = saveQueue.then(async () => {
+          try {
+            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
+            await new Promise(r => setTimeout(r, 400));
+          } catch(e) {}
+        });
+    };
+    await p2();
+    
+    updateUI(); 
     btn.innerText = orig; btn.disabled = false;
     showCustomAlert("درخواست برداشت ترون شما با موفقیت ثبت شد و هم‌اکنون در حال بررسی است.", "✅");
   }
@@ -1157,7 +1166,18 @@
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
     
     await saveDB(); 
-    await saveGlobalAdminData();
+    
+    let p2 = function() {
+        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
+        db['_ADMIN_DATA_'].pendingReceipts = pendingReceipts;
+        return saveQueue = saveQueue.then(async () => {
+          try {
+            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
+            await new Promise(r => setTimeout(r, 400));
+          } catch(e) {}
+        });
+    };
+    await p2();
     
     btn.innerText = orig; btn.disabled = false;
     showCustomAlert("رسید خرید شما با موفقیت ثبت شد و پس از بررسی توسط مدیریت، ماینر فعال می‌شود.", "✅"); 
@@ -1221,7 +1241,25 @@
     document.getElementById('adminTicketsList').innerHTML = h || "هیچ تیکتی وجود ندارد.";
   }
 
-  function saveAdminBanner() { adminConfig.bannerText = document.getElementById('editBannerText').value.trim(); saveGlobalAdminData(); showCustomAlert("متن بنر بروزرسانی شد!", "✅"); updateUI(); }
+  function saveAdminBanner() { 
+      adminConfig.bannerText = document.getElementById('editBannerText').value.trim(); 
+      
+      let p2 = function() {
+          if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
+          db['_ADMIN_DATA_'].bannerText = adminConfig.bannerText;
+          return saveQueue = saveQueue.then(async () => {
+            try {
+              await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
+              await new Promise(r => setTimeout(r, 400));
+            } catch(e) {}
+          });
+      };
+      p2().then(() => {
+          showCustomAlert("متن بنر بروزرسانی شد!", "✅"); 
+          updateUI();
+      });
+  }
+  
   function saveAdminDailyBonus() { dailyBonusAmount = parseInt(document.getElementById('editBonusAmount').value); showCustomAlert("مبلغ پاداش ذخیره شد.", "✅"); }
   function saveAdminAnnouncement() { globalNotice = { title: document.getElementById('adminNoticeTitle').value.trim(), text: document.getElementById('adminNoticeText').value.trim(), link: document.getElementById('adminNoticeLink').value.trim() }; showCustomAlert("پیام عمومی ارسال شد.", "🚀"); }
   function saveAdminFinancialSettings() { adminConfig.card = document.getElementById('editCardInput').value; adminConfig.name = document.getElementById('editNameInput').value; adminConfig.wallet = document.getElementById('editWalletInput').value; showCustomAlert("تنظیمات مالی ادمین ذخیره شد.", "✅"); }
@@ -1271,7 +1309,18 @@
       await saveDB(w.username); 
     }
     
-    await saveGlobalAdminData();
+    let p2 = function() {
+        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
+        db['_ADMIN_DATA_'].allWithdrawals = allWithdrawals;
+        return saveQueue = saveQueue.then(async () => {
+          try {
+            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
+            await new Promise(r => setTimeout(r, 400));
+          } catch(e) {}
+        });
+    };
+    await p2();
+    
     renderAdminWithdrawals(); 
     showCustomAlert("درخواست برداشت با موفقیت تایید شد.", "✅");
   }
@@ -1292,7 +1341,18 @@
       await saveDB(w.username); 
     }
     
-    await saveGlobalAdminData();
+    let p2 = function() {
+        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
+        db['_ADMIN_DATA_'].allWithdrawals = allWithdrawals;
+        return saveQueue = saveQueue.then(async () => {
+          try {
+            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
+            await new Promise(r => setTimeout(r, 400));
+          } catch(e) {}
+        });
+    };
+    await p2();
+    
     renderAdminWithdrawals(); 
     renderAdminStats(); 
     showCustomAlert("درخواست رد شد و وجه به کیف پول کاربر بازگشت.", "✅");
@@ -1307,9 +1367,35 @@
     let n = document.getElementById('newChannelName').value.trim(), l = document.getElementById('newChannelUrl').value.trim();
     if(!n || !l) return showCustomAlert("لطفاً مشخصات کانال را کامل کنید.", "⚠️");
     mandatoryChannels.push({ name: n, link: l }); document.getElementById('newChannelName').value = ''; document.getElementById('newChannelUrl').value = '';
-    saveGlobalAdminData(); renderAdminChannelsManager(); showCustomAlert("کانال جدید اضافه شد.", "✅");
+    
+    let p2 = function() {
+        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
+        db['_ADMIN_DATA_'].channels = mandatoryChannels;
+        return saveQueue = saveQueue.then(async () => {
+          try {
+            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
+            await new Promise(r => setTimeout(r, 400));
+          } catch(e) {}
+        });
+    };
+    p2().then(() => {
+        renderAdminChannelsManager(); showCustomAlert("کانال جدید اضافه شد.", "✅");
+    });
   }
-  function deleteChannel(idx) { mandatoryChannels.splice(idx, 1); saveGlobalAdminData(); renderAdminChannelsManager(); }
+  function deleteChannel(idx) { 
+      mandatoryChannels.splice(idx, 1); 
+      let p2 = function() {
+        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
+        db['_ADMIN_DATA_'].channels = mandatoryChannels;
+        return saveQueue = saveQueue.then(async () => {
+          try {
+            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
+            await new Promise(r => setTimeout(r, 400));
+          } catch(e) {}
+        });
+      };
+      p2().then(() => renderAdminChannelsManager());
+  }
   
   function renderAdminReceipts() {
     let h = "";
@@ -1347,7 +1433,18 @@
     }
     
     pendingReceipts.splice(i, 1); 
-    await saveGlobalAdminData();
+    
+    let p2 = function() {
+        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
+        db['_ADMIN_DATA_'].pendingReceipts = pendingReceipts;
+        return saveQueue = saveQueue.then(async () => {
+          try {
+            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
+            await new Promise(r => setTimeout(r, 400));
+          } catch(e) {}
+        });
+    };
+    await p2();
     
     renderAdminReceipts(); 
     renderAdminStats(); 
@@ -1372,7 +1469,18 @@
     }
 
     pendingReceipts.splice(i, 1);
-    await saveGlobalAdminData();
+    
+    let p2 = function() {
+        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
+        db['_ADMIN_DATA_'].pendingReceipts = pendingReceipts;
+        return saveQueue = saveQueue.then(async () => {
+          try {
+            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
+            await new Promise(r => setTimeout(r, 400));
+          } catch(e) {}
+        });
+    };
+    await p2();
     
     renderAdminReceipts();
     showCustomAlert("رسید رد شد و دلیل آن برای کاربر ثبت گردید.", "✅");
@@ -1399,6 +1507,15 @@
     btn.innerText = orig; btn.disabled = false;
     showCustomAlert("رمز عبور با موفقیت تغییر کرد.", "✅");
   }
+
+  // تلاش برای پر کردن خودکار کد معرف از طریق لینک هنگام بارگذاری برنامه
+  setTimeout(() => {
+    let autoCode = extractInviter();
+    if (autoCode) {
+        document.getElementById('refCodeInput').value = autoCode;
+    }
+  }, 800);
+
 </script>
 </body>
 </html>
