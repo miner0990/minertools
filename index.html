@@ -584,20 +584,6 @@
     return p;
   }
 
-  // --- مبدل هوشمند لینک به آیدی برای API تلگرام ---
-  function extractChannelId(link) {
-    let l = link.trim();
-    if(l.includes('t.me/+') || l.includes('joinchat')) return l; // لینک‌های پرایوت همانطور ارسال می‌شوند
-    if(l.includes('t.me/')) {
-        let parts = l.split('t.me/');
-        let id = parts[parts.length - 1].replace('/', '').split('?')[0];
-        return '@' + id; // تبدیل https://t.me/MinerTools به @MinerTools
-    }
-    if(!l.startsWith('@') && !l.startsWith('-')) return '@' + l;
-    return l;
-  }
-  // ------------------------------------------------
-
   function extractInviter() {
     let inviter = null;
     try {
@@ -924,15 +910,14 @@
             btn.innerText = "بررسی عضویت... ⏳";
             btn.disabled = true;
             try {
-                // ارسال مستقیم، سریع و بدون تاخیر با مبدل هوشمند
                 let res = await fetch(`${API_URL}/api/check_membership`, {
                     method: 'POST', 
-                    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
-                    body: JSON.stringify({ user_id: userId, channels: mandatoryChannels.map(c => extractChannelId(c.link)) })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, channels: mandatoryChannels.map(c => c.link) })
                 });
                 let data = await res.json();
                 
-                if (data.status === "success" && data.joined === true) {
+                if (data.joined === true) {
                    btn.innerText = origText; btn.disabled = false;
                    u.isMining = true; u.miningStartTime = Date.now(); u.lastMiningTime = Date.now();
                    saveDB(); updateUI();
@@ -974,16 +959,21 @@
     btn.disabled = true;
 
     try {
-        let channelIds = mandatoryChannels.map(c => extractChannelId(c.link));
-        // درخواست فوق‌سریع به سرور همراه با آیدی تمیز کانال‌ها
+        let channelLinks = mandatoryChannels.map(c => c.link);
         let res = await fetch(`${API_URL}/api/check_membership`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
-            body: JSON.stringify({ user_id: userId, channels: channelIds })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId, channels: channelLinks })
         });
+        
+        if (!res.ok) {
+            alert("خطای سرور: " + res.status + "\nارتباط با سرور پایتون برقرار نشد.");
+            btn.innerText = originalText; btn.disabled = false; return;
+        }
+
         let data = await res.json();
 
-        if (data.status === "success" && data.joined === true) {
+        if (data.joined === true) {
            db[currentUser].isChannelJoined = true;
            db[currentUser].isMining = true;
            db[currentUser].miningStartTime = Date.now();
@@ -992,18 +982,16 @@
            document.getElementById('channelModal').style.display = 'none';
            showCustomAlert("عضویت شما با موفقیت تایید شد! استخراج آغاز می‌شود.", "✅");
            updateUI();
-           btn.innerText = originalText;
-           btn.disabled = false;
         } else {
-           showCustomAlert("شما هنوز در تمام کانال‌ها عضو نشده‌اید. لطفاً ابتدا عضو شوید.", "❌");
-           btn.innerText = originalText;
-           btn.disabled = false;
+           alert("پاسخ سرور پایتون:\nشما عضو نیستید یا ربات ادمین نیست.\nجزئیات: " + JSON.stringify(data));
+           showCustomAlert("شما هنوز در تمام کانال‌ها عضو نشده‌اید.", "❌");
         }
     } catch(err) {
-        showCustomAlert("خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.", "❌");
-        btn.innerText = originalText;
-        btn.disabled = false;
+        alert("خطای ارتباط شبکه:\n" + err.message);
     }
+    
+    btn.innerText = originalText;
+    btn.disabled = false;
   }
 
   function renderLeaderboard() {
