@@ -108,7 +108,6 @@
             <g transform="translate(140, 42)"><circle cx="35" cy="35" r="26" fill="#030712" stroke="#00ff88" stroke-width="2" stroke-dasharray="5 3"/><g class="fan-slow-spin" style="transform-origin: 35px 35px;"><line x1="15" y1="35" x2="55" y2="35" stroke="#94a3b8" stroke-width="3.5"/><line x1="35" y1="15" x2="35" y2="55" stroke="#94a3b8" stroke-width="3.5"/><circle cx="35" cy="35" r="5" fill="#1e293b" stroke="#00ff88" stroke-width="2"/></g></g>
           </svg>
         </div>
-        <!-- نام ماینر فعال به صورت زنده آپدیت می‌شود -->
         <h3 style="font-size: 14px; color: #facc15;" id="machineTitle">ماینر رایگان (آماده استخراج)</h3>
       </div>
       <div class="card card-yellow">
@@ -184,15 +183,13 @@
       </div>
     </div>
 
-    <!-- تب ۵: دعوت دوستان (با نمایش آمار زیرمجموعه‌ها) -->
+    <!-- تب ۵: دعوت دوستان -->
     <div id="tab-referral" class="section">
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">👥 دعوت + پاداش</h2></header>
       <div class="card card-yellow" style="text-align: right; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);">
         <h3 style="color: #facc15; font-size: 15px; margin-bottom: 8px; text-align: center;">⚡ استخراج مشترک!</h3>
         <p style="font-size: 11px; color: #94a3b8; line-height: 1.6; text-align: center; margin-bottom: 12px;">دوستت با لینک اختصاصی تو بیاد، <b>۵,۰۰۰ تومان پاداش ورود</b> می‌گیره و تو هم <b>۱۰,۰۰۰ تومان پول نقد + ۵٪ از سود استخراجش</b> رو برای همیشه دریافت می‌کنی!</p>
       </div>
-
-      <!-- کادر جدید آمار زیرمجموعه‌های کاربر -->
       <div class="card card-cyan" style="text-align: right; background: rgba(0, 255, 136, 0.04); margin-bottom: 14px;">
         <h3 style="color: #00ff88; font-size: 13px; margin-bottom: 8px;">📊 آمار زیرمجموعه‌های شما</h3>
         <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 4px;">
@@ -208,7 +205,6 @@
           <b style="color: #38bdf8;">۵٪ دائمی ⚡</b>
         </div>
       </div>
-
       <div class="card card-cyan" style="text-align: right;">
         <h3 style="color: #ffffff; font-size: 13px; margin-bottom: 8px;">📤 اشتراک‌گذاری سریع بنر</h3>
         <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; border: 1px solid #1e293b; font-size: 11px; color: #94a3b8; line-height: 1.5; margin-bottom: 10px;" id="shareTextTemplate"></div>
@@ -338,7 +334,7 @@
 
 <div id="channelModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px;" dir="rtl"><div class="card card-yellow" style="max-width: 380px; width: 100%; text-align: center; position: relative;"><button onclick="document.getElementById('channelModal').style.display='none'" style="position: absolute; top: 12px; left: 12px; background: #ef4444; color: white; border: none; width: 26px; height: 26px; border-radius: 50%; font-weight: bold; cursor: pointer;">✕</button><h3 style="color: #facc15; font-size: 16px; margin-bottom: 10px;">📢 عضویت اجباری در کانال‌ها</h3><div id="modalChannelsContainer" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;"></div><button class="btn-yellow" id="verifyChannelBtn" onclick="verifyAllMemberships()">تایید عضویت و شروع ⚡</button></div></div>
 
-<!-- مودال خرید با راهنمای شبکه TRC20 -->
+<!-- مودال خرید -->
 <div id="checkoutModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; padding: 15px;" dir="rtl">
   <div class="card card-yellow" style="max-width: 400px; width: 100%; text-align: right;">
     <h3 style="color: #facc15; font-size: 17px; margin-bottom: 10px; text-align: center;" id="checkoutTitle">خرید دستگاه</h3>
@@ -351,7 +347,6 @@
     
     <div id="checkoutCryptoBox" style="display:none; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; border: 1px solid #1e293b; margin-bottom: 15px;">
       <div style="background: #030712; padding: 8px; border-radius: 8px; font-family: monospace; font-size: 11px; color: #00ff88; text-align: center; word-break: break-all;" id="displayAdminWallet"></div>
-      <!-- هشدار شبکه TRC20 -->
       <p style="font-size: 11px; color: #ef4444; margin-top: 8px; line-height: 1.5; text-align: center;">⚠️ لطفاً ارز ترون (TRX) را حتماً از طریق شبکه <b>TRC20</b> واریز کنید؛ در غیر این صورت دارایی از بین می‌رود.</p>
     </div>
     
@@ -557,8 +552,8 @@
     updateUI(); renderMyMiners(); startMiningLoop(); checkGlobalNotice(); checkBonusStatus(); updateCryptoUI(db[currentUser].miningCrypto || 'USDT');
   }
 
-  function getInviteMessage() { return adminConfig.bannerText + "\nhttps://t.me/MinerToolsBot?start=" + currentUser; }
-  function shareToTelegram() { window.open(`https://t.me/share/url?url=${encodeURIComponent("https://t.me/MinerToolsBot?start=" + currentUser)}&text=${encodeURIComponent(getInviteMessage())}`); }
+  function getInviteMessage() { return adminConfig.bannerText + "\nhttps://t.me/minernew_vibot?start=" + currentUser; }
+  function shareToTelegram() { window.open(`https://t.me/share/url?url=${encodeURIComponent("https://t.me/minernew_vibot?start=" + currentUser)}&text=${encodeURIComponent(getInviteMessage())}`); }
   function copyShareText() { navigator.clipboard.writeText(getInviteMessage()).then(() => showCustomAlert("متن بنر و لینک اختصاصی شما با موفقیت کپی شد! حالا برای دوستانتان بفرستید.", "✅")); }
 
   function setMiningCrypto(sym) { db[currentUser].miningCrypto = sym; saveDB(); updateCryptoUI(sym); updateUI(); }
@@ -617,7 +612,6 @@
     let th = 0; u.miners.forEach(m => th += parseFloat(m.hashrate));
     document.getElementById('totalHashrate').innerText = th.toFixed(1) + " TH/s";
     
-    // نمایش نام قوی‌ترین ماینر فعال در بخش مزرعه (خانه)
     let latestMinerName = u.miners[u.miners.length - 1].name;
     document.getElementById('activeMachineName').innerText = latestMinerName;
     document.getElementById('machineTitle').innerText = latestMinerName + " (فعال و در حال استخراج ⚡)";
@@ -634,7 +628,6 @@
     let cName = crypt === 'BTC' ? 'بیت‌کوین (BTC)' : (crypt === 'TRX' ? 'ترون (TRX)' : 'تتر (USDT)');
     document.getElementById('accActiveCryptoName').innerText = cName;
 
-    // آپدیت آمار زیرمجموعه در تب پاداش
     let refCount = u.referrals || 0;
     document.getElementById('refCountStat').innerText = refCount + " نفر";
     document.getElementById('refRewardStat').innerText = (refCount * 10000).toLocaleString() + " تومان";
@@ -648,7 +641,7 @@
       document.getElementById('statusText').innerText = "متوقف شده ⏸️";
     }
     
-    document.getElementById('shareTextTemplate').innerHTML = adminConfig.bannerText.replace(/\n/g, '<br>') + '<br><span style="color: #00ff88;">https://t.me/MinerToolsBot?start=' + currentUser + '</span>';
+    document.getElementById('shareTextTemplate').innerHTML = adminConfig.bannerText.replace(/\n/g, '<br>') + '<br><span style="color: #00ff88;">https://t.me/minernew_vibot?start=' + currentUser + '</span>';
     
     let hasPro = u.miners.some(m => m.name.includes("پرو"));
     let hasTurbo = u.miners.some(m => m.name.includes("توربو"));
@@ -866,7 +859,7 @@
     let h = "";
     db[currentUser].tickets.forEach(t => {
       let col = t.status.includes('بسته') ? '#94a3b8' : (t.status.includes('پاسخ داده شده') ? '#00ff88' : '#facc15');
-      h += `<div style="background: #0f172a; border: 1.5px solid #1e293b; padding: 10px; border-radius: 8px; cursor: pointer; margin-bottom: 6px;" onclick="openTicketChat('${currentUser}', ${t.id})">
+      h += `<div style="background: #0f172a; border: 1px solid #1e293b; padding: 10px; border-radius: 8px; cursor: pointer; margin-bottom: 6px;" onclick="openTicketChat('${currentUser}', ${t.id})">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><b style="color:#fff; font-size:12px;">${t.subject}</b><span style="color:${col}; font-size:10px;">${t.status}</span></div>
               <div style="font-size:11px; color:#94a3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">آخرین پیام: ${t.messages[t.messages.length-1].text}</div>
             </div>`;
