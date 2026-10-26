@@ -529,33 +529,64 @@
     await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u, userData: db[u] }) });
   }
 
+  // --- توابع جدید برای کشف هوشمند و دقیق معرف ---
+  function extractInviter() {
+    let inviter = null;
+    try {
+      let tgData = window.Telegram?.WebApp?.initDataUnsafe;
+      if (tgData && tgData.start_param) inviter = tgData.start_param;
+      if (!inviter) {
+        let urlParams = new URLSearchParams(window.location.search);
+        inviter = urlParams.get('tgWebAppStartParam') || urlParams.get('startapp');
+      }
+      if (!inviter && window.location.hash) {
+        let hashParams = new URLSearchParams(window.location.hash.substring(1));
+        let tgWebAppData = hashParams.get('tgWebAppData');
+        if (tgWebAppData) {
+          let innerParams = new URLSearchParams(tgWebAppData);
+          inviter = innerParams.get('start_param');
+        }
+      }
+    } catch (e) { console.log(e); }
+    return inviter ? inviter.trim() : null;
+  }
+
+  function findRealUsername(usernameToFind) {
+    if(!usernameToFind) return null;
+    let lower = usernameToFind.toLowerCase();
+    for(let key in db) {
+      if(key.toLowerCase() === lower && key !== '_ADMIN_DATA_') return key;
+    }
+    return null;
+  }
+  // ---------------------------------------------
+
   async function completeRegistration() {
     let u = document.getElementById('usernameInput').value.trim();
     let p = document.getElementById('passwordInput').value.trim();
     if(!u || !p) { showCustomAlert("لطفاً نام کاربری و رمز عبور را وارد کنید.", "⚠️"); return; }
     await loadDataFromServer();
+    
+    if (u === '_ADMIN_DATA_') { showCustomAlert("نام کاربری نامعتبر است.", "❌"); return; }
+
     currentUser = u;
     
     let isNewUser = false;
-    let inviter = null;
+    let realInviter = null;
 
     if(!db[u]) {
       isNewUser = true;
       
-      let tgData = window.Telegram?.WebApp?.initDataUnsafe;
-      let startParam = (tgData && tgData.start_param) ? tgData.start_param : null;
-      if (!startParam) {
-          let urlParams = new URLSearchParams(window.location.search);
-          startParam = urlParams.get('tgWebAppStartParam') || urlParams.get('startapp');
-      }
+      let rawInviter = extractInviter();
+      realInviter = findRealUsername(rawInviter);
       
-      if (startParam && db[startParam] && startParam !== u) {
-          inviter = startParam;
+      if (realInviter && realInviter.toLowerCase() === u.toLowerCase()) {
+          realInviter = null;
       }
 
       db[u] = { 
         password: p, 
-        mined: inviter ? 5000 : 0, 
+        mined: realInviter ? 5000 : 0, 
         miners: [{ name: "ماینر رایگان پایه", hashrate: "68.4 TH/s", maxDaily: 35000 }], 
         withdrawHistory: [], 
         purchaseHistory: [], 
@@ -567,12 +598,12 @@
         miningCrypto: 'USDT', 
         referrals: 0, 
         tickets: [],
-        referredBy: inviter
+        referredBy: realInviter
       };
 
-      if (inviter) {
-          db[inviter].mined += 10000;
-          db[inviter].referrals = (db[inviter].referrals || 0) + 1;
+      if (realInviter) {
+          db[realInviter].mined += 10000;
+          db[realInviter].referrals = (db[realInviter].referrals || 0) + 1;
       }
     } else {
       if(db[u].password !== p) { showCustomAlert("رمز عبور اشتباه است!", "❌"); return; }
@@ -581,7 +612,9 @@
     }
     
     await saveDB();
-    if (inviter) await saveDB(inviter);
+    if (isNewUser && realInviter) {
+        await saveDB(realInviter);
+    }
 
     checkBackgroundMining();
     document.getElementById('tab-welcome').classList.remove('active');
@@ -592,8 +625,8 @@
     document.getElementById('changeUsernameInput').value = currentUser;
     updateUI(); renderMyMiners(); startMiningLoop(); checkGlobalNotice(); checkBonusStatus(); updateCryptoUI(db[currentUser].miningCrypto || 'USDT');
 
-    if (isNewUser && inviter) {
-        setTimeout(() => showCustomAlert(`ثبت‌نام موفق! شما با دعوت ${inviter} وارد شدید و ۵,۰۰۰ تومان پاداش ورود گرفتید.`, "🎁"), 1000);
+    if (isNewUser && realInviter) {
+        setTimeout(() => showCustomAlert(`ثبت‌نام موفق! شما با دعوت ${realInviter} وارد شدید و ۵,۰۰۰ تومان پاداش ورود گرفتید.`, "🎁"), 1000);
     }
   }
 
