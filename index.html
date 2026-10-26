@@ -68,7 +68,7 @@
 
       <input type="text" class="select-box" id="usernameInput" placeholder="نام کاربری..." style="margin-bottom: 10px;" autocapitalize="none">
       <input type="password" class="select-box" id="passwordInput" placeholder="رمز عبور..." style="margin-bottom: 15px;">
-      <button class="btn-yellow" onclick="completeRegistration()">ورود به مزرعه و شروع ⛏️</button>
+      <button class="btn-yellow" id="registerBtn" onclick="completeRegistration()">ورود به مزرعه و شروع ⛏️</button>
     </div>
   </div>
 
@@ -511,39 +511,28 @@
     } catch (err) { console.log(err); }
   }
 
-  // --- سیستم صف‌بندی ایمن برای جلوگیری از تداخل ذخیره در سرور ---
+  // --- قفل صف‌بندی ایمن (رفع مشکل تداخل و ذخیره نشدن اطلاعات در سرور) ---
   let saveQueue = Promise.resolve();
   function saveDB(forceUser = null) {
     let u = forceUser || currentUser;
     if(!u) return Promise.resolve();
-    saveQueue = saveQueue.then(async () => {
-      try {
-        await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u, userData: db[u] }) });
-        await new Promise(r => setTimeout(r, 400)); // توقف ۴۰۰ میلی‌ثانیه‌ای برای نفس کشیدن سرور
-      } catch(e) { console.log(e); }
-    });
-    return saveQueue;
-  }
-
-  function saveGlobalAdminData() {
-    if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
-    db['_ADMIN_DATA_'].allWithdrawals = allWithdrawals;
-    db['_ADMIN_DATA_'].pendingReceipts = pendingReceipts;
-    db['_ADMIN_DATA_'].bannerText = adminConfig.bannerText;
-    db['_ADMIN_DATA_'].channels = mandatoryChannels;
-    db['_ADMIN_DATA_'].card = adminConfig.card;
-    db['_ADMIN_DATA_'].name = adminConfig.name;
-    db['_ADMIN_DATA_'].wallet = adminConfig.wallet;
     
-    saveQueue = saveQueue.then(async () => {
-      try {
-        await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
-        await new Promise(r => setTimeout(r, 400));
-      } catch(e) { console.log(e); }
+    let p = new Promise(resolve => {
+        saveQueue = saveQueue.then(async () => {
+          try {
+            await fetch(`${API_URL}/api/update`, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ username: u, userData: db[u] }) 
+            });
+            await new Promise(r => setTimeout(r, 400)); // مکث ۴۰۰ میلی‌ثانیه‌ای برای استراحت سرور
+          } catch(e) { console.log(e); }
+          resolve();
+        });
     });
-    return saveQueue;
+    return p;
   }
-  // ----------------------------------------------------------------
+  // ----------------------------------------------------------------------
 
   // --- استخراج‌گر هوشمند لینک ---
   function extractInviter() {
@@ -553,7 +542,7 @@
       if (tgData && tgData.start_param) inviter = tgData.start_param;
       if (!inviter) {
         let urlParams = new URLSearchParams(window.location.search);
-        inviter = urlParams.get('tgWebAppStartParam') || urlParams.get('startapp');
+        inviter = urlParams.get('tgWebAppStartParam') || urlParams.get('startapp') || urlParams.get('start');
       }
       if (!inviter && window.location.hash) {
         let hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -562,6 +551,7 @@
           let innerParams = new URLSearchParams(tgWebAppData);
           inviter = innerParams.get('start_param');
         }
+        if(!inviter) inviter = hashParams.get('tgWebAppStartParam') || hashParams.get('startapp');
       }
     } catch (e) { console.log(e); }
     return inviter ? inviter.trim() : null;
@@ -592,9 +582,20 @@
     let u = document.getElementById('usernameInput').value.trim();
     let p = document.getElementById('passwordInput').value.trim();
     if(!u || !p) { showCustomAlert("لطفاً نام کاربری و رمز عبور را وارد کنید.", "⚠️"); return; }
+    
+    // قفل کردن دکمه ورود تا اتمام ارتباط با سرور
+    let btn = document.getElementById('registerBtn');
+    let origBtnText = btn.innerText;
+    btn.innerText = "در حال ارتباط با سرور... ⏳";
+    btn.disabled = true;
+
     await loadDataFromServer();
     
-    if (u === '_ADMIN_DATA_') { showCustomAlert("نام کاربری نامعتبر است.", "❌"); return; }
+    if (u === '_ADMIN_DATA_') { 
+        showCustomAlert("نام کاربری نامعتبر است.", "❌"); 
+        btn.innerText = origBtnText; btn.disabled = false;
+        return; 
+    }
 
     currentUser = u;
     
@@ -638,16 +639,20 @@
           db[realInviter].referrals = (db[realInviter].referrals || 0) + 1;
       }
     } else {
-      if(db[u].password !== p) { showCustomAlert("رمز عبور اشتباه است!", "❌"); return; }
+      if(db[u].password !== p) { 
+          showCustomAlert("رمز عبور اشتباه است!", "❌"); 
+          btn.innerText = origBtnText; btn.disabled = false;
+          return; 
+      }
       if(!db[u].tickets) db[u].tickets = []; 
       if(!db[u].purchaseHistory) db[u].purchaseHistory = []; 
       if(!db[u].tgId) db[u].tgId = myTgId; 
     }
     
-    // ارسال به صف امن سرور (جلوگیری از تداخل)
-    saveDB(); 
+    // توقف اجرای کد تا زمانی که سرور تاییدیه ذخیره هر دو دیتابیس را بدهد
+    await saveDB(); 
     if (isNewUser && realInviter) {
-        saveDB(realInviter); 
+        await saveDB(realInviter); 
     }
 
     checkBackgroundMining();
@@ -658,6 +663,9 @@
     document.getElementById('userGreeting').innerText = "کاربر: " + currentUser;
     document.getElementById('changeUsernameInput').value = currentUser;
     updateUI(); renderMyMiners(); startMiningLoop(); checkGlobalNotice(); checkBonusStatus(); updateCryptoUI(db[currentUser].miningCrypto || 'USDT');
+
+    btn.innerText = origBtnText;
+    btn.disabled = false;
 
     if (isNewUser && realInviter) {
         setTimeout(() => showCustomAlert(`ثبت‌نام موفق! شما با دعوت ${realInviter} وارد شدید و ۵,۰۰۰ تومان پاداش ورود گرفتید.`, "🎁"), 1000);
@@ -973,7 +981,10 @@
     if(c.length < 16 || !h || a <= 0 || a > u.mined) return showCustomAlert("اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست.", "❌");
     u.mined -= a; let w = { id: Date.now(), username: currentUser, type: "تومانی", details: c + " (" + h + ")", amount: a, status: "در حال بررسی ⏳" };
     u.withdrawHistory.unshift(w); allWithdrawals.unshift(w);
-    saveDB(); saveGlobalAdminData(); updateUI(); 
+    
+    let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
+    await saveDB(); await saveGlobalAdminData(); updateUI(); 
+    btn.innerText = orig; btn.disabled = false;
     showCustomAlert("درخواست برداشت تومانی شما با موفقیت ثبت شد و هم‌اکنون در حال بررسی است.", "✅");
   }
   async function submitCryptoWithdraw() {
@@ -981,7 +992,10 @@
     if(!ad || a <= 0 || a > u.mined) return showCustomAlert("اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست.", "❌");
     u.mined -= a; let w = { id: Date.now(), username: currentUser, type: "TRC20", details: ad, amount: a, status: "در حال بررسی ⏳" };
     u.withdrawHistory.unshift(w); allWithdrawals.unshift(w);
-    saveDB(); saveGlobalAdminData(); updateUI(); 
+    
+    let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
+    await saveDB(); await saveGlobalAdminData(); updateUI(); 
+    btn.innerText = orig; btn.disabled = false;
     showCustomAlert("درخواست برداشت ترون شما با موفقیت ثبت شد و هم‌اکنون در حال بررسی است.", "✅");
   }
 
@@ -1052,14 +1066,20 @@
     t.status = isAdminLoggedIn ? "پاسخ داده شده 💬" : "در حال بررسی ⏳";
     inp.value = ''; renderTicketMessages();
     
-    if(!isAdminLoggedIn) { saveDB(); renderUserTickets(); } 
-    else { saveDB(activeChatUsername); renderAdminTickets(); }
+    let btn = event.target; btn.innerText = "..."; btn.disabled = true;
+    if(!isAdminLoggedIn) { await saveDB(); renderUserTickets(); } 
+    else { await saveDB(activeChatUsername); renderAdminTickets(); }
+    btn.innerText = "ارسال"; btn.disabled = false;
   }
 
   async function closeActiveTicket() {
     let t = db[activeChatUsername].tickets.find(x => x.id === activeChatTicketId);
     t.status = "بسته شده 🔒";
-    saveDB(activeChatUsername);
+    
+    let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
+    await saveDB(activeChatUsername);
+    btn.innerText = orig; btn.disabled = false;
+    
     document.getElementById('ticketChatModal').style.display = 'none';
     if(isAdminLoggedIn) renderAdminTickets(); else renderUserTickets();
     showCustomAlert("تیکت با موفقیت برای همیشه بسته شد.", "🔒");
@@ -1105,7 +1125,23 @@
     if(!db[currentUser].purchaseHistory) db[currentUser].purchaseHistory = [];
     db[currentUser].purchaseHistory.unshift({ id: uniqueId, machine: selectedMachineToBuy.name, receipt: r, status: "در حال بررسی ⏳" });
     
-    saveDB(); saveGlobalAdminData(); 
+    let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
+    
+    // اجرای امن هر دو ذخیره‌سازی
+    let p1 = saveDB(); 
+    let p2 = function() {
+        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
+        db['_ADMIN_DATA_'].pendingReceipts = pendingReceipts;
+        return saveQueue = saveQueue.then(async () => {
+          try {
+            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
+            await new Promise(r => setTimeout(r, 400));
+          } catch(e) { console.log(e); }
+        });
+    };
+    await p1; await p2();
+    
+    btn.innerText = orig; btn.disabled = false;
     showCustomAlert("رسید خرید شما با موفقیت ثبت شد و پس از بررسی توسط مدیریت، ماینر فعال می‌شود.", "✅"); 
     closeCheckout(); 
   }
@@ -1114,7 +1150,9 @@
   function closeAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'none'; }
 
   async function verifyAdminPassword() {
+    let btn = event.target;
     if(document.getElementById('adminPasswordInput').value === "Safasafa0990@") {
+      btn.innerText = "صبر کنید..."; btn.disabled = true;
       closeAdminLoginModal();
       await loadDataFromServer();
       
@@ -1128,6 +1166,7 @@
       document.getElementById('editBonusAmount').value = dailyBonusAmount;
       if(globalNotice) { document.getElementById('adminNoticeTitle').value = globalNotice.title||''; document.getElementById('adminNoticeText').value = globalNotice.text||''; document.getElementById('adminNoticeLink').value = globalNotice.link||''; }
       
+      btn.innerText = "ورود به مدیریت"; btn.disabled = false;
       document.getElementById('adminDashboardPanel').style.display = 'block';
     } else showCustomAlert("رمز عبور ادمین اشتباه است!", "❌");
   }
@@ -1182,7 +1221,7 @@
         </div>
         <div style="font-size:12px; margin-bottom:4px;">مبلغ: <b style="color:#facc15;">${w.amount.toLocaleString()} تومان</b> (${w.type})</div>
         <div style="font-size:11px; color:#aaa; margin-bottom:8px;">مقصد: <span style="color:#fff;">${w.details}</span></div>
-        ${!isDone && !isRej ? `<div style="display:flex; gap:6px; margin-top:8px;"><button style="flex:1; background:#2ecc71; color:#fff; border:none; padding:8px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="approveW(${w.id})">تایید پرداخت ✅</button><button style="flex:1; background:#e74c3c; color:#fff; border:none; padding:8px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="rejectW(${w.id})">رد ❌</button></div>`:''}
+        ${!isDone && !isRej ? `<div style="display:flex; gap:6px; margin-top:8px;"><button style="flex:1; background:#2ecc71; color:#fff; border:none; padding:8px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="approveW(${w.id}, this)">تایید پرداخت ✅</button><button style="flex:1; background:#e74c3c; color:#fff; border:none; padding:8px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="rejectW(${w.id}, this)">رد ❌</button></div>`:''}
         ${isRej && w.rejectReason ? `<div style="font-size:11px; color:#ef4444; margin-top:6px;">دلیل رد: ${w.rejectReason}</div>`:''}
       </div>`;
       
@@ -1202,7 +1241,8 @@
      document.getElementById('adminWithdrawalsListRejected').style.display = type==='rejected' ? 'block' : 'none';
   }
 
-  async function approveW(id) {
+  async function approveW(id, btn) {
+    btn.innerText = "صبر کنید..."; btn.disabled = true;
     await loadDataFromServer(); 
     let w = allWithdrawals.find(x => x.id === id); 
     if(w) w.status = "واریز شد ✅"; 
@@ -1210,17 +1250,30 @@
     if(w && db[w.username]) {
       let uw = db[w.username].withdrawHistory.find(x => x.id === id); 
       if(uw) uw.status = "واریز شد ✅";
-      saveDB(w.username); 
+      await saveDB(w.username); 
     }
-    saveGlobalAdminData(); 
+    
+    let p2 = function() {
+        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
+        db['_ADMIN_DATA_'].allWithdrawals = allWithdrawals;
+        return saveQueue = saveQueue.then(async () => {
+          try {
+            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
+            await new Promise(r => setTimeout(r, 400));
+          } catch(e) {}
+        });
+    };
+    await p2();
+    
     renderAdminWithdrawals(); 
     showCustomAlert("درخواست برداشت با موفقیت تایید شد.", "✅");
   }
 
-  async function rejectW(id) {
+  async function rejectW(id, btn) {
     let r = prompt("دلیل رد (مبلغ به حساب کاربر برمی‌گردد):"); 
     if(!r) return;
     
+    btn.innerText = "صبر کنید..."; btn.disabled = true;
     await loadDataFromServer(); 
     let w = allWithdrawals.find(x => x.id === id); 
     if(w) { w.status = "رد شد ❌"; w.rejectReason = r; }
@@ -1229,9 +1282,21 @@
       let uw = db[w.username].withdrawHistory.find(x => x.id === id); 
       if(uw){ uw.status = "رد شد ❌"; uw.rejectReason = r; }
       db[w.username].mined += w.amount; 
-      saveDB(w.username); 
+      await saveDB(w.username); 
     }
-    saveGlobalAdminData(); 
+    
+    let p2 = function() {
+        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
+        db['_ADMIN_DATA_'].allWithdrawals = allWithdrawals;
+        return saveQueue = saveQueue.then(async () => {
+          try {
+            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
+            await new Promise(r => setTimeout(r, 400));
+          } catch(e) {}
+        });
+    };
+    await p2();
+    
     renderAdminWithdrawals(); 
     renderAdminStats(); 
     showCustomAlert("درخواست رد شد و وجه به کیف پول کاربر بازگشت.", "✅");
@@ -1260,8 +1325,8 @@
               کد پیگیری/هش: <span style="color:#facc15;">${r.receipt}</span><br>
               وضعیت: <span style="color:${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}">${r.status || 'در حال بررسی ⏳'}</span>
               ${!isDone && !isRej ? `<div style="display:flex; gap:6px; margin-top:8px;">
-                <button style="flex:1; background:#2ecc71; color:#fff; border:none; padding:6px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="approveReceipt(${i})">تایید ✅</button>
-                <button style="flex:1; background:#e74c3c; color:#fff; border:none; padding:6px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="rejectReceipt(${i})">رد با دلیل ❌</button>
+                <button style="flex:1; background:#2ecc71; color:#fff; border:none; padding:6px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="approveReceipt(${i}, this)">تایید ✅</button>
+                <button style="flex:1; background:#e74c3c; color:#fff; border:none; padding:6px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="rejectReceipt(${i}, this)">رد با دلیل ❌</button>
               </div>`:''}
               ${isRej && r.rejectReason ? `<div style="font-size:10px; color:#ef4444; margin-top:4px;">دلیل رد: ${r.rejectReason}</div>`:''}
             </div>`; 
@@ -1269,7 +1334,8 @@
     document.getElementById('adminReceiptsList').innerHTML = h || "رسیدی نیست.";
   }
 
-  async function approveReceipt(i) {
+  async function approveReceipt(i, btn) {
+    btn.innerText = "صبر کنید..."; btn.disabled = true;
     let r = pendingReceipts[i]; 
     await loadDataFromServer();
     
@@ -1281,20 +1347,33 @@
         let p = db[r.username].purchaseHistory.find(x => x.id === r.id);
         if(p) p.status = "تایید شد و ماینر فعال گردید ✅";
       }
-      saveDB(r.username); 
+      await saveDB(r.username); 
     }
     
     pendingReceipts.splice(i, 1); 
-    saveGlobalAdminData(); 
+    
+    let p2 = function() {
+        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
+        db['_ADMIN_DATA_'].pendingReceipts = pendingReceipts;
+        return saveQueue = saveQueue.then(async () => {
+          try {
+            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
+            await new Promise(r => setTimeout(r, 400));
+          } catch(e) {}
+        });
+    };
+    await p2();
+    
     renderAdminReceipts(); 
     renderAdminStats(); 
     showCustomAlert("رسید تایید و ماینر به حساب کاربر اضافه شد.", "✅");
   }
 
-  async function rejectReceipt(i) {
+  async function rejectReceipt(i, btn) {
     let reason = prompt("دلیل رد کردن رسید را بنویسید:");
     if(!reason) return;
 
+    btn.innerText = "صبر کنید..."; btn.disabled = true;
     let r = pendingReceipts[i];
     await loadDataFromServer();
 
@@ -1304,11 +1383,23 @@
     if(db[r.username] && db[r.username].purchaseHistory) {
       let p = db[r.username].purchaseHistory.find(x => x.id === r.id);
       if(p) { p.status = "رد شد ❌"; p.rejectReason = reason; }
-      saveDB(r.username);
+      await saveDB(r.username);
     }
 
     pendingReceipts.splice(i, 1);
-    saveGlobalAdminData();
+    
+    let p2 = function() {
+        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
+        db['_ADMIN_DATA_'].pendingReceipts = pendingReceipts;
+        return saveQueue = saveQueue.then(async () => {
+          try {
+            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
+            await new Promise(r => setTimeout(r, 400));
+          } catch(e) {}
+        });
+    };
+    await p2();
+    
     renderAdminReceipts();
     showCustomAlert("رسید رد شد و دلیل آن برای کاربر ثبت گردید.", "✅");
   }
@@ -1316,12 +1407,23 @@
   async function updateUsername() {
     let n = document.getElementById('changeUsernameInput').value.trim();
     if(!n || db[n] || n === '_ADMIN_DATA_') return showCustomAlert("نام کاربری نامعتبر یا تکراری است.", "❌");
-    db[n] = db[currentUser]; delete db[currentUser]; currentUser = n; await saveDB(); document.getElementById('userGreeting').innerText = "کاربر: " + currentUser; showCustomAlert("نام کاربری با موفقیت تغییر کرد.", "✅");
+    
+    let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
+    db[n] = db[currentUser]; delete db[currentUser]; currentUser = n; 
+    await saveDB(); 
+    document.getElementById('userGreeting').innerText = "کاربر: " + currentUser; 
+    btn.innerText = orig; btn.disabled = false;
+    showCustomAlert("نام کاربری با موفقیت تغییر کرد.", "✅");
   }
   async function updatePassword() {
     let p = document.getElementById('changePasswordInput').value.trim();
     if(!p) return showCustomAlert("رمز عبور نمی‌تواند خالی باشد.", "⚠️");
-    db[currentUser].password = p; saveDB(); showCustomAlert("رمز عبور با موفقیت تغییر کرد.", "✅");
+    
+    let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
+    db[currentUser].password = p; 
+    await saveDB(); 
+    btn.innerText = orig; btn.disabled = false;
+    showCustomAlert("رمز عبور با موفقیت تغییر کرد.", "✅");
   }
 </script>
 </body>
