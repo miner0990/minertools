@@ -384,7 +384,7 @@
       <button onclick="switchAdminTab('withdrawals')" style="background: #e74c3c; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">💸 برداشت‌ها</button>
       <button onclick="switchAdminTab('referralCfg')" style="background: #3498db; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📝 متن دعوت</button>
       <button onclick="switchAdminTab('channels')" style="background: #34495e; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📢 کانال‌ها</button>
-      <button onclick="switchAdminTab('bonus')" style="background: #d35400; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🎁 سایر</button>
+      <button onclick="switchAdminTab('bonus')" style="background: #d35400; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🎁 سایر تنظیمات</button>
     </div>
 
     <!-- آمار کاربران -->
@@ -417,7 +417,7 @@
     <!-- متن دعوت -->
     <div id="adminTab-referralCfg" class="admin-tab-content" style="display: none;">
       <h4>ویرایش متن بنر دعوت دوستان</h4>
-      <p style="font-size:11px; color:#aaa; margin-bottom:10px;">متن دلخواه خود را بنویسید. لینک زیرمجموعه‌گیری کاربر به صورت خودکار به انتهای این متن اضافه می‌شود.</p>
+      <p style="font-size:11px; color:#aaa; margin-bottom:10px;">متن دلخواه خود را بنویسید. سیستم به صورت خودکار کد دعوت و لینک را به انتهای این متن اضافه می‌کند.</p>
       <textarea id="editBannerText" class="select-box" style="height:120px; margin-bottom:15px; line-height: 1.6;"></textarea>
       <button onclick="saveAdminBanner()" class="btn-yellow">ذخیره متن بنر ✅</button>
     </div>
@@ -435,24 +435,35 @@
 
     <!-- پاداش و سایر -->
     <div id="adminTab-bonus" class="admin-tab-content" style="display: none;">
+      
       <div style="margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom:15px;">
-        <h4>پاداش ورود روزانه (تومان)</h4>
+        <h4 style="color: #00ff88; margin-bottom: 10px;">تنظیم دستی قیمت ارزها (تومان)</h4>
+        <input type="number" id="editUsdtPrice" class="select-box" style="margin-bottom: 8px;" placeholder="قیمت یک تتر (مثلا 60000)">
+        <input type="number" id="editTrxPrice" class="select-box" style="margin-bottom: 8px;" placeholder="قیمت یک ترون (مثلا 6000)">
+        <input type="number" id="editBtcPrice" class="select-box" style="margin-bottom: 10px;" placeholder="قیمت یک بیت‌کوین (مثلا 4200000000)">
+        <button onclick="saveAdminPrices()" class="btn-yellow">ذخیره قیمت ارزها 🔄</button>
+      </div>
+      
+      <div style="margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom:15px;">
+        <h4 style="color: #38bdf8; margin-bottom: 10px;">پیام پاپ‌آپ همگانی (اطلاعیه)</h4>
+        <input type="text" id="adminNoticeTitle" placeholder="عنوان پیام..." class="select-box" style="margin-bottom: 8px;">
+        <textarea id="adminNoticeText" placeholder="متن اطلاعیه (خالی بگذارید تا غیرفعال شود)..." style="width: 100%; height: 80px; padding: 10px; background: #030712; color: white; border: 1px solid #334155; border-radius: 8px; margin-bottom: 8px;"></textarea>
+        <input type="text" id="adminNoticeLink" placeholder="لینک دکمه (https://...)" class="select-box" style="margin-bottom: 10px;" dir="ltr">
+        <button onclick="saveAdminAnnouncement()" class="btn-yellow">انتشار پیام 🚀</button>
+      </div>
+      
+      <div style="margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom:15px;">
+        <h4 style="color: #facc15; margin-bottom: 10px;">پاداش ورود روزانه (تومان)</h4>
         <input type="number" id="editBonusAmount" class="select-box" style="margin-bottom: 10px;">
         <button onclick="saveAdminDailyBonus()" class="btn-yellow">ذخیره پاداش روزانه</button>
       </div>
-      <div style="margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom:15px;">
-        <h4>پیام پاپ‌آپ همگانی</h4>
-        <input type="text" id="adminNoticeTitle" placeholder="عنوان پیام..." class="select-box" style="margin-bottom: 10px;">
-        <textarea id="adminNoticeText" placeholder="متن اطلاعیه..." style="width: 100%; height: 80px; padding: 10px; background: #030712; color: white; border: 1px solid #334155; border-radius: 8px; margin-bottom: 10px;"></textarea>
-        <input type="text" id="adminNoticeLink" placeholder="لینک (https://...)" class="select-box" style="margin-bottom: 10px;" dir="ltr">
-        <button onclick="saveAdminAnnouncement()" class="btn-yellow">انتشار پیام 🚀</button>
-      </div>
+
       <div>
-        <h4>تنظیم کارت و ولت واریزی ادمین</h4>
-        <input type="text" id="editCardInput" class="select-box" style="margin-bottom: 10px;" placeholder="شماره کارت">
-        <input type="text" id="editNameInput" class="select-box" style="margin-bottom: 10px;" placeholder="نام صاحب کارت">
-        <input type="text" id="editWalletInput" class="select-box" style="margin-bottom: 15px;" dir="ltr" placeholder="آدرس ولت ترون">
-        <button onclick="saveAdminFinancialSettings()" class="btn-yellow">ذخیره تغییرات مالی</button>
+        <h4 style="color: #fff; margin-bottom: 10px;">تنظیم کارت و ولت واریزی ادمین</h4>
+        <input type="text" id="editCardInput" class="select-box" style="margin-bottom: 8px;" placeholder="شماره کارت">
+        <input type="text" id="editNameInput" class="select-box" style="margin-bottom: 8px;" placeholder="نام صاحب کارت">
+        <input type="text" id="editWalletInput" class="select-box" style="margin-bottom: 10px;" dir="ltr" placeholder="آدرس ولت ترون">
+        <button onclick="saveAdminFinancialSettings()" class="btn-yellow">ذخیره حساب مدیریت</button>
       </div>
     </div>
     
@@ -474,12 +485,14 @@
   let db = {};
   let isAdminLoggedIn = false;
   
+  // تنظیمات پیش‌فرض برای اجرای اولیه (در صورت خالی بودن دیتابیس)
   let adminConfig = { 
     card: "6037-9974-1234-5678", name: "شرکت تجارت ابری ماینرتولز", wallet: "TRC20WalletAddressExample123",
     bannerText: "میخوای ماینر مجازی رایگان در اختیارت بذاریم و روزانه ارز دیجیتال استخراج کنی؟ ⛏️💰\n\n🚀 کاملاً ابری و رایگان! همین الان از طریق لینک زیر وارد شو و ماینر هدیه‌ات رو فعال کن تا استخراجت شروع بشه 👇"
   };
+  let cryptoRates = { usdt: 60000, trx: 6000, btc: 4200000000 };
+  let globalNotice = { title: "", text: "", link: "" };
   let mandatoryChannels = [];
-  let globalNotice = null;
   let dailyBonusAmount = 5000;
   let pendingReceipts = [];
   let allWithdrawals = [];
@@ -489,25 +502,6 @@
   
   let activeChatTicketId = null;
   let activeChatUsername = null;
-
-  // --- سیستم قیمت زنده ارزها (از نوبیتکس) ---
-  let cryptoRates = { usdt: 60000, trx: 6000, btc: 4200000000 };
-  async function fetchCryptoRates() {
-      try {
-          let res = await fetch('https://api.nobitex.ir/market/stats?srcCurrency=usdt,trx,btc&dstCurrency=rls');
-          let data = await res.json();
-          if(data.status === 'ok') {
-              if(data.stats['usdt-rls']) cryptoRates.usdt = parseFloat(data.stats['usdt-rls'].latest) / 10;
-              if(data.stats['trx-rls']) cryptoRates.trx = parseFloat(data.stats['trx-rls'].latest) / 10;
-              if(data.stats['btc-rls']) cryptoRates.btc = parseFloat(data.stats['btc-rls'].latest) / 10;
-          }
-          if (currentUser) updateUI();
-      } catch(e) { console.log('خطا در دریافت قیمت زنده، استفاده از قیمت پیش‌فرض.'); }
-  }
-  // آپدیت قیمت‌ها در لحظه باز شدن اپ و هر ۶۰ ثانیه
-  fetchCryptoRates();
-  setInterval(fetchCryptoRates, 60000);
-  // ------------------------------------------
 
   function showCustomAlert(msg, icon = '✅') {
     document.getElementById('customAlertIcon').innerText = icon;
@@ -532,6 +526,10 @@
           if(db['_ADMIN_DATA_'].card) adminConfig.card = db['_ADMIN_DATA_'].card;
           if(db['_ADMIN_DATA_'].name) adminConfig.name = db['_ADMIN_DATA_'].name;
           if(db['_ADMIN_DATA_'].wallet) adminConfig.wallet = db['_ADMIN_DATA_'].wallet;
+          
+          // بارگیری مقادیر جدید قیمت‌ها و اطلاعیه‌ها از دیتابیس ادمین
+          if(db['_ADMIN_DATA_'].cryptoRates) cryptoRates = db['_ADMIN_DATA_'].cryptoRates;
+          if(db['_ADMIN_DATA_'].globalNotice) globalNotice = db['_ADMIN_DATA_'].globalNotice;
         }
       }
     } catch (err) { console.log(err); }
@@ -551,6 +549,34 @@
                 body: JSON.stringify({ username: u, userData: db[u] }) 
             });
             await new Promise(r => setTimeout(r, 400)); 
+          } catch(e) { console.log(e); }
+          resolve();
+        });
+    });
+    return p;
+  }
+  
+  function saveGlobalAdminData() {
+    if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
+    db['_ADMIN_DATA_'].allWithdrawals = allWithdrawals;
+    db['_ADMIN_DATA_'].pendingReceipts = pendingReceipts;
+    db['_ADMIN_DATA_'].bannerText = adminConfig.bannerText;
+    db['_ADMIN_DATA_'].channels = mandatoryChannels;
+    db['_ADMIN_DATA_'].card = adminConfig.card;
+    db['_ADMIN_DATA_'].name = adminConfig.name;
+    db['_ADMIN_DATA_'].wallet = adminConfig.wallet;
+    db['_ADMIN_DATA_'].cryptoRates = cryptoRates;
+    db['_ADMIN_DATA_'].globalNotice = globalNotice;
+    
+    let p = new Promise(resolve => {
+        saveQueue = saveQueue.then(async () => {
+          try {
+            await fetch(`${API_URL}/api/update`, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) 
+            });
+            await new Promise(r => setTimeout(r, 400));
           } catch(e) { console.log(e); }
           resolve();
         });
@@ -604,7 +630,7 @@
     
     let btn = document.getElementById('registerBtn');
     let origBtnText = btn.innerText;
-    btn.innerText = "در حال ایجاد ارتباط با سرور... ⏳";
+    btn.innerText = "در حال ارتباط با سرور... ⏳";
     btn.disabled = true;
 
     await loadDataFromServer();
@@ -679,9 +705,6 @@
     document.getElementById('mainNav').style.display = 'flex';
     document.getElementById('userGreeting').innerText = "کاربر: " + currentUser;
     document.getElementById('changeUsernameInput').value = currentUser;
-    
-    // دریافت مجدد قیمت‌ها برای نمایش دقیق
-    await fetchCryptoRates();
     updateUI(); renderMyMiners(); startMiningLoop(); checkBonusStatus(); updateCryptoUI(db[currentUser].miningCrypto || 'USDT');
 
     btn.innerText = origBtnText;
@@ -689,15 +712,15 @@
 
     if (isNewUser) {
         if (realInviter) {
-            setTimeout(() => showCustomAlert(`ثبت‌نام موفق! شما با دعوت ${realInviter} وارد شدید و ۵,۰۰۰ تومان پاداش ورود گرفتید.`, "🎁"), 1000);
+            setTimeout(() => showCustomAlert(`ثبت‌نام موفق! شما با دعوت ${realInviter} وارد شدید و ۵,۰۰۰ تومان پاداش ورود گرفتید.`, "🎁"), 500);
         } else {
-            setTimeout(() => showCustomAlert(`ثبت‌نام شما با موفقیت انجام شد.`, "✅"), 1000);
+            setTimeout(() => showCustomAlert(`ثبت‌نام شما با موفقیت انجام شد.`, "✅"), 500);
         }
     } else {
-        setTimeout(() => showCustomAlert(`ورود موفق! خوش آمدید.`, "✅"), 1000);
+        setTimeout(() => showCustomAlert(`ورود موفق! خوش آمدید.`, "✅"), 500);
     }
     
-    // نمایش شیک اطلاعیه ادمین بعد از ۱.۵ ثانیه (اگر وجود داشت)
+    // نمایش اتوماتیک اطلاعیه ۱.۵ ثانیه بعد از ورود
     setTimeout(() => { checkGlobalNotice(); }, 1500);
   }
 
@@ -730,7 +753,7 @@
   }
 
   function checkGlobalNotice() {
-    if(globalNotice && globalNotice.text) {
+    if(globalNotice && globalNotice.text && globalNotice.text.trim() !== "") {
       document.getElementById('announcementTitle').innerText = globalNotice.title || "اطلاعیه مهم";
       document.getElementById('announcementText').innerText = globalNotice.text;
       if (globalNotice.link) {
@@ -779,7 +802,7 @@
     let tMax = getTotalMaxDaily(u);
     let toman = Math.floor(u.mined);
     
-    // استفاده از قیمت‌های زنده صرافی
+    // محاسبه دارایی با قیمت‌های ثبت‌شده در پنل ادمین
     let usdt = (toman / cryptoRates.usdt).toFixed(4);
     let trx = (toman / cryptoRates.trx).toFixed(2);
     let btc = (toman / cryptoRates.btc).toFixed(6);
@@ -889,7 +912,6 @@
             btn.innerText = "بررسی عضویت... ⏳";
             btn.disabled = true;
             try {
-                // ضد کش (Anti-Cache) برای دریافت وضعیت لایو از تلگرام
                 let res = await fetch(`${API_URL}/api/check_membership?t=${Date.now()}`, {
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json' },
@@ -897,17 +919,20 @@
                     body: JSON.stringify({ user_id: userId, channels: mandatoryChannels.map(c => c.link) })
                 });
                 let data = await res.json();
-                btn.innerText = origText;
-                btn.disabled = false;
                 
                 if (data.status === "success" && data.joined === true) {
+                   btn.innerText = origText; btn.disabled = false;
                    u.isMining = true; u.miningStartTime = Date.now(); u.lastMiningTime = Date.now();
                    saveDB(); updateUI();
                    return;
+                } else {
+                   // اگر عضو نبود، تاخیر می‌دهیم تا سرور تلگرام به اشتباه اسپم نشود
+                   btn.innerText = "ارتباط با سرور... ⏳";
+                   setTimeout(() => { btn.innerText = origText; btn.disabled = false; }, 3000);
                 }
             } catch(e) {
-                btn.innerText = origText;
-                btn.disabled = false;
+                btn.innerText = "ارتباط با سرور... ⏳";
+                setTimeout(() => { btn.innerText = origText; btn.disabled = false; }, 3000);
             }
         }
         renderModalChannels(); document.getElementById('channelModal').style.display = 'flex'; return; 
@@ -958,15 +983,23 @@
            document.getElementById('channelModal').style.display = 'none';
            showCustomAlert("عضویت شما با موفقیت تایید شد! استخراج آغاز می‌شود.", "✅");
            updateUI();
+           btn.innerText = originalText;
+           btn.disabled = false;
         } else {
-           showCustomAlert("شما هنوز در تمام کانال‌ها عضو نشده‌اید! لطفاً ابتدا عضو شوید.", "❌");
+           btn.innerText = "درحال استعلام از تلگرام... ⏳";
+           setTimeout(() => {
+               showCustomAlert("شما هنوز در تمام کانال‌ها عضو نشده‌اید یا تلگرام با تاخیر بروزرسانی می‌شود. لطفاً مجدداً کلیک کنید.", "❌");
+               btn.innerText = originalText;
+               btn.disabled = false;
+           }, 4000); // 4 ثانیه تاخیر برای شکستن کش تلگرام
         }
     } catch(err) {
-        showCustomAlert("خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.", "❌");
+        btn.innerText = "درحال استعلام از تلگرام... ⏳";
+        setTimeout(() => {
+             btn.innerText = originalText;
+             btn.disabled = false;
+        }, 4000);
     }
-    
-    btn.innerText = originalText;
-    btn.disabled = false;
   }
 
   function renderLeaderboard() {
@@ -1030,21 +1063,7 @@
     u.withdrawHistory.unshift(w); allWithdrawals.unshift(w);
     
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
-    await saveDB(); 
-    
-    let p2 = function() {
-        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
-        db['_ADMIN_DATA_'].allWithdrawals = allWithdrawals;
-        return saveQueue = saveQueue.then(async () => {
-          try {
-            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
-            await new Promise(r => setTimeout(r, 400));
-          } catch(e) {}
-        });
-    };
-    await p2();
-    
-    updateUI(); 
+    await saveDB(); await saveGlobalAdminData(); updateUI(); 
     btn.innerText = orig; btn.disabled = false;
     showCustomAlert("درخواست برداشت تومانی شما با موفقیت ثبت شد و هم‌اکنون در حال بررسی است.", "✅");
   }
@@ -1055,21 +1074,7 @@
     u.withdrawHistory.unshift(w); allWithdrawals.unshift(w);
     
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
-    await saveDB(); 
-    
-    let p2 = function() {
-        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
-        db['_ADMIN_DATA_'].allWithdrawals = allWithdrawals;
-        return saveQueue = saveQueue.then(async () => {
-          try {
-            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
-            await new Promise(r => setTimeout(r, 400));
-          } catch(e) {}
-        });
-    };
-    await p2();
-    
-    updateUI(); 
+    await saveDB(); await saveGlobalAdminData(); updateUI(); 
     btn.innerText = orig; btn.disabled = false;
     showCustomAlert("درخواست برداشت ترون شما با موفقیت ثبت شد و هم‌اکنون در حال بررسی است.", "✅");
   }
@@ -1203,18 +1208,7 @@
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
     
     await saveDB(); 
-    
-    let p2 = function() {
-        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
-        db['_ADMIN_DATA_'].pendingReceipts = pendingReceipts;
-        return saveQueue = saveQueue.then(async () => {
-          try {
-            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
-            await new Promise(r => setTimeout(r, 400));
-          } catch(e) {}
-        });
-    };
-    await p2();
+    await saveGlobalAdminData();
     
     btn.innerText = orig; btn.disabled = false;
     showCustomAlert("رسید خرید شما با موفقیت ثبت شد و پس از بررسی توسط مدیریت، ماینر فعال می‌شود.", "✅"); 
@@ -1239,7 +1233,17 @@
       document.getElementById('editNameInput').value = adminConfig.name;
       document.getElementById('editWalletInput').value = adminConfig.wallet;
       document.getElementById('editBonusAmount').value = dailyBonusAmount;
-      if(globalNotice) { document.getElementById('adminNoticeTitle').value = globalNotice.title||''; document.getElementById('adminNoticeText').value = globalNotice.text||''; document.getElementById('adminNoticeLink').value = globalNotice.link||''; }
+      
+      // پر کردن خودکار تنظیمات از دیتابیس ادمین
+      document.getElementById('editUsdtPrice').value = cryptoRates.usdt;
+      document.getElementById('editTrxPrice').value = cryptoRates.trx;
+      document.getElementById('editBtcPrice').value = cryptoRates.btc;
+      
+      if(globalNotice) { 
+          document.getElementById('adminNoticeTitle').value = globalNotice.title || ''; 
+          document.getElementById('adminNoticeText').value = globalNotice.text || ''; 
+          document.getElementById('adminNoticeLink').value = globalNotice.link || ''; 
+      }
       
       btn.innerText = "ورود به مدیریت"; btn.disabled = false;
       document.getElementById('adminDashboardPanel').style.display = 'block';
@@ -1255,6 +1259,7 @@
       if(u !== '_ADMIN_DATA_') {
         total++;
         if(q && !u.toLowerCase().includes(q)) continue;
+        // اضافه شدن آمار زیرمجموعه‌ها به کارت کاربران مدیریت
         h += `<div style="background:#252538; padding:10px; border-radius:8px; font-size:12px; margin-bottom: 8px;">
                 <b>یوزر: <span style="color:#38bdf8;">${u}</span></b><br>
                 <span style="color:#aaa;">موجودی:</span> <span style="color:#00ff88;">${Math.floor(db[u].mined).toLocaleString()} ت</span><br>
@@ -1283,28 +1288,51 @@
     document.getElementById('adminTicketsList').innerHTML = h || "هیچ تیکتی وجود ندارد.";
   }
 
+  // --- تنظیم دستی قیمت‌های بازار از پنل ادمین ---
+  function saveAdminPrices() {
+      cryptoRates.usdt = parseFloat(document.getElementById('editUsdtPrice').value) || 60000;
+      cryptoRates.trx = parseFloat(document.getElementById('editTrxPrice').value) || 6000;
+      cryptoRates.btc = parseFloat(document.getElementById('editBtcPrice').value) || 4200000000;
+      
+      saveGlobalAdminData().then(() => {
+          showCustomAlert("قیمت ارزها با موفقیت بروزرسانی شد و در دارایی کاربران اعمال گردید.", "✅");
+          if (currentUser) updateUI();
+      });
+  }
+
   function saveAdminBanner() { 
       adminConfig.bannerText = document.getElementById('editBannerText').value.trim(); 
-      
-      let p2 = function() {
-          if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
-          db['_ADMIN_DATA_'].bannerText = adminConfig.bannerText;
-          return saveQueue = saveQueue.then(async () => {
-            try {
-              await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
-              await new Promise(r => setTimeout(r, 400));
-            } catch(e) {}
-          });
-      };
-      p2().then(() => {
+      saveGlobalAdminData().then(() => {
           showCustomAlert("متن بنر بروزرسانی شد!", "✅"); 
-          updateUI();
+          if(currentUser) updateUI();
       });
   }
   
-  function saveAdminDailyBonus() { dailyBonusAmount = parseInt(document.getElementById('editBonusAmount').value); showCustomAlert("مبلغ پاداش ذخیره شد.", "✅"); }
-  function saveAdminAnnouncement() { globalNotice = { title: document.getElementById('adminNoticeTitle').value.trim(), text: document.getElementById('adminNoticeText').value.trim(), link: document.getElementById('adminNoticeLink').value.trim() }; showCustomAlert("پیام عمومی ارسال شد.", "🚀"); }
-  function saveAdminFinancialSettings() { adminConfig.card = document.getElementById('editCardInput').value; adminConfig.name = document.getElementById('editNameInput').value; adminConfig.wallet = document.getElementById('editWalletInput').value; showCustomAlert("تنظیمات مالی ادمین ذخیره شد.", "✅"); }
+  function saveAdminDailyBonus() { 
+      dailyBonusAmount = parseInt(document.getElementById('editBonusAmount').value); 
+      showCustomAlert("مبلغ پاداش ذخیره شد.", "✅"); 
+  }
+  
+  // --- ذخیره قطعی اطلاعیه ادمین ---
+  function saveAdminAnnouncement() { 
+      globalNotice = { 
+          title: document.getElementById('adminNoticeTitle').value.trim(), 
+          text: document.getElementById('adminNoticeText').value.trim(), 
+          link: document.getElementById('adminNoticeLink').value.trim() 
+      }; 
+      saveGlobalAdminData().then(() => {
+          showCustomAlert("پیام عمومی با موفقیت در دیتابیس ذخیره و برای کاربران فعال شد.", "🚀");
+      });
+  }
+  
+  function saveAdminFinancialSettings() { 
+      adminConfig.card = document.getElementById('editCardInput').value; 
+      adminConfig.name = document.getElementById('editNameInput').value; 
+      adminConfig.wallet = document.getElementById('editWalletInput').value; 
+      saveGlobalAdminData().then(() => {
+          showCustomAlert("تنظیمات مالی ادمین ذخیره شد.", "✅");
+      });
+  }
 
   function renderAdminWithdrawals() {
     let pendingHTML = "", doneHTML = "", rejectedHTML = "";
@@ -1351,18 +1379,7 @@
       await saveDB(w.username); 
     }
     
-    let p2 = function() {
-        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
-        db['_ADMIN_DATA_'].allWithdrawals = allWithdrawals;
-        return saveQueue = saveQueue.then(async () => {
-          try {
-            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
-            await new Promise(r => setTimeout(r, 400));
-          } catch(e) {}
-        });
-    };
-    await p2();
-    
+    await saveGlobalAdminData();
     renderAdminWithdrawals(); 
     showCustomAlert("درخواست برداشت با موفقیت تایید شد.", "✅");
   }
@@ -1383,18 +1400,7 @@
       await saveDB(w.username); 
     }
     
-    let p2 = function() {
-        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
-        db['_ADMIN_DATA_'].allWithdrawals = allWithdrawals;
-        return saveQueue = saveQueue.then(async () => {
-          try {
-            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
-            await new Promise(r => setTimeout(r, 400));
-          } catch(e) {}
-        });
-    };
-    await p2();
-    
+    await saveGlobalAdminData();
     renderAdminWithdrawals(); 
     renderAdminStats(); 
     showCustomAlert("درخواست رد شد و وجه به کیف پول کاربر بازگشت.", "✅");
@@ -1405,38 +1411,20 @@
     mandatoryChannels.forEach((ch, idx) => { h += `<div style="background:#252538; padding:8px; border-radius:6px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;"><span><b>${ch.name}</b> (${ch.link})</span><button onclick="deleteChannel(${idx})" style="background:#e74c3c; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">حذف</button></div>`; });
     document.getElementById('adminChannelsList').innerHTML = h || "کانالی ثبت نشده.";
   }
+  
   function adminAddChannel() {
     let n = document.getElementById('newChannelName').value.trim(), l = document.getElementById('newChannelUrl').value.trim();
     if(!n || !l) return showCustomAlert("لطفاً مشخصات کانال را کامل کنید.", "⚠️");
     mandatoryChannels.push({ name: n, link: l }); document.getElementById('newChannelName').value = ''; document.getElementById('newChannelUrl').value = '';
     
-    let p2 = function() {
-        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
-        db['_ADMIN_DATA_'].channels = mandatoryChannels;
-        return saveQueue = saveQueue.then(async () => {
-          try {
-            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
-            await new Promise(r => setTimeout(r, 400));
-          } catch(e) {}
-        });
-    };
-    p2().then(() => {
+    saveGlobalAdminData().then(() => {
         renderAdminChannelsManager(); showCustomAlert("کانال جدید اضافه شد.", "✅");
     });
   }
+  
   function deleteChannel(idx) { 
       mandatoryChannels.splice(idx, 1); 
-      let p2 = function() {
-        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
-        db['_ADMIN_DATA_'].channels = mandatoryChannels;
-        return saveQueue = saveQueue.then(async () => {
-          try {
-            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
-            await new Promise(r => setTimeout(r, 400));
-          } catch(e) {}
-        });
-      };
-      p2().then(() => renderAdminChannelsManager());
+      saveGlobalAdminData().then(() => renderAdminChannelsManager());
   }
   
   function renderAdminReceipts() {
@@ -1475,18 +1463,7 @@
     }
     
     pendingReceipts.splice(i, 1); 
-    
-    let p2 = function() {
-        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
-        db['_ADMIN_DATA_'].pendingReceipts = pendingReceipts;
-        return saveQueue = saveQueue.then(async () => {
-          try {
-            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
-            await new Promise(r => setTimeout(r, 400));
-          } catch(e) {}
-        });
-    };
-    await p2();
+    await saveGlobalAdminData();
     
     renderAdminReceipts(); 
     renderAdminStats(); 
@@ -1511,18 +1488,7 @@
     }
 
     pendingReceipts.splice(i, 1);
-    
-    let p2 = function() {
-        if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
-        db['_ADMIN_DATA_'].pendingReceipts = pendingReceipts;
-        return saveQueue = saveQueue.then(async () => {
-          try {
-            await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
-            await new Promise(r => setTimeout(r, 400));
-          } catch(e) {}
-        });
-    };
-    await p2();
+    await saveGlobalAdminData();
     
     renderAdminReceipts();
     showCustomAlert("رسید رد شد و دلیل آن برای کاربر ثبت گردید.", "✅");
@@ -1539,6 +1505,7 @@
     btn.innerText = orig; btn.disabled = false;
     showCustomAlert("نام کاربری با موفقیت تغییر کرد.", "✅");
   }
+  
   async function updatePassword() {
     let p = document.getElementById('changePasswordInput').value.trim();
     if(!p) return showCustomAlert("رمز عبور نمی‌تواند خالی باشد.", "⚠️");
