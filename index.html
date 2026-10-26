@@ -478,7 +478,7 @@
   let allWithdrawals = [];
   let miningInterval = null;
   let selectedMachineToBuy = null;
-  let inviterSyncCounter = 0; // متغیر برای کنترل ذخیره‌سازی سود معرف
+  let inviterSyncCounter = 0;
   
   let activeChatTicketId = null;
   let activeChatUsername = null;
@@ -541,8 +541,14 @@
 
     if(!db[u]) {
       isNewUser = true;
+      
       let tgData = window.Telegram?.WebApp?.initDataUnsafe;
-      let startParam = tgData ? tgData.start_param : null;
+      let startParam = (tgData && tgData.start_param) ? tgData.start_param : null;
+      if (!startParam) {
+          let urlParams = new URLSearchParams(window.location.search);
+          startParam = urlParams.get('tgWebAppStartParam') || urlParams.get('startapp');
+      }
+      
       if (startParam && db[startParam] && startParam !== u) {
           inviter = startParam;
       }
@@ -591,8 +597,8 @@
     }
   }
 
-  function getInviteMessage() { return adminConfig.bannerText + "\nhttps://t.me/minernew_vibot?start=" + currentUser; }
-  function shareToTelegram() { window.open(`https://t.me/share/url?url=${encodeURIComponent("https://t.me/minernew_vibot?start=" + currentUser)}&text=${encodeURIComponent(getInviteMessage())}`); }
+  function getInviteMessage() { return adminConfig.bannerText + "\nhttps://t.me/minernew_vibot/minertools?startapp=" + currentUser; }
+  function shareToTelegram() { window.open(`https://t.me/share/url?url=${encodeURIComponent("https://t.me/minernew_vibot/minertools?startapp=" + currentUser)}&text=${encodeURIComponent(getInviteMessage())}`); }
   function copyShareText() { navigator.clipboard.writeText(getInviteMessage()).then(() => showCustomAlert("متن بنر و لینک اختصاصی شما با موفقیت کپی شد! حالا برای دوستانتان بفرستید.", "✅")); }
 
   function setMiningCrypto(sym) { db[currentUser].miningCrypto = sym; saveDB(); updateCryptoUI(sym); updateUI(); }
@@ -689,7 +695,7 @@
       document.getElementById('statusText').innerText = "متوقف شده ⏸️";
     }
     
-    document.getElementById('shareTextTemplate').innerHTML = adminConfig.bannerText.replace(/\n/g, '<br>') + '<br><span style="color: #00ff88;">https://t.me/minernew_vibot?start=' + currentUser + '</span>';
+    document.getElementById('shareTextTemplate').innerHTML = adminConfig.bannerText.replace(/\n/g, '<br>') + '<br><span style="color: #00ff88;">https://t.me/minernew_vibot/minertools?startapp=' + currentUser + '</span>';
     
     let hasPro = u.miners.some(m => m.name.includes("پرو"));
     let hasTurbo = u.miners.some(m => m.name.includes("توربو"));
