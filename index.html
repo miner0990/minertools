@@ -511,7 +511,21 @@
     } catch (err) { console.log(err); }
   }
 
-  async function saveGlobalAdminData() {
+  // --- سیستم صف‌بندی ایمن برای جلوگیری از تداخل ذخیره در سرور ---
+  let saveQueue = Promise.resolve();
+  function saveDB(forceUser = null) {
+    let u = forceUser || currentUser;
+    if(!u) return Promise.resolve();
+    saveQueue = saveQueue.then(async () => {
+      try {
+        await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u, userData: db[u] }) });
+        await new Promise(r => setTimeout(r, 400)); // توقف ۴۰۰ میلی‌ثانیه‌ای برای نفس کشیدن سرور
+      } catch(e) { console.log(e); }
+    });
+    return saveQueue;
+  }
+
+  function saveGlobalAdminData() {
     if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
     db['_ADMIN_DATA_'].allWithdrawals = allWithdrawals;
     db['_ADMIN_DATA_'].pendingReceipts = pendingReceipts;
@@ -520,16 +534,18 @@
     db['_ADMIN_DATA_'].card = adminConfig.card;
     db['_ADMIN_DATA_'].name = adminConfig.name;
     db['_ADMIN_DATA_'].wallet = adminConfig.wallet;
-    await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
+    
+    saveQueue = saveQueue.then(async () => {
+      try {
+        await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) });
+        await new Promise(r => setTimeout(r, 400));
+      } catch(e) { console.log(e); }
+    });
+    return saveQueue;
   }
+  // ----------------------------------------------------------------
 
-  async function saveDB(forceUser = null) {
-    let u = forceUser || currentUser;
-    if(!u) return;
-    await fetch(`${API_URL}/api/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u, userData: db[u] }) });
-  }
-
-  // --- سیستم اسخراج هوشمند لینک با آیدی عددی تلگرام ---
+  // --- استخراج‌گر هوشمند لینک ---
   function extractInviter() {
     let inviter = null;
     try {
@@ -550,6 +566,26 @@
     } catch (e) { console.log(e); }
     return inviter ? inviter.trim() : null;
   }
+
+  // اسکنر دوگانه (آیدی عددی + نام کاربری قدیمی)
+  function findRealUsername(rawInviterId) {
+    if(!rawInviterId) return null;
+    let lower = rawInviterId.toString().toLowerCase();
+    
+    // ۱. اول جستجو از طریق آیدی عددی
+    for(let key in db) {
+        if(key !== '_ADMIN_DATA_' && db[key].tgId && db[key].tgId.toString().toLowerCase() === lower) {
+            return key;
+        }
+    }
+    // ۲. جستجو از طریق نام کاربری برای پشتیبانی از لینک‌های قدیمی
+    for(let key in db) {
+        if(key !== '_ADMIN_DATA_' && key.toLowerCase() === lower) {
+            return key;
+        }
+    }
+    return null;
+  }
   // ----------------------------------------------------
 
   async function completeRegistration() {
@@ -562,7 +598,6 @@
 
     currentUser = u;
     
-    // دریافت آیدی عددی تلگرام کاربر جاری
     let tgData = window.Telegram?.WebApp?.initDataUnsafe;
     let myTgId = (tgData && tgData.user && tgData.user.id) ? tgData.user.id : Date.now();
     
@@ -573,17 +608,9 @@
       isNewUser = true;
       
       let rawInviterId = extractInviter();
+      realInviter = findRealUsername(rawInviterId);
       
-      // پیدا کردن صاحب این آیدی عددی در دیتابیس
-      if (rawInviterId) {
-          for(let key in db) {
-              if(key !== '_ADMIN_DATA_' && db[key].tgId && db[key].tgId.toString() === rawInviterId.toString()) {
-                  realInviter = key;
-                  break;
-              }
-          }
-      }
-      
+      // جلوگیری از زیرمجموعه شدن با لینک خود شخص
       if (realInviter && realInviter.toLowerCase() === u.toLowerCase()) {
           realInviter = null;
       }
@@ -602,7 +629,7 @@
         miningCrypto: 'USDT', 
         referrals: 0, 
         tickets: [],
-        tgId: myTgId, // ذخیره آیدی عددی برای ساخت لینک دعوت
+        tgId: myTgId, 
         referredBy: realInviter
       };
 
@@ -614,12 +641,13 @@
       if(db[u].password !== p) { showCustomAlert("رمز عبور اشتباه است!", "❌"); return; }
       if(!db[u].tickets) db[u].tickets = []; 
       if(!db[u].purchaseHistory) db[u].purchaseHistory = []; 
-      if(!db[u].tgId) db[u].tgId = myTgId; // سازگاری با کاربران قدیمی
+      if(!db[u].tgId) db[u].tgId = myTgId; 
     }
     
-    await saveDB();
+    // ارسال به صف امن سرور (جلوگیری از تداخل)
+    saveDB(); 
     if (isNewUser && realInviter) {
-        await saveDB(realInviter);
+        saveDB(realInviter); 
     }
 
     checkBackgroundMining();
@@ -871,7 +899,7 @@
            db[currentUser].isMining = true;
            db[currentUser].miningStartTime = Date.now();
            db[currentUser].lastMiningTime = Date.now();
-           await saveDB();
+           saveDB();
            document.getElementById('channelModal').style.display = 'none';
            showCustomAlert("عضویت شما با موفقیت تایید شد! استخراج آغاز می‌شود.", "✅");
            updateUI();
@@ -945,7 +973,7 @@
     if(c.length < 16 || !h || a <= 0 || a > u.mined) return showCustomAlert("اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست.", "❌");
     u.mined -= a; let w = { id: Date.now(), username: currentUser, type: "تومانی", details: c + " (" + h + ")", amount: a, status: "در حال بررسی ⏳" };
     u.withdrawHistory.unshift(w); allWithdrawals.unshift(w);
-    await saveDB(); await saveGlobalAdminData(); updateUI(); 
+    saveDB(); saveGlobalAdminData(); updateUI(); 
     showCustomAlert("درخواست برداشت تومانی شما با موفقیت ثبت شد و هم‌اکنون در حال بررسی است.", "✅");
   }
   async function submitCryptoWithdraw() {
@@ -953,7 +981,7 @@
     if(!ad || a <= 0 || a > u.mined) return showCustomAlert("اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست.", "❌");
     u.mined -= a; let w = { id: Date.now(), username: currentUser, type: "TRC20", details: ad, amount: a, status: "در حال بررسی ⏳" };
     u.withdrawHistory.unshift(w); allWithdrawals.unshift(w);
-    await saveDB(); await saveGlobalAdminData(); updateUI(); 
+    saveDB(); saveGlobalAdminData(); updateUI(); 
     showCustomAlert("درخواست برداشت ترون شما با موفقیت ثبت شد و هم‌اکنون در حال بررسی است.", "✅");
   }
 
@@ -1024,14 +1052,14 @@
     t.status = isAdminLoggedIn ? "پاسخ داده شده 💬" : "در حال بررسی ⏳";
     inp.value = ''; renderTicketMessages();
     
-    if(!isAdminLoggedIn) { await saveDB(); renderUserTickets(); } 
-    else { await saveDB(activeChatUsername); renderAdminTickets(); }
+    if(!isAdminLoggedIn) { saveDB(); renderUserTickets(); } 
+    else { saveDB(activeChatUsername); renderAdminTickets(); }
   }
 
   async function closeActiveTicket() {
     let t = db[activeChatUsername].tickets.find(x => x.id === activeChatTicketId);
     t.status = "بسته شده 🔒";
-    await saveDB(activeChatUsername);
+    saveDB(activeChatUsername);
     document.getElementById('ticketChatModal').style.display = 'none';
     if(isAdminLoggedIn) renderAdminTickets(); else renderUserTickets();
     showCustomAlert("تیکت با موفقیت برای همیشه بسته شد.", "🔒");
@@ -1077,8 +1105,7 @@
     if(!db[currentUser].purchaseHistory) db[currentUser].purchaseHistory = [];
     db[currentUser].purchaseHistory.unshift({ id: uniqueId, machine: selectedMachineToBuy.name, receipt: r, status: "در حال بررسی ⏳" });
     
-    await saveDB();
-    await saveGlobalAdminData(); 
+    saveDB(); saveGlobalAdminData(); 
     showCustomAlert("رسید خرید شما با موفقیت ثبت شد و پس از بررسی توسط مدیریت، ماینر فعال می‌شود.", "✅"); 
     closeCheckout(); 
   }
@@ -1183,9 +1210,9 @@
     if(w && db[w.username]) {
       let uw = db[w.username].withdrawHistory.find(x => x.id === id); 
       if(uw) uw.status = "واریز شد ✅";
-      await saveDB(w.username); 
+      saveDB(w.username); 
     }
-    await saveGlobalAdminData(); 
+    saveGlobalAdminData(); 
     renderAdminWithdrawals(); 
     showCustomAlert("درخواست برداشت با موفقیت تایید شد.", "✅");
   }
@@ -1202,9 +1229,9 @@
       let uw = db[w.username].withdrawHistory.find(x => x.id === id); 
       if(uw){ uw.status = "رد شد ❌"; uw.rejectReason = r; }
       db[w.username].mined += w.amount; 
-      await saveDB(w.username); 
+      saveDB(w.username); 
     }
-    await saveGlobalAdminData(); 
+    saveGlobalAdminData(); 
     renderAdminWithdrawals(); 
     renderAdminStats(); 
     showCustomAlert("درخواست رد شد و وجه به کیف پول کاربر بازگشت.", "✅");
@@ -1254,11 +1281,11 @@
         let p = db[r.username].purchaseHistory.find(x => x.id === r.id);
         if(p) p.status = "تایید شد و ماینر فعال گردید ✅";
       }
-      await saveDB(r.username); 
+      saveDB(r.username); 
     }
     
     pendingReceipts.splice(i, 1); 
-    await saveGlobalAdminData(); 
+    saveGlobalAdminData(); 
     renderAdminReceipts(); 
     renderAdminStats(); 
     showCustomAlert("رسید تایید و ماینر به حساب کاربر اضافه شد.", "✅");
@@ -1277,11 +1304,11 @@
     if(db[r.username] && db[r.username].purchaseHistory) {
       let p = db[r.username].purchaseHistory.find(x => x.id === r.id);
       if(p) { p.status = "رد شد ❌"; p.rejectReason = reason; }
-      await saveDB(r.username);
+      saveDB(r.username);
     }
 
     pendingReceipts.splice(i, 1);
-    await saveGlobalAdminData();
+    saveGlobalAdminData();
     renderAdminReceipts();
     showCustomAlert("رسید رد شد و دلیل آن برای کاربر ثبت گردید.", "✅");
   }
@@ -1294,7 +1321,7 @@
   async function updatePassword() {
     let p = document.getElementById('changePasswordInput').value.trim();
     if(!p) return showCustomAlert("رمز عبور نمی‌تواند خالی باشد.", "⚠️");
-    db[currentUser].password = p; await saveDB(); showCustomAlert("رمز عبور با موفقیت تغییر کرد.", "✅");
+    db[currentUser].password = p; saveDB(); showCustomAlert("رمز عبور با موفقیت تغییر کرد.", "✅");
   }
 </script>
 </body>
