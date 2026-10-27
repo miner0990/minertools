@@ -525,9 +525,9 @@
           pendingReceipts = db['_ADMIN_DATA_'].pendingReceipts || [];
           if(db['_ADMIN_DATA_'].bannerText) adminConfig.bannerText = db['_ADMIN_DATA_'].bannerText;
           if(db['_ADMIN_DATA_'].channels) mandatoryChannels = db['_ADMIN_DATA_'].channels;
-          if(db['_ADMIN_DATA_'].card) adminConfig.card = db['_ADMIN_DATA_'].card;
-          if(db['_ADMIN_DATA_'].name) adminConfig.name = db['_ADMIN_DATA_'].name;
-          if(db['_ADMIN_DATA_'].wallet) adminConfig.wallet = db['_ADMIN_DATA_'].wallet;
+          if(db['_ADMIN_DATA_'].card) adminConfig.card = adminConfig.card;
+          if(db['_ADMIN_DATA_'].name) adminConfig.name = adminConfig.name;
+          if(db['_ADMIN_DATA_'].wallet) adminConfig.wallet = adminConfig.wallet;
           if(db['_ADMIN_DATA_'].cryptoRates) cryptoRates = db['_ADMIN_DATA_'].cryptoRates;
           if(db['_ADMIN_DATA_'].globalNotice) globalNotice = db['_ADMIN_DATA_'].globalNotice;
         }
@@ -583,6 +583,21 @@
     });
     return p;
   }
+
+  // --- سیستم هوشمند تصفیه کننده لینک (Sanitizer) ---
+  function sanitizeChannelLink(link) {
+      if(!link) return "";
+      let l = link.trim();
+      if(l.endsWith('/')) l = l.substring(0, l.length - 1);
+      
+      if(!l.startsWith('http') && l.startsWith('@')) {
+          l = 'https://t.me/' + l.substring(1);
+      } else if (!l.startsWith('http') && !l.startsWith('@') && !l.includes('t.me')) {
+          l = 'https://t.me/' + l;
+      }
+      return l;
+  }
+  // ------------------------------------------------
 
   function extractInviter() {
     let inviter = null;
@@ -910,14 +925,16 @@
             btn.innerText = "بررسی عضویت... ⏳";
             btn.disabled = true;
             try {
+                // ارسال لینک‌های فیلتر شده و تمیز به سرور
+                let channelLinks = mandatoryChannels.map(c => sanitizeChannelLink(c.link));
                 let res = await fetch(`${API_URL}/api/check_membership`, {
                     method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: userId, channels: mandatoryChannels.map(c => c.link) })
+                    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+                    body: JSON.stringify({ user_id: userId, channels: channelLinks })
                 });
                 let data = await res.json();
                 
-                if (data.joined === true) {
+                if (data.status === "success" && data.joined === true) {
                    btn.innerText = origText; btn.disabled = false;
                    u.isMining = true; u.miningStartTime = Date.now(); u.lastMiningTime = Date.now();
                    saveDB(); updateUI();
@@ -958,22 +975,24 @@
     btn.innerText = "در حال بررسی عضویت... ⏳";
     btn.disabled = true;
 
+    // ارسال لینک‌های فیلتر شده و تمیز به سرور
+    let channelLinks = mandatoryChannels.map(c => sanitizeChannelLink(c.link));
+
     try {
-        let channelLinks = mandatoryChannels.map(c => c.link);
         let res = await fetch(`${API_URL}/api/check_membership`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
             body: JSON.stringify({ user_id: userId, channels: channelLinks })
         });
         
         if (!res.ok) {
-            alert("خطای سرور: " + res.status + "\nارتباط با سرور پایتون برقرار نشد.");
-            btn.innerText = originalText; btn.disabled = false; return;
+            btn.innerText = originalText; btn.disabled = false; 
+            return showCustomAlert("ارتباط با سرور برقرار نشد.", "❌");
         }
 
         let data = await res.json();
 
-        if (data.joined === true) {
+        if (data.status === "success" && data.joined === true) {
            db[currentUser].isChannelJoined = true;
            db[currentUser].isMining = true;
            db[currentUser].miningStartTime = Date.now();
@@ -982,16 +1001,44 @@
            document.getElementById('channelModal').style.display = 'none';
            showCustomAlert("عضویت شما با موفقیت تایید شد! استخراج آغاز می‌شود.", "✅");
            updateUI();
+           btn.innerText = originalText;
+           btn.disabled = false;
         } else {
-           alert("پاسخ سرور پایتون:\nشما عضو نیستید یا ربات ادمین نیست.\nجزئیات: " + JSON.stringify(data));
-           showCustomAlert("شما هنوز در تمام کانال‌ها عضو نشده‌اید.", "❌");
+           // مکانیزم دور زدن کش سرور پایتون (تلاش مجدد خودکار)
+           btn.innerText = "درحال تایید نهایی از تلگرام... ⏳";
+           setTimeout(async () => {
+               try {
+                   let resRetry = await fetch(`${API_URL}/api/check_membership`, {
+                       method: 'POST',
+                       headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+                       body: JSON.stringify({ user_id: userId, channels: channelLinks })
+                   });
+                   let dataRetry = await resRetry.json();
+                   
+                   if (dataRetry.status === "success" && dataRetry.joined === true) {
+                       db[currentUser].isChannelJoined = true;
+                       db[currentUser].isMining = true;
+                       db[currentUser].miningStartTime = Date.now();
+                       db[currentUser].lastMiningTime = Date.now();
+                       saveDB();
+                       document.getElementById('channelModal').style.display = 'none';
+                       showCustomAlert("عضویت شما با موفقیت تایید شد! استخراج آغاز می‌شود.", "✅");
+                       updateUI();
+                   } else {
+                       showCustomAlert("شما هنوز در تمام کانال‌ها عضو نشده‌اید. لطفاً ابتدا عضو شوید.", "❌");
+                   }
+               } catch (errRetry) {
+                   showCustomAlert("شما هنوز در تمام کانال‌ها عضو نشده‌اید یا تلگرام با تاخیر بروزرسانی می‌شود.", "❌");
+               }
+               btn.innerText = originalText;
+               btn.disabled = false;
+           }, 3000);
         }
     } catch(err) {
-        alert("خطای ارتباط شبکه:\n" + err.message);
+        showCustomAlert("خطای ارتباط شبکه. لطفاً دوباره تلاش کنید.", "❌");
+        btn.innerText = originalText;
+        btn.disabled = false;
     }
-    
-    btn.innerText = originalText;
-    btn.disabled = false;
   }
 
   function renderLeaderboard() {
