@@ -584,7 +584,6 @@
     return p;
   }
 
-  // --- سیستم هوشمند تصفیه کننده لینک (Sanitizer) ---
   function sanitizeChannelLink(link) {
       if(!link) return "";
       let l = link.trim();
@@ -597,7 +596,6 @@
       }
       return l;
   }
-  // ------------------------------------------------
 
   function extractInviter() {
     let inviter = null;
@@ -925,7 +923,6 @@
             btn.innerText = "بررسی عضویت... ⏳";
             btn.disabled = true;
             try {
-                // ارسال لینک‌های فیلتر شده و تمیز به سرور
                 let channelLinks = mandatoryChannels.map(c => sanitizeChannelLink(c.link));
                 let res = await fetch(`${API_URL}/api/check_membership`, {
                     method: 'POST', 
@@ -938,6 +935,10 @@
                    btn.innerText = origText; btn.disabled = false;
                    u.isMining = true; u.miningStartTime = Date.now(); u.lastMiningTime = Date.now();
                    saveDB(); updateUI();
+                   return;
+                } else if (data.status === "error") {
+                   showCustomAlert(data.message, "❌");
+                   btn.innerText = origText; btn.disabled = false;
                    return;
                 } else {
                    btn.innerText = origText; btn.disabled = false;
@@ -975,7 +976,6 @@
     btn.innerText = "در حال بررسی عضویت... ⏳";
     btn.disabled = true;
 
-    // ارسال لینک‌های فیلتر شده و تمیز به سرور
     let channelLinks = mandatoryChannels.map(c => sanitizeChannelLink(c.link));
 
     try {
@@ -1001,44 +1001,17 @@
            document.getElementById('channelModal').style.display = 'none';
            showCustomAlert("عضویت شما با موفقیت تایید شد! استخراج آغاز می‌شود.", "✅");
            updateUI();
-           btn.innerText = originalText;
-           btn.disabled = false;
+        } else if (data.status === "error") {
+           showCustomAlert(data.message, "⚠️");
         } else {
-           // مکانیزم دور زدن کش سرور پایتون (تلاش مجدد خودکار)
-           btn.innerText = "درحال تایید نهایی از تلگرام... ⏳";
-           setTimeout(async () => {
-               try {
-                   let resRetry = await fetch(`${API_URL}/api/check_membership`, {
-                       method: 'POST',
-                       headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
-                       body: JSON.stringify({ user_id: userId, channels: channelLinks })
-                   });
-                   let dataRetry = await resRetry.json();
-                   
-                   if (dataRetry.status === "success" && dataRetry.joined === true) {
-                       db[currentUser].isChannelJoined = true;
-                       db[currentUser].isMining = true;
-                       db[currentUser].miningStartTime = Date.now();
-                       db[currentUser].lastMiningTime = Date.now();
-                       saveDB();
-                       document.getElementById('channelModal').style.display = 'none';
-                       showCustomAlert("عضویت شما با موفقیت تایید شد! استخراج آغاز می‌شود.", "✅");
-                       updateUI();
-                   } else {
-                       showCustomAlert("شما هنوز در تمام کانال‌ها عضو نشده‌اید. لطفاً ابتدا عضو شوید.", "❌");
-                   }
-               } catch (errRetry) {
-                   showCustomAlert("شما هنوز در تمام کانال‌ها عضو نشده‌اید یا تلگرام با تاخیر بروزرسانی می‌شود.", "❌");
-               }
-               btn.innerText = originalText;
-               btn.disabled = false;
-           }, 3000);
+           showCustomAlert("شما هنوز در تمام کانال‌ها عضو نشده‌اید. لطفاً ابتدا عضو شوید.", "❌");
         }
     } catch(err) {
         showCustomAlert("خطای ارتباط شبکه. لطفاً دوباره تلاش کنید.", "❌");
-        btn.innerText = originalText;
-        btn.disabled = false;
     }
+    
+    btn.innerText = originalText;
+    btn.disabled = false;
   }
 
   function renderLeaderboard() {
