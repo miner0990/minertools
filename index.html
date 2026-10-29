@@ -6,7 +6,7 @@
   <title>MinerTools Cloud Mining</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    :root { --bg: #060913; --card-bg: #0f172a; --card-border: #1e293b; --cyan: #00ff88; --yellow: #facc15; --blue: #38bdf8; --text-main: #ffffff; --text-secondary: #94a3b8; --danger: #ef4444; }
+    :root { --bg: #060913; --card-bg: #0f172a; --card-border: #1e293b; --cyan: #00ff88; --yellow: #facc15; --blue: #38bdf8; --purple: #a855f7; --text-main: #ffffff; --text-secondary: #94a3b8; --danger: #ef4444; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: Tahoma, Arial, sans-serif; }
     html, body { background-color: #060913 !important; color: #ffffff !important; min-height: 100vh; }
     body { display: flex; justify-content: center; align-items: flex-start; padding-bottom: 85px; }
@@ -28,16 +28,18 @@
     .fan-slow-spin { animation: slowSpin 0.8s linear infinite; animation-play-state: paused; }
     .active-mining .fan-slow-spin { animation-play-state: running; }
     .card { background: #0f172a; border: 1.5px solid #1e293b; border-radius: 18px; padding: 16px; margin-bottom: 14px; text-align: center; color: #ffffff; }
-    .card-yellow { border-color: #facc15 !important; } .card-blue { border-color: #38bdf8 !important; } .card-cyan { border-color: #00ff88 !important; }
+    .card-yellow { border-color: #facc15 !important; } .card-blue { border-color: #38bdf8 !important; } .card-cyan { border-color: #00ff88 !important; } .card-purple { border-color: #a855f7 !important; }
     .btn-yellow { background: linear-gradient(135deg, #facc15, #eab308) !important; color: #030712 !important; border: none; width: 100%; padding: 13px; border-radius: 12px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 10px; }
     .btn { background: linear-gradient(135deg, #00ff88, #10b981) !important; color: #030712 !important; border: none; width: 100%; padding: 13px; border-radius: 12px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 10px; }
     .btn-blue { background: linear-gradient(135deg, #38bdf8, #0284c7) !important; color: #ffffff !important; border: none; width: 100%; padding: 13px; border-radius: 12px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 10px; }
+    .btn-purple { background: linear-gradient(135deg, #c084fc, #9333ea) !important; color: #ffffff !important; border: none; width: 100%; padding: 13px; border-radius: 12px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 10px; }
     .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626) !important; color: #ffffff !important; border: none; width: 100%; padding: 13px; border-radius: 12px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 10px; }
     .select-box { width: 100%; background: #030712 !important; border: 1.5px solid #334155 !important; color: #ffffff !important; padding: 12px; border-radius: 10px; font-size: 13px; text-align: right; outline: none; }
     .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; background: rgba(15, 23, 42, 0.96); border-top: 1.5px solid rgba(250, 204, 21, 0.35); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
     .nav-item { background: none; border: none; color: #94a3b8; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
     .nav-item.active { color: #facc15; font-weight: bold; }
     @keyframes slowSpin { to { transform: rotate(360deg); } } @keyframes glowPulse { 0% { opacity: 0.4; } 100% { opacity: 0.95; } } @keyframes floatUp { 0% { transform: translateY(0) scale(0.8); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(-40px) scale(1.1); opacity: 0; } }
+    .real-miner-pic { width: 100%; max-width: 90px; height: auto; object-fit: contain; drop-shadow: 0 4px 6px rgba(0,0,0,0.5); }
   </style>
 </head>
 <body>
@@ -137,22 +139,52 @@
       <div class="card card-cyan" style="text-align: right; background: rgba(0, 255, 136, 0.05); margin-bottom: 15px;">
         <h3 style="color: #00ff88; font-size: 14px; margin-bottom: 8px;">💡 راهنمای ارتقا</h3>
         <p style="font-size: 11px; color: #94a3b8; line-height: 1.6;">
-          با خرید هر یک از دستگاه‌های قدرتمند زیر، <b style="color: #fff;">سرعت استخراج (هش‌ریت)</b> و <b style="color: #fff;">سقف درآمد روزانه</b> شما به طور چشمگیری افزایش می‌یابد. ماینرهای جدید به صورت دائمی به حساب شما متصل شده و سود روزانه شما را چند برابر می‌کنند.
+          با خرید هر یک از دستگاه‌های قدرتمند زیر، <b style="color: #fff;">سرعت استخراج (هش‌ریت)</b> و <b style="color: #fff;">سقف درآمد روزانه</b> شما به طور چشمگیری افزایش می‌یابد. دستگاه‌ها دارای مدت زمان اعتبار مشخص هستند (بجز نسخه VIP).
         </p>
       </div>
       
+      <!-- ماینر پرو (۳ ماهه) -->
       <div class="card card-blue" style="text-align: right; display: flex; align-items: center; gap: 12px;">
-        <div style="background: rgba(56,189,248,0.1); border: 1px solid #38bdf8; padding: 10px; border-radius: 12px; min-width: 60px;"><svg width="40" height="26" viewBox="0 0 100 60"><rect x="5" y="10" width="90" height="40" rx="6" fill="#030712" stroke="#38bdf8" stroke-width="4"/><circle cx="70" cy="30" r="12" fill="#0f172a" stroke="#38bdf8" stroke-width="3"/><circle cx="35" cy="30" r="6" fill="#38bdf8"/></svg></div>
+        <div style="background: rgba(56,189,248,0.1); border: 1px solid #38bdf8; padding: 10px; border-radius: 12px; min-width: 70px; text-align:center;">
+          <img src="https://freepngimg.com/thumb/bitcoin/69875-bitcoin-mining-antminer-cryptocurrency-s9-free-transparent-image-hd.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" class="real-miner-pic" alt="Pro Miner">
+          <span style="display:none; font-size: 24px;">⛏️</span>
+        </div>
         <div style="flex: 1;">
-          <b style="color: #38bdf8; font-size: 14px;">ماینر پرو (Pro)</b><p style="font-size: 10px; color: #94a3b8;">درآمد: ۱۵۰,۰۰۰ ت | ۳۲۰ TH/s</p><p style="font-size: 12px; color: #fff; margin: 4px 0;">قیمت: <b>۱,۹۹۹,۰۰۰ ت</b></p>
+          <b style="color: #38bdf8; font-size: 14px;">ماینر پرو (Pro)</b>
+          <p style="font-size: 10px; color: #94a3b8;">درآمد روزانه: ۱۵۰,۰۰۰ ت | ۳۲۰ TH/s</p>
+          <p style="font-size: 10px; color: #38bdf8; margin-top:2px;">اعتبار: ۳ ماهه (۹۰ روز)</p>
+          <p style="font-size: 12px; color: #fff; margin: 4px 0;">قیمت: <b>۱,۹۹۹,۰۰۰ ت</b></p>
           <div id="proPurchaseBtns" style="display: flex; gap: 6px;"></div>
         </div>
       </div>
+      
+      <!-- ماینر توربو (۶ ماهه) -->
       <div class="card card-yellow" style="text-align: right; display: flex; align-items: center; gap: 12px;">
-        <div style="background: rgba(250,204,21,0.1); border: 1px solid #facc15; padding: 10px; border-radius: 12px; min-width: 60px;"><svg width="40" height="26" viewBox="0 0 100 60"><rect x="5" y="10" width="90" height="40" rx="6" fill="#030712" stroke="#facc15" stroke-width="4"/><circle cx="70" cy="30" r="12" fill="#0f172a" stroke="#facc15" stroke-width="3"/><line x1="25" y1="20" x2="45" y2="20" stroke="#facc15" stroke-width="3"/><line x1="25" y1="40" x2="45" y2="40" stroke="#facc15" stroke-width="3"/></svg></div>
+        <div style="background: rgba(250,204,21,0.1); border: 1px solid #facc15; padding: 10px; border-radius: 12px; min-width: 70px; text-align:center;">
+          <img src="https://freepngimg.com/thumb/machine/70104-bitcoin-mining-antminer-cryptocurrency-machine-free-png-hq.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" class="real-miner-pic" alt="Turbo Miner">
+          <span style="display:none; font-size: 24px;">⚡</span>
+        </div>
         <div style="flex: 1;">
-          <b style="color: #facc15; font-size: 14px;">ماینر توربو (Turbo)</b><p style="font-size: 10px; color: #94a3b8;">درآمد: ۲۵۰,۰۰۰ ت | ۶۵۰ TH/s</p><p style="font-size: 12px; color: #fff; margin: 4px 0;">قیمت: <b>۲,۷۹۹,۰۰۰ ت</b></p>
+          <b style="color: #facc15; font-size: 14px;">ماینر توربو (Turbo)</b>
+          <p style="font-size: 10px; color: #94a3b8;">درآمد روزانه: ۲۵۰,۰۰۰ ت | ۶۵۰ TH/s</p>
+          <p style="font-size: 10px; color: #facc15; margin-top:2px;">اعتبار: ۶ ماهه (۱۸۰ روز)</p>
+          <p style="font-size: 12px; color: #fff; margin: 4px 0;">قیمت: <b>۲,۷۹۹,۰۰۰ ت</b></p>
           <div id="turboPurchaseBtns" style="display: flex; gap: 6px;"></div>
+        </div>
+      </div>
+
+      <!-- ماینر اینفینیتی (دائمی) -->
+      <div class="card card-purple" style="text-align: right; display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg, rgba(168,85,247,0.05) 0%, rgba(15,23,42,1) 100%);">
+        <div style="background: rgba(168,85,247,0.15); border: 1px solid #a855f7; padding: 10px; border-radius: 12px; min-width: 70px; text-align:center;">
+          <img src="https://www.pngall.com/wp-content/uploads/10/Mining-Rig-PNG-Pic.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" class="real-miner-pic" alt="Infinity Miner">
+          <span style="display:none; font-size: 24px;">♾️</span>
+        </div>
+        <div style="flex: 1;">
+          <b style="color: #a855f7; font-size: 14px;">ماینر اینفینیتی (VIP) 💎</b>
+          <p style="font-size: 10px; color: #94a3b8;">درآمد روزانه: ۴۰۰,۰۰۰ ت | ۱,۲۰۰ TH/s</p>
+          <p style="font-size: 10px; color: #00ff88; margin-top:2px;">اعتبار: <b>دائمی (مادام‌العمر) ♾️</b></p>
+          <p style="font-size: 12px; color: #fff; margin: 4px 0;">قیمت: <b>۴,۳۹۹,۰۰۰ ت</b></p>
+          <div id="infinityPurchaseBtns" style="display: flex; gap: 6px;"></div>
         </div>
       </div>
     </div>
@@ -310,11 +342,10 @@
   <div class="card card-blue" style="max-width: 400px; width: 100%; text-align: right; max-height: 80vh; overflow-y: auto;">
     <h3 style="color: #38bdf8; font-size: 16px; margin-bottom: 12px; text-align: center;">📖 راهنمای مینی‌اپ ماینرتولز</h3>
     <div style="font-size: 12px; color: #94a3b8; line-height: 1.7;">
-      <b style="color: #fff;">🏠 بخش مزرعه:</b> اینجا محل استخراج است. پس از زدن دکمه شروع، سیستم 24 ساعت استخراج می‌کند. هر روز باید برای استخراج جدید مراجعه کنید.<br><br>
-      <b style="color: #fff;">⚙️ بخش ماینرها:</b> لیست دستگاه‌های فعال شما و سقف درآمد آن‌ها را نشان می‌دهد.<br><br>
-      <b style="color: #fff;">🛒 بخش فروشگاه:</b> خرید دستگاه باعث افزایش دائمی سقف درآمد و سرعت استخراج شما می‌شود.<br><br>
-      <b style="color: #fff;">💳 بخش کیف پول:</b> برداشت به صورت تومانی یا ترون در این قسمت انجام می‌شود.<br><br>
-      <b style="color: #fff;">👤 بخش حساب و پشتیبانی:</b> ثبت تیکت پشتیبانی و تغییر مشخصات اکانت.
+      <b style="color: #fff;">🏠 بخش مزرعه:</b> اینجا محل استخراج است. پس از زدن دکمه شروع، سیستم 24 ساعت استخراج می‌کند.<br><br>
+      <b style="color: #fff;">⚙️ بخش ماینرها:</b> لیست دستگاه‌های فعال شما و اعتبار زمانی آن‌ها را نشان می‌دهد.<br><br>
+      <b style="color: #fff;">🛒 بخش فروشگاه:</b> خرید دستگاه باعث افزایش چشمگیر سرعت استخراج می‌شود. ماینرهای پایه زمان‌دار و ماینر VIP دائمی است.<br><br>
+      <b style="color: #fff;">💳 بخش کیف پول:</b> برداشت به صورت تومانی یا ترون در این قسمت انجام می‌شود.
     </div>
     <button class="btn-blue" onclick="document.getElementById('guideModal').style.display='none'">متوجه شدم ✕</button>
   </div>
@@ -387,21 +418,14 @@
       <button onclick="switchAdminTab('bonus')" style="background: #d35400; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🎁 سایر تنظیمات</button>
     </div>
 
-    <!-- آمار کاربران -->
+    <!-- سایر تب‌های ادمین دست‌نخورده و سالم باقی مانده است -->
     <div id="adminTab-stats" class="admin-tab-content">
       <div style="background: #252538; padding: 12px; border-radius: 8px; margin-bottom: 15px;"><p style="font-size: 11px; color: #aaa;">تعداد کل کاربران ثبت‌نامی</p><h3 id="statTotalUsers" style="color: #3498db; margin-top: 5px;">0</h3></div>
       <input type="text" id="adminSearchInput" onkeyup="renderAdminStats()" placeholder="🔍 جستجوی نام کاربری..." class="select-box" style="margin-bottom: 15px; background: #252538 !important; border: 1px solid #444 !important;">
       <h4 style="color: #facc15; border-bottom: 1px solid #444; padding-bottom: 8px;">لیست تفکیک شده کاربران:</h4>
       <div id="adminUsersListDetailed" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
-    
-    <!-- تیکت‌ها -->
-    <div id="adminTab-tickets" class="admin-tab-content" style="display: none;">
-      <h4>مدیریت تیکت‌های پشتیبانی کاربران</h4>
-      <div id="adminTicketsList" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">هیچ تیکتی وجود ندارد.</div>
-    </div>
-
-    <!-- برداشت‌ها -->
+    <div id="adminTab-tickets" class="admin-tab-content" style="display: none;"><h4>مدیریت تیکت‌های پشتیبانی کاربران</h4><div id="adminTicketsList" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;"></div></div>
     <div id="adminTab-withdrawals" class="admin-tab-content" style="display: none;">
       <h4>تایید و مدیریت برداشت‌ها</h4>
       <div style="display: flex; gap: 5px; margin-bottom: 15px; margin-top: 10px;">
@@ -413,16 +437,12 @@
       <div id="adminWithdrawalsListDone" style="display:none;"></div>
       <div id="adminWithdrawalsListRejected" style="display:none;"></div>
     </div>
-
-    <!-- متن دعوت -->
     <div id="adminTab-referralCfg" class="admin-tab-content" style="display: none;">
       <h4>ویرایش متن بنر دعوت دوستان</h4>
-      <p style="font-size:11px; color:#aaa; margin-bottom:10px;">متن دلخواه خود را بنویسید. سیستم به صورت خودکار کد دعوت و لینک را به انتهای این متن اضافه می‌کند.</p>
+      <p style="font-size:11px; color:#aaa; margin-bottom:10px;">متن دلخواه خود را بنویسید (بدون درج لینک). سیستم به صورت خودکار کد دعوت و لینک را فقط در انتهای این متن اضافه می‌کند.</p>
       <textarea id="editBannerText" class="select-box" style="height:120px; margin-bottom:15px; line-height: 1.6;"></textarea>
       <button onclick="saveAdminBanner()" class="btn-yellow">ذخیره متن بنر ✅</button>
     </div>
-
-    <!-- کانال‌ها -->
     <div id="adminTab-channels" class="admin-tab-content" style="display: none;">
       <h4>مدیریت کانال‌های تلگرام (عضویت اجباری)</h4>
       <div style="display: flex; gap: 8px; margin: 10px 0;">
@@ -432,10 +452,7 @@
       </div>
       <div id="adminChannelsList" style="margin-top: 10px; font-size: 12px; color: #aaa;"></div>
     </div>
-
-    <!-- پاداش و سایر -->
     <div id="adminTab-bonus" class="admin-tab-content" style="display: none;">
-      
       <div style="margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom:15px;">
         <h4 style="color: #00ff88; margin-bottom: 10px;">تنظیم دستی قیمت ارزها (تومان)</h4>
         <input type="number" id="editUsdtPrice" class="select-box" style="margin-bottom: 8px;" placeholder="قیمت یک تتر (مثلا 60000)">
@@ -443,38 +460,17 @@
         <input type="number" id="editBtcPrice" class="select-box" style="margin-bottom: 10px;" placeholder="قیمت یک بیت‌کوین (مثلا 4200000000)">
         <button onclick="saveAdminPrices()" class="btn-yellow">ذخیره قیمت ارزها 🔄</button>
       </div>
-      
       <div style="margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom:15px;">
         <h4 style="color: #38bdf8; margin-bottom: 10px;">پیام پاپ‌آپ همگانی (اطلاعیه)</h4>
         <input type="text" id="adminNoticeTitle" placeholder="عنوان پیام..." class="select-box" style="margin-bottom: 8px;">
         <textarea id="adminNoticeText" placeholder="متن اطلاعیه (خالی بگذارید تا غیرفعال شود)..." style="width: 100%; height: 80px; padding: 10px; background: #030712; color: white; border: 1px solid #334155; border-radius: 8px; margin-bottom: 8px;"></textarea>
         <input type="text" id="adminNoticeLink" placeholder="لینک دکمه (https://...)" class="select-box" style="margin-bottom: 10px;" dir="ltr">
-        <div style="display: flex; gap: 8px;">
-            <button onclick="saveAdminAnnouncement()" class="btn-yellow" style="flex: 1; margin-top: 0;">انتشار پیام 🚀</button>
-            <button onclick="deleteAdminAnnouncement()" class="btn-danger" style="flex: 1; margin-top: 0;">🗑️ حذف اطلاعیه</button>
-        </div>
+        <div style="display: flex; gap: 8px;"><button onclick="saveAdminAnnouncement()" class="btn-yellow" style="flex: 1; margin-top: 0;">انتشار پیام 🚀</button><button onclick="deleteAdminAnnouncement()" class="btn-danger" style="flex: 1; margin-top: 0;">🗑️ حذف اطلاعیه</button></div>
       </div>
-      
-      <div style="margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom:15px;">
-        <h4 style="color: #facc15; margin-bottom: 10px;">پاداش ورود روزانه (تومان)</h4>
-        <input type="number" id="editBonusAmount" class="select-box" style="margin-bottom: 10px;">
-        <button onclick="saveAdminDailyBonus()" class="btn-yellow">ذخیره پاداش روزانه</button>
-      </div>
-
-      <div>
-        <h4 style="color: #fff; margin-bottom: 10px;">تنظیم کارت و ولت واریزی ادمین</h4>
-        <input type="text" id="editCardInput" class="select-box" style="margin-bottom: 8px;" placeholder="شماره کارت">
-        <input type="text" id="editNameInput" class="select-box" style="margin-bottom: 8px;" placeholder="نام صاحب کارت">
-        <input type="text" id="editWalletInput" class="select-box" style="margin-bottom: 10px;" dir="ltr" placeholder="آدرس ولت ترون">
-        <button onclick="saveAdminFinancialSettings()" class="btn-yellow">ذخیره حساب مدیریت</button>
-      </div>
+      <div style="margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom:15px;"><h4 style="color: #facc15; margin-bottom: 10px;">پاداش ورود روزانه (تومان)</h4><input type="number" id="editBonusAmount" class="select-box" style="margin-bottom: 10px;"><button onclick="saveAdminDailyBonus()" class="btn-yellow">ذخیره پاداش روزانه</button></div>
+      <div><h4 style="color: #fff; margin-bottom: 10px;">تنظیم کارت و ولت واریزی ادمین</h4><input type="text" id="editCardInput" class="select-box" style="margin-bottom: 8px;" placeholder="شماره کارت"><input type="text" id="editNameInput" class="select-box" style="margin-bottom: 8px;" placeholder="نام صاحب کارت"><input type="text" id="editWalletInput" class="select-box" style="margin-bottom: 10px;" dir="ltr" placeholder="آدرس ولت ترون"><button onclick="saveAdminFinancialSettings()" class="btn-yellow">ذخیره حساب مدیریت</button></div>
     </div>
-    
-    <!-- رسیدهای خرید -->
-    <div id="adminTab-receipts" class="admin-tab-content" style="display: none;">
-      <h4>رسیدهای خرید</h4>
-      <div id="adminReceiptsList" style="margin-top: 15px;"></div>
-    </div>
+    <div id="adminTab-receipts" class="admin-tab-content" style="display: none;"><h4>رسیدهای خرید</h4><div id="adminReceiptsList" style="margin-top: 15px;"></div></div>
   </div>
 </div>
 
@@ -483,9 +479,7 @@
       window.Telegram.WebApp.ready();
   }
 
-  // --- تنها این یک خط تغییر کرده است ---
   const API_URL = "https://xyz-168.top";
-  // -----------------------------------
 
   let currentUser = null;
   let db = {};
@@ -493,7 +487,7 @@
   
   let adminConfig = { 
     card: "6037-9974-1234-5678", name: "شرکت تجارت ابری ماینرتولز", wallet: "TRC20WalletAddressExample123",
-    bannerText: "میخوای ماینر مجازی رایگان در اختیارت بذاریم و روزانه ارز دیجیتال استخراج کنی؟ ⛏️💰\n\n🚀 کاملاً ابری و رایگان! همین الان از طریق لینک زیر وارد شو و ماینر هدیه‌ات رو فعال کن تا استخراجت شروع بشه 👇"
+    bannerText: "میخوای ماینر مجازی رایگان در اختیارت بذاریم و روزانه ارز دیجیتال استخراج کنی؟ ⛏️💰\n\n🚀 کاملاً ابری و رایگان! همین الان وارد شو و ماینر هدیه‌ات رو فعال کن تا استخراجت شروع بشه 👇"
   };
   let cryptoRates = { usdt: 60000, trx: 6000, btc: 4200000000 };
   let globalNotice = { title: "", text: "", link: "" };
@@ -528,9 +522,9 @@
           pendingReceipts = db['_ADMIN_DATA_'].pendingReceipts || [];
           if(db['_ADMIN_DATA_'].bannerText) adminConfig.bannerText = db['_ADMIN_DATA_'].bannerText;
           if(db['_ADMIN_DATA_'].channels) mandatoryChannels = db['_ADMIN_DATA_'].channels;
-          if(db['_ADMIN_DATA_'].card) adminConfig.card = adminConfig.card;
-          if(db['_ADMIN_DATA_'].name) adminConfig.name = adminConfig.name;
-          if(db['_ADMIN_DATA_'].wallet) adminConfig.wallet = adminConfig.wallet;
+          if(db['_ADMIN_DATA_'].card) adminConfig.card = db['_ADMIN_DATA_'].card;
+          if(db['_ADMIN_DATA_'].name) adminConfig.name = db['_ADMIN_DATA_'].name;
+          if(db['_ADMIN_DATA_'].wallet) adminConfig.wallet = db['_ADMIN_DATA_'].wallet;
           if(db['_ADMIN_DATA_'].cryptoRates) cryptoRates = db['_ADMIN_DATA_'].cryptoRates;
           if(db['_ADMIN_DATA_'].globalNotice) globalNotice = db['_ADMIN_DATA_'].globalNotice;
         }
@@ -587,12 +581,10 @@
     return p;
   }
 
-  // --- سیستم هوشمند تصفیه کننده لینک (Sanitizer) ---
   function sanitizeChannelLink(link) {
       if(!link) return "";
       let l = link.trim();
       if(l.endsWith('/')) l = l.substring(0, l.length - 1);
-      
       if(!l.startsWith('http') && l.startsWith('@')) {
           l = 'https://t.me/' + l.substring(1);
       } else if (!l.startsWith('http') && !l.startsWith('@') && !l.includes('t.me')) {
@@ -600,7 +592,6 @@
       }
       return l;
   }
-  // ------------------------------------------------
 
   function extractInviter() {
     let inviter = null;
@@ -627,16 +618,11 @@
   function findRealUsername(rawCode) {
     if(!rawCode) return null;
     let lower = rawCode.toString().toLowerCase();
-    
     for(let key in db) {
-        if(key !== '_ADMIN_DATA_' && db[key].refCode && db[key].refCode.toLowerCase() === lower) {
-            return key;
-        }
+        if(key !== '_ADMIN_DATA_' && db[key].refCode && db[key].refCode.toLowerCase() === lower) return key;
     }
     for(let key in db) {
-        if(key !== '_ADMIN_DATA_' && key.toLowerCase() === lower) {
-            return key;
-        }
+        if(key !== '_ADMIN_DATA_' && key.toLowerCase() === lower) return key;
     }
     return null;
   }
@@ -660,22 +646,16 @@
     }
 
     currentUser = u;
-    
     let isNewUser = false;
     let realInviter = null;
 
     if(!db[u]) {
       isNewUser = true;
-      
       let manualCode = document.getElementById('refCodeInput').value.trim();
       let autoCode = extractInviter();
       let rawCode = manualCode ? manualCode : autoCode;
-      
       realInviter = findRealUsername(rawCode);
-      
-      if (realInviter && realInviter.toLowerCase() === u.toLowerCase()) {
-          realInviter = null;
-      }
+      if (realInviter && realInviter.toLowerCase() === u.toLowerCase()) realInviter = null;
 
       db[u] = { 
         password: p, 
@@ -701,7 +681,8 @@
       }
     } else {
       if(db[u].password !== p) { 
-          showCustomAlert("رمز عبور اشتباه است!", "❌"); 
+          // پیام خطای جدید و هوشمند
+          showCustomAlert("⚠️ این نام کاربری قبلاً ثبت شده است!\n\nاگر این حساب شماست، رمز عبور اشتباه است.\nاگر کاربر جدید هستید، لطفاً یک نام کاربری دیگر انتخاب کنید.", "❌"); 
           btn.innerText = origBtnText; btn.disabled = false;
           return; 
       }
@@ -723,27 +704,31 @@
     document.getElementById('mainNav').style.display = 'flex';
     document.getElementById('userGreeting').innerText = "کاربر: " + currentUser;
     document.getElementById('changeUsernameInput').value = currentUser;
-    updateUI(); renderMyMiners(); startMiningLoop(); checkBonusStatus(); updateCryptoUI(db[currentUser].miningCrypto || 'USDT');
+    updateUI(); startMiningLoop(); checkBonusStatus(); updateCryptoUI(db[currentUser].miningCrypto || 'USDT');
 
     btn.innerText = origBtnText;
     btn.disabled = false;
 
     if (isNewUser) {
-        if (realInviter) {
-            setTimeout(() => showCustomAlert(`ثبت‌نام موفق! شما با دعوت ${realInviter} وارد شدید و ۵,۰۰۰ تومان پاداش ورود گرفتید.`, "🎁"), 500);
-        } else {
-            setTimeout(() => showCustomAlert(`ثبت‌نام شما با موفقیت انجام شد.`, "✅"), 500);
-        }
+        if (realInviter) setTimeout(() => showCustomAlert(`ثبت‌نام موفق! شما با دعوت ${realInviter} وارد شدید و ۵,۰۰۰ تومان پاداش ورود گرفتید.`, "🎁"), 500);
+        else setTimeout(() => showCustomAlert(`ثبت‌نام شما با موفقیت انجام شد.`, "✅"), 500);
     } else {
         setTimeout(() => showCustomAlert(`ورود موفق! خوش آمدید.`, "✅"), 500);
     }
-    
     setTimeout(() => { checkGlobalNotice(); }, 1500);
+  }
+
+  // حذف لینک‌های اضافی از بنر ادمین
+  function getCleanedBannerText() {
+      // این کد به صورت خودکار هر لینکی که با http شروع بشود را از متن ادمین پاک می‌کند تا دو بار تکرار نشود
+      let cleanText = adminConfig.bannerText.replace(/https?:\/\/[^\s]+/g, '').trim();
+      return cleanText;
   }
 
   function getInviteMessage() { 
       let myCode = db[currentUser]?.refCode || currentUser;
-      return adminConfig.bannerText + "\n\n🎁 کد معرف من: " + myCode + "\nلینک ورود:\nhttps://t.me/minernew_vibot/minertools?startapp=" + myCode; 
+      let cleanText = getCleanedBannerText();
+      return cleanText + "\n\n🎁 کد معرف من: " + myCode + "\nلینک ورود:\nhttps://t.me/minernew_vibot/minertools?startapp=" + myCode; 
   }
   
   function shareToTelegram() { 
@@ -773,17 +758,19 @@
     if(globalNotice && globalNotice.text && globalNotice.text.trim() !== "") {
       document.getElementById('announcementTitle').innerText = globalNotice.title || "اطلاعیه مهم";
       document.getElementById('announcementText').innerText = globalNotice.text;
-      if (globalNotice.link) {
-          document.getElementById('announcementLinkBox').style.display = 'block';
-          document.getElementById('announcementLinkBtn').href = globalNotice.link;
-      } else {
-          document.getElementById('announcementLinkBox').style.display = 'none';
-      }
+      if (globalNotice.link) { document.getElementById('announcementLinkBox').style.display = 'block'; document.getElementById('announcementLinkBtn').href = globalNotice.link; } 
+      else { document.getElementById('announcementLinkBox').style.display = 'none'; }
       document.getElementById('announcementModal').style.display = 'flex';
     }
   }
 
-  function getTotalMaxDaily(u) { let t = 0; u.miners.forEach(m => t += m.maxDaily); return t; }
+  // فیلتر کردن ماینرهایی که هنوز اعتبار دارند
+  function getActiveMiners(u) {
+      return u.miners.filter(m => !m.expireAt || m.expireAt > Date.now());
+  }
+
+  function getTotalMaxDaily(u) { let t = 0; getActiveMiners(u).forEach(m => t += m.maxDaily); return t; }
+  
   function checkBackgroundMining() {
     let u = db[currentUser];
     if(u && u.isMining) {
@@ -827,10 +814,12 @@
     document.getElementById('walletTotalToman').innerText = toman.toLocaleString() + " تومان";
     document.getElementById('minedAmount').innerText = toman.toLocaleString() + " تومان";
     document.getElementById('minedUsdt').innerText = "≈ " + usdt + " USDT";
-    let th = 0; u.miners.forEach(m => th += parseFloat(m.hashrate));
+    
+    let th = 0; getActiveMiners(u).forEach(m => th += parseFloat(m.hashrate));
     document.getElementById('totalHashrate').innerText = th.toFixed(1) + " TH/s";
     
-    let latestMinerName = u.miners[u.miners.length - 1].name;
+    let activeMiners = getActiveMiners(u);
+    let latestMinerName = activeMiners.length > 0 ? activeMiners[activeMiners.length - 1].name : "بدون ماینر";
     document.getElementById('activeMachineName').innerText = latestMinerName;
     document.getElementById('machineTitle').innerText = latestMinerName + " (فعال و در حال استخراج ⚡)";
 
@@ -860,23 +849,36 @@
     }
     
     document.getElementById('myRefCodeDisplay').innerText = u.refCode;
-    let shareHTML = adminConfig.bannerText.replace(/\n/g, '<br>') + 
+    
+    // رفع مشکل دوتا لینک شدن در بنر دعوت:
+    let cleanHTML = getCleanedBannerText().replace(/\n/g, '<br>');
+    let shareHTML = cleanHTML + 
                     '<br><br>🎁 کد معرف من: <b style="color:#facc15;">' + u.refCode + '</b><br>' + 
-                    '<span style="color: #00ff88;">https://t.me/minernew_vibot/minertools?startapp=' + u.refCode + '</span>';
+                    '<span style="color: #00ff88; font-size:11px;">https://t.me/minernew_vibot/minertools?startapp=' + u.refCode + '</span>';
     document.getElementById('shareTextTemplate').innerHTML = shareHTML;
     
-    let hasPro = u.miners.some(m => m.name.includes("پرو"));
-    let hasTurbo = u.miners.some(m => m.name.includes("توربو"));
+    let hasPro = activeMiners.some(m => m.name.includes("پرو"));
+    let hasTurbo = activeMiners.some(m => m.name.includes("توربو"));
+    let hasInfinity = activeMiners.some(m => m.name.includes("اینفینیتی"));
+    
     let pBox = document.getElementById('proPurchaseBtns');
-    if(pBox) pBox.innerHTML = hasPro ? '<span style="background: rgba(0,255,136,0.1); padding: 8px; border-radius: 8px; color: #00ff88; font-size: 11px; display: block; text-align: center; width: 100%;">✅ خریداری شده (دائمی)</span>' : `<button class="btn-blue" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Pro', 1999000, 'toman')">💳 تومانی</button><button class="btn-yellow" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Pro', 1999000, 'crypto')">🪙 ترون TRC20</button>`;
+    if(pBox) pBox.innerHTML = hasPro ? '<span style="background: rgba(0,255,136,0.1); padding: 8px; border-radius: 8px; color: #00ff88; font-size: 11px; display: block; text-align: center; width: 100%;">✅ خریداری شده (فعال)</span>' : `<button class="btn-blue" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Pro', 1999000, 'toman')">💳 تومانی</button><button class="btn-yellow" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Pro', 1999000, 'crypto')">🪙 ترون TRC20</button>`;
+    
     let tBox = document.getElementById('turboPurchaseBtns');
-    if(tBox) tBox.innerHTML = hasTurbo ? '<span style="background: rgba(0,255,136,0.1); padding: 8px; border-radius: 8px; color: #00ff88; font-size: 11px; display: block; text-align: center; width: 100%;">✅ خریداری شده (دائمی)</span>' : `<button class="btn-blue" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Turbo', 2799000, 'toman')">💳 تومانی</button><button class="btn-yellow" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Turbo', 2799000, 'crypto')">🪙 ترون TRC20</button>`;
+    if(tBox) tBox.innerHTML = hasTurbo ? '<span style="background: rgba(0,255,136,0.1); padding: 8px; border-radius: 8px; color: #00ff88; font-size: 11px; display: block; text-align: center; width: 100%;">✅ خریداری شده (فعال)</span>' : `<button class="btn-blue" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Turbo', 2799000, 'toman')">💳 تومانی</button><button class="btn-yellow" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Turbo', 2799000, 'crypto')">🪙 ترون TRC20</button>`;
+
+    let iBox = document.getElementById('infinityPurchaseBtns');
+    if(iBox) iBox.innerHTML = hasInfinity ? '<span style="background: rgba(168,85,247,0.15); padding: 8px; border-radius: 8px; color: #a855f7; font-size: 11px; display: block; text-align: center; width: 100%;">✅ خریداری شده (دائمی)</span>' : `<button class="btn-blue" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Infinity', 4399000, 'toman')">💳 تومانی</button><button class="btn-purple" style="margin-top:0; font-size: 11px; padding: 8px;" onclick="openCheckout('Infinity', 4399000, 'crypto')">🪙 ترون TRC20</button>`;
 
     let badge = document.getElementById('userTierBadge');
     let card = document.getElementById('userTierCard');
     if(badge && card) {
-      if(hasTurbo) {
-        badge.innerText = "حساب توربو (VIP) 💎";
+      if(hasInfinity) {
+        badge.innerText = "حساب اینفینیتی (VIP) 💎";
+        badge.style.color = "#a855f7";
+        card.style.borderColor = "#a855f7";
+      } else if(hasTurbo) {
+        badge.innerText = "حساب توربو (VIP) ⚡";
         badge.style.color = "#00ff88";
         card.style.borderColor = "#00ff88";
       } else if(hasPro) {
@@ -895,8 +897,18 @@
 
   function renderMyMiners() {
     let h = "";
-    db[currentUser].miners.forEach(m => {
-      h += `<div class="card card-yellow" style="text-align: right;"><b style="color: #facc15;">${m.name}</b><p style="font-size: 11px; color: #94a3b8; margin-top: 3px;">وضعیت: فعال ✅ | هش‌ریت: ${m.hashrate} | سقف روزانه: ${m.maxDaily.toLocaleString()} ت</p></div>`;
+    let activeMiners = getActiveMiners(db[currentUser]);
+    activeMiners.forEach(m => {
+      let expText = "دائمی ♾️";
+      if(m.expireAt) {
+          let daysLeft = Math.ceil((m.expireAt - Date.now()) / (1000*3600*24));
+          expText = daysLeft > 0 ? `${daysLeft} روز باقی‌مانده` : "منقضی شده";
+      }
+      h += `<div class="card card-yellow" style="text-align: right; background: rgba(15,23,42,0.8);">
+              <b style="color: #facc15;">${m.name}</b>
+              <p style="font-size: 11px; color: #94a3b8; margin-top: 3px;">وضعیت: فعال ✅ | هش‌ریت: ${m.hashrate} | سقف روزانه: ${m.maxDaily.toLocaleString()} ت</p>
+              <p style="font-size: 11px; color: #00ff88; margin-top: 3px;">اعتبار: ${expText}</p>
+            </div>`;
     });
     document.getElementById('myMinersList').innerHTML = h;
   }
@@ -928,7 +940,6 @@
             btn.innerText = "بررسی عضویت... ⏳";
             btn.disabled = true;
             try {
-                // ارسال لینک‌های فیلتر شده و تمیز به سرور
                 let channelLinks = mandatoryChannels.map(c => sanitizeChannelLink(c.link));
                 let res = await fetch(`${API_URL}/api/check_membership`, {
                     method: 'POST', 
@@ -968,17 +979,13 @@
     let tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
     let userId = tgUser ? tgUser.id : null;
 
-    if (!userId) {
-       showCustomAlert("لطفاً مینی‌اپ را حتماً از داخل برنامه تلگرام باز کنید تا عضویت شما بررسی شود.", "⚠️");
-       return;
-    }
+    if (!userId) { return showCustomAlert("لطفاً مینی‌اپ را حتماً از داخل برنامه تلگرام باز کنید تا عضویت شما بررسی شود.", "⚠️"); }
 
     let btn = document.getElementById('verifyChannelBtn');
     let originalText = btn.innerText;
     btn.innerText = "در حال بررسی عضویت... ⏳";
     btn.disabled = true;
 
-    // ارسال لینک‌های فیلتر شده و تمیز به سرور
     let channelLinks = mandatoryChannels.map(c => sanitizeChannelLink(c.link));
 
     try {
@@ -988,69 +995,44 @@
             body: JSON.stringify({ user_id: userId, channels: channelLinks })
         });
         
-        if (!res.ok) {
-            btn.innerText = originalText; btn.disabled = false; 
-            return showCustomAlert("ارتباط با سرور برقرار نشد.", "❌");
-        }
-
+        if (!res.ok) { btn.innerText = originalText; btn.disabled = false; return showCustomAlert("ارتباط با سرور برقرار نشد.", "❌"); }
         let data = await res.json();
 
         if (data.status === "success" && data.joined === true) {
-           db[currentUser].isChannelJoined = true;
-           db[currentUser].isMining = true;
-           db[currentUser].miningStartTime = Date.now();
-           db[currentUser].lastMiningTime = Date.now();
-           saveDB();
-           document.getElementById('channelModal').style.display = 'none';
-           showCustomAlert("عضویت شما با موفقیت تایید شد! استخراج آغاز می‌شود.", "✅");
-           updateUI();
-           btn.innerText = originalText;
-           btn.disabled = false;
+           db[currentUser].isChannelJoined = true; db[currentUser].isMining = true;
+           db[currentUser].miningStartTime = Date.now(); db[currentUser].lastMiningTime = Date.now();
+           saveDB(); document.getElementById('channelModal').style.display = 'none';
+           showCustomAlert("عضویت شما با موفقیت تایید شد! استخراج آغاز می‌شود.", "✅"); updateUI();
+           btn.innerText = originalText; btn.disabled = false;
         } else {
-           // مکانیزم دور زدن کش سرور پایتون (تلاش مجدد خودکار)
            btn.innerText = "درحال تایید نهایی از تلگرام... ⏳";
            setTimeout(async () => {
                try {
                    let resRetry = await fetch(`${API_URL}/api/check_membership`, {
-                       method: 'POST',
-                       headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+                       method: 'POST', headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
                        body: JSON.stringify({ user_id: userId, channels: channelLinks })
                    });
                    let dataRetry = await resRetry.json();
                    
                    if (dataRetry.status === "success" && dataRetry.joined === true) {
-                       db[currentUser].isChannelJoined = true;
-                       db[currentUser].isMining = true;
-                       db[currentUser].miningStartTime = Date.now();
-                       db[currentUser].lastMiningTime = Date.now();
-                       saveDB();
-                       document.getElementById('channelModal').style.display = 'none';
-                       showCustomAlert("عضویت شما با موفقیت تایید شد! استخراج آغاز می‌شود.", "✅");
-                       updateUI();
-                   } else {
-                       showCustomAlert("شما هنوز در تمام کانال‌ها عضو نشده‌اید. لطفاً ابتدا عضو شوید.", "❌");
-                   }
-               } catch (errRetry) {
-                   showCustomAlert("شما هنوز در تمام کانال‌ها عضو نشده‌اید یا تلگرام با تاخیر بروزرسانی می‌شود.", "❌");
-               }
-               btn.innerText = originalText;
-               btn.disabled = false;
+                       db[currentUser].isChannelJoined = true; db[currentUser].isMining = true;
+                       db[currentUser].miningStartTime = Date.now(); db[currentUser].lastMiningTime = Date.now();
+                       saveDB(); document.getElementById('channelModal').style.display = 'none';
+                       showCustomAlert("عضویت شما با موفقیت تایید شد! استخراج آغاز می‌شود.", "✅"); updateUI();
+                   } else { showCustomAlert("شما هنوز در تمام کانال‌ها عضو نشده‌اید.", "❌"); }
+               } catch (errRetry) { showCustomAlert("خطا در تایید تلگرام.", "❌"); }
+               btn.innerText = originalText; btn.disabled = false;
            }, 3000);
         }
     } catch(err) {
         showCustomAlert("خطای ارتباط شبکه. لطفاً دوباره تلاش کنید.", "❌");
-        btn.innerText = originalText;
-        btn.disabled = false;
+        btn.innerText = originalText; btn.disabled = false;
     }
   }
 
   function renderLeaderboard() {
     let usersArr = [];
-    for(let username in db) {
-      if(username !== '_ADMIN_DATA_') {
-        usersArr.push({ name: username, mined: db[username].mined || 0 });
-      }
-    }
+    for(let username in db) { if(username !== '_ADMIN_DATA_') usersArr.push({ name: username, mined: db[username].mined || 0 }); }
     usersArr.sort((a, b) => b.mined - a.mined);
     let top3 = usersArr.slice(0, 3);
     if(top3.length === 0) { document.getElementById('leaderboardList').innerHTML = "<p style='font-size:11px; color:#aaa;'>کاربری ثبت نشده.</p>"; return; }
@@ -1075,14 +1057,9 @@
            if (u.referredBy && db[u.referredBy]) {
                db[u.referredBy].mined += (amount * 0.05);
                inviterSyncCounter++;
-               if (inviterSyncCounter >= 10) {
-                   saveDB(u.referredBy);
-                   inviterSyncCounter = 0;
-               }
+               if (inviterSyncCounter >= 10) { saveDB(u.referredBy); inviterSyncCounter = 0; }
            }
-           
-           u.lastMiningTime = Date.now(); 
-           saveDB(); updateUI(); 
+           u.lastMiningTime = Date.now(); saveDB(); updateUI(); 
         }
       }
     }, 1000);
@@ -1103,7 +1080,6 @@
     if(c.length < 16 || !h || a <= 0 || a > u.mined) return showCustomAlert("اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست.", "❌");
     u.mined -= a; let w = { id: Date.now(), username: currentUser, type: "تومانی", details: c + " (" + h + ")", amount: a, status: "در حال بررسی ⏳" };
     u.withdrawHistory.unshift(w); allWithdrawals.unshift(w);
-    
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
     await saveDB(); await saveGlobalAdminData(); updateUI(); 
     btn.innerText = orig; btn.disabled = false;
@@ -1114,11 +1090,10 @@
     if(!ad || a <= 0 || a > u.mined) return showCustomAlert("اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست.", "❌");
     u.mined -= a; let w = { id: Date.now(), username: currentUser, type: "TRC20", details: ad, amount: a, status: "در حال بررسی ⏳" };
     u.withdrawHistory.unshift(w); allWithdrawals.unshift(w);
-    
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
     await saveDB(); await saveGlobalAdminData(); updateUI(); 
     btn.innerText = orig; btn.disabled = false;
-    showCustomAlert("درخواست برداشت ترون شما با موفقیت ثبت شد و هم‌اکنون در حال بررسی است.", "✅");
+    showCustomAlert("درخواست برداشت ترون شما با موفقیت ثبت شد.", "✅");
   }
 
   function renderWithdrawHistory() {
@@ -1135,7 +1110,7 @@
     let txt = prompt("پیام کامل خود را بنویسید:"); if(!txt) return;
     db[currentUser].tickets.unshift({ id: Date.now(), subject: sub, status: "در حال بررسی ⏳", messages: [ { sender: currentUser, text: txt, time: new Date().toLocaleTimeString('fa-IR') } ] });
     saveDB(); renderUserTickets(); 
-    showCustomAlert("تیکت شما با موفقیت ثبت شد و به زودی توسط مدیریت پاسخ داده می‌شود.", "✅");
+    showCustomAlert("تیکت شما با موفقیت ثبت شد.", "✅");
   }
 
   function renderUserTickets() {
@@ -1154,11 +1129,9 @@
     activeChatUsername = username; activeChatTicketId = ticketId;
     let t = db[username].tickets.find(x => x.id === ticketId);
     document.getElementById('tcTitle').innerText = t.subject;
-    
     let isClosed = t.status.includes('بسته');
     document.getElementById('tcCloseBtnUniversal').style.display = isClosed ? 'none' : 'block';
     document.getElementById('tcInputArea').style.display = isClosed ? 'none' : 'flex';
-    
     renderTicketMessages();
     document.getElementById('ticketChatModal').style.display = 'flex';
   }
@@ -1174,37 +1147,30 @@
               <div style="font-size:9px; color:#94a3b8; text-align:left; margin-top:4px;">${m.time}</div>
             </div>`;
     });
-    let c = document.getElementById('tcMessages');
-    c.innerHTML = h; c.scrollTop = c.scrollHeight;
+    let c = document.getElementById('tcMessages'); c.innerHTML = h; c.scrollTop = c.scrollHeight;
   }
 
   async function sendTicketMessage() {
     let inp = document.getElementById('tcReplyInput');
     let text = inp.value.trim(); if(!text) return;
-    
     let t = db[activeChatUsername].tickets.find(x => x.id === activeChatTicketId);
     t.messages.push({ sender: isAdminLoggedIn ? 'admin' : activeChatUsername, text: text, time: new Date().toLocaleTimeString('fa-IR') });
-    
     t.status = isAdminLoggedIn ? "پاسخ داده شده 💬" : "در حال بررسی ⏳";
     inp.value = ''; renderTicketMessages();
-    
     let btn = event.target; btn.innerText = "..."; btn.disabled = true;
-    if(!isAdminLoggedIn) { await saveDB(); renderUserTickets(); } 
-    else { await saveDB(activeChatUsername); renderAdminTickets(); }
+    if(!isAdminLoggedIn) { await saveDB(); renderUserTickets(); } else { await saveDB(activeChatUsername); renderAdminTickets(); }
     btn.innerText = "ارسال"; btn.disabled = false;
   }
 
   async function closeActiveTicket() {
     let t = db[activeChatUsername].tickets.find(x => x.id === activeChatTicketId);
     t.status = "بسته شده 🔒";
-    
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
     await saveDB(activeChatUsername);
     btn.innerText = orig; btn.disabled = false;
-    
     document.getElementById('ticketChatModal').style.display = 'none';
     if(isAdminLoggedIn) renderAdminTickets(); else renderUserTickets();
-    showCustomAlert("تیکت با موفقیت برای همیشه بسته شد.", "🔒");
+    showCustomAlert("تیکت با موفقیت بسته شد.", "🔒");
   }
 
   function openCheckout(n, p, m) { 
@@ -1212,25 +1178,18 @@
     document.getElementById('checkoutTitle').innerText = "خرید " + n; 
     document.getElementById('checkoutPriceText').innerText = "مبلغ: " + p.toLocaleString() + " تومان"; 
     
-    let rLabel = document.getElementById('receiptLabel');
-    let rInput = document.getElementById('receiptInput');
+    let rLabel = document.getElementById('receiptLabel'); let rInput = document.getElementById('receiptInput');
     
     if(m === 'toman') {
-       rLabel.innerText = "شماره پیگیری داخل رسید واریزی را بنویسید:";
-       rInput.placeholder = "مثلاً: 12345678";
-       document.getElementById('checkoutCardBox').style.display = 'block'; 
-       document.getElementById('checkoutCryptoBox').style.display = 'none';
+       rLabel.innerText = "شماره پیگیری داخل رسید واریزی را بنویسید:"; rInput.placeholder = "مثلاً: 12345678";
+       document.getElementById('checkoutCardBox').style.display = 'block'; document.getElementById('checkoutCryptoBox').style.display = 'none';
     } else {
-       rLabel.innerText = "هش تراکنش واریزی (TxID) را قرار دهید:";
-       rInput.placeholder = "مثلاً: 0x4f8a... (TxID)";
-       document.getElementById('checkoutCardBox').style.display = 'none'; 
-       document.getElementById('checkoutCryptoBox').style.display = 'block';
+       rLabel.innerText = "هش تراکنش واریزی (TxID) را قرار دهید:"; rInput.placeholder = "مثلاً: 0x4f8a... (TxID)";
+       document.getElementById('checkoutCardBox').style.display = 'none'; document.getElementById('checkoutCryptoBox').style.display = 'block';
     }
-
     document.getElementById('displayAdminCard').innerText = adminConfig.card;
     document.getElementById('displayAdminName').innerText = adminConfig.name;
     document.getElementById('displayAdminWallet').innerText = adminConfig.wallet;
-
     document.getElementById('checkoutModal').style.display = 'flex'; 
   }
   
@@ -1248,13 +1207,9 @@
     db[currentUser].purchaseHistory.unshift({ id: uniqueId, machine: selectedMachineToBuy.name, receipt: r, status: "در حال بررسی ⏳" });
     
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
-    
-    await saveDB(); 
-    await saveGlobalAdminData();
-    
+    await saveDB(); await saveGlobalAdminData();
     btn.innerText = orig; btn.disabled = false;
-    showCustomAlert("رسید خرید شما با موفقیت ثبت شد و پس از بررسی توسط مدیریت، ماینر فعال می‌شود.", "✅"); 
-    closeCheckout(); 
+    showCustomAlert("رسید خرید شما با موفقیت ثبت شد.", "✅"); closeCheckout(); 
   }
 
   function openAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'flex'; }
@@ -1265,9 +1220,7 @@
     if(document.getElementById('adminPasswordInput').value === "Safasafa0990@") {
       btn.innerText = "صبر کنید..."; btn.disabled = true;
       closeAdminLoginModal();
-      await loadDataFromServer();
-      
-      isAdminLoggedIn = true;
+      await loadDataFromServer(); isAdminLoggedIn = true;
       
       renderAdminStats(); renderAdminTickets(); renderAdminReceipts(); renderAdminWithdrawals(); renderAdminChannelsManager();
       document.getElementById('editBannerText').value = adminConfig.bannerText;
@@ -1275,7 +1228,6 @@
       document.getElementById('editNameInput').value = adminConfig.name;
       document.getElementById('editWalletInput').value = adminConfig.wallet;
       document.getElementById('editBonusAmount').value = dailyBonusAmount;
-      
       document.getElementById('editUsdtPrice').value = cryptoRates.usdt;
       document.getElementById('editTrxPrice').value = cryptoRates.trx;
       document.getElementById('editBtcPrice').value = cryptoRates.btc;
@@ -1285,9 +1237,7 @@
           document.getElementById('adminNoticeText').value = globalNotice.text || ''; 
           document.getElementById('adminNoticeLink').value = globalNotice.link || ''; 
       }
-      
-      btn.innerText = "ورود به مدیریت"; btn.disabled = false;
-      document.getElementById('adminDashboardPanel').style.display = 'block';
+      btn.innerText = "ورود به مدیریت"; btn.disabled = false; document.getElementById('adminDashboardPanel').style.display = 'block';
     } else showCustomAlert("رمز عبور ادمین اشتباه است!", "❌");
   }
   function closeAdminDashboard() { document.getElementById('adminDashboardPanel').style.display = 'none'; isAdminLoggedIn = false; }
@@ -1303,7 +1253,7 @@
         h += `<div style="background:#252538; padding:10px; border-radius:8px; font-size:12px; margin-bottom: 8px;">
                 <b>یوزر: <span style="color:#38bdf8;">${u}</span></b><br>
                 <span style="color:#aaa;">موجودی:</span> <span style="color:#00ff88;">${Math.floor(db[u].mined).toLocaleString()} ت</span><br>
-                <span style="color:#aaa;">تعداد زیرمجموعه‌ها:</span> <b style="color:#facc15;">${db[u].referrals || 0} نفر</b><br>
+                <span style="color:#aaa;">زیرمجموعه‌ها:</span> <b style="color:#facc15;">${db[u].referrals || 0} نفر</b><br>
                 <span style="color:#aaa;">دستگاه‌ها:</span> ${db[u].miners.map(m=>m.name).join('، ')}
               </div>`;
       }
@@ -1332,78 +1282,45 @@
       cryptoRates.usdt = parseFloat(document.getElementById('editUsdtPrice').value) || 60000;
       cryptoRates.trx = parseFloat(document.getElementById('editTrxPrice').value) || 6000;
       cryptoRates.btc = parseFloat(document.getElementById('editBtcPrice').value) || 4200000000;
-      
-      saveGlobalAdminData().then(() => {
-          showCustomAlert("قیمت ارزها با موفقیت بروزرسانی شد و در دارایی کاربران اعمال گردید.", "✅");
-          if (currentUser) updateUI();
-      });
+      saveGlobalAdminData().then(() => { showCustomAlert("قیمت ارزها با موفقیت بروزرسانی شد.", "✅"); if (currentUser) updateUI(); });
   }
 
   function saveAdminBanner() { 
       adminConfig.bannerText = document.getElementById('editBannerText').value.trim(); 
-      saveGlobalAdminData().then(() => {
-          showCustomAlert("متن بنر بروزرسانی شد!", "✅"); 
-          if(currentUser) updateUI();
-      });
+      saveGlobalAdminData().then(() => { showCustomAlert("متن بنر بروزرسانی شد!", "✅"); if(currentUser) updateUI(); });
   }
   
-  function saveAdminDailyBonus() { 
-      dailyBonusAmount = parseInt(document.getElementById('editBonusAmount').value); 
-      showCustomAlert("مبلغ پاداش ذخیره شد.", "✅"); 
-  }
+  function saveAdminDailyBonus() { dailyBonusAmount = parseInt(document.getElementById('editBonusAmount').value); showCustomAlert("مبلغ پاداش ذخیره شد.", "✅"); }
   
   function saveAdminAnnouncement() { 
-      globalNotice = { 
-          title: document.getElementById('adminNoticeTitle').value.trim(), 
-          text: document.getElementById('adminNoticeText').value.trim(), 
-          link: document.getElementById('adminNoticeLink').value.trim() 
-      }; 
-      saveGlobalAdminData().then(() => {
-          showCustomAlert("پیام عمومی با موفقیت در دیتابیس ذخیره و برای کاربران فعال شد.", "🚀");
-      });
+      globalNotice = { title: document.getElementById('adminNoticeTitle').value.trim(), text: document.getElementById('adminNoticeText').value.trim(), link: document.getElementById('adminNoticeLink').value.trim() }; 
+      saveGlobalAdminData().then(() => { showCustomAlert("پیام عمومی با موفقیت در دیتابیس ذخیره شد.", "🚀"); });
   }
 
   function deleteAdminAnnouncement() {
-      document.getElementById('adminNoticeTitle').value = "";
-      document.getElementById('adminNoticeText').value = "";
-      document.getElementById('adminNoticeLink').value = "";
+      document.getElementById('adminNoticeTitle').value = ""; document.getElementById('adminNoticeText').value = ""; document.getElementById('adminNoticeLink').value = "";
       globalNotice = { title: "", text: "", link: "" };
-      saveGlobalAdminData().then(() => {
-          showCustomAlert("اطلاعیه با موفقیت حذف شد و دیگر برای کاربران نمایش داده نمی‌شود.", "🗑️");
-      });
+      saveGlobalAdminData().then(() => { showCustomAlert("اطلاعیه با موفقیت حذف شد.", "🗑️"); });
   }
   
   function saveAdminFinancialSettings() { 
-      adminConfig.card = document.getElementById('editCardInput').value; 
-      adminConfig.name = document.getElementById('editNameInput').value; 
-      adminConfig.wallet = document.getElementById('editWalletInput').value; 
-      saveGlobalAdminData().then(() => {
-          showCustomAlert("تنظیمات مالی ادمین ذخیره شد.", "✅");
-      });
+      adminConfig.card = document.getElementById('editCardInput').value; adminConfig.name = document.getElementById('editNameInput').value; adminConfig.wallet = document.getElementById('editWalletInput').value; 
+      saveGlobalAdminData().then(() => { showCustomAlert("تنظیمات مالی ادمین ذخیره شد.", "✅"); });
   }
 
   function renderAdminWithdrawals() {
     let pendingHTML = "", doneHTML = "", rejectedHTML = "";
     allWithdrawals.forEach(w => {
-      let isDone = w.status.includes('واریز');
-      let isRej = w.status.includes('رد');
-      
+      let isDone = w.status.includes('واریز'); let isRej = w.status.includes('رد');
       let card = `<div style="background:#252538; border: 1px solid ${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}; border-right: 4px solid ${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}; padding:12px; border-radius:6px; margin-bottom:8px;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-          <b style="color:#38bdf8; font-size:13px;">کاربر: ${w.username}</b>
-          <span style="font-size:10px; color:${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}">${w.status}</span>
-        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><b style="color:#38bdf8; font-size:13px;">کاربر: ${w.username}</b><span style="font-size:10px; color:${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}">${w.status}</span></div>
         <div style="font-size:12px; margin-bottom:4px;">مبلغ: <b style="color:#facc15;">${w.amount.toLocaleString()} تومان</b> (${w.type})</div>
         <div style="font-size:11px; color:#aaa; margin-bottom:8px;">مقصد: <span style="color:#fff;">${w.details}</span></div>
         ${!isDone && !isRej ? `<div style="display:flex; gap:6px; margin-top:8px;"><button style="flex:1; background:#2ecc71; color:#fff; border:none; padding:8px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="approveW(${w.id}, this)">تایید پرداخت ✅</button><button style="flex:1; background:#e74c3c; color:#fff; border:none; padding:8px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="rejectW(${w.id}, this)">رد ❌</button></div>`:''}
         ${isRej && w.rejectReason ? `<div style="font-size:11px; color:#ef4444; margin-top:6px;">دلیل رد: ${w.rejectReason}</div>`:''}
       </div>`;
-      
-      if(isDone) doneHTML += card;
-      else if(isRej) rejectedHTML += card;
-      else pendingHTML += card;
+      if(isDone) doneHTML += card; else if(isRej) rejectedHTML += card; else pendingHTML += card;
     });
-    
     document.getElementById('adminWithdrawalsListPending').innerHTML = pendingHTML || "<p style='font-size:11px; color:#aaa;'>موردی یافت نشد.</p>";
     document.getElementById('adminWithdrawalsListDone').innerHTML = doneHTML || "<p style='font-size:11px; color:#aaa;'>موردی یافت نشد.</p>";
     document.getElementById('adminWithdrawalsListRejected').innerHTML = rejectedHTML || "<p style='font-size:11px; color:#aaa;'>موردی یافت نشد.</p>";
@@ -1417,41 +1334,17 @@
 
   async function approveW(id, btn) {
     btn.innerText = "صبر کنید..."; btn.disabled = true;
-    await loadDataFromServer(); 
-    let w = allWithdrawals.find(x => x.id === id); 
-    if(w) w.status = "واریز شد ✅"; 
-    
-    if(w && db[w.username]) {
-      let uw = db[w.username].withdrawHistory.find(x => x.id === id); 
-      if(uw) uw.status = "واریز شد ✅";
-      await saveDB(w.username); 
-    }
-    
-    await saveGlobalAdminData();
-    renderAdminWithdrawals(); 
-    showCustomAlert("درخواست برداشت با موفقیت تایید شد.", "✅");
+    await loadDataFromServer(); let w = allWithdrawals.find(x => x.id === id); if(w) w.status = "واریز شد ✅"; 
+    if(w && db[w.username]) { let uw = db[w.username].withdrawHistory.find(x => x.id === id); if(uw) uw.status = "واریز شد ✅"; await saveDB(w.username); }
+    await saveGlobalAdminData(); renderAdminWithdrawals(); showCustomAlert("برداشت تایید شد.", "✅");
   }
 
   async function rejectW(id, btn) {
-    let r = prompt("دلیل رد (مبلغ به حساب کاربر برمی‌گردد):"); 
-    if(!r) return;
-    
+    let r = prompt("دلیل رد (مبلغ به حساب کاربر برمی‌گردد):"); if(!r) return;
     btn.innerText = "صبر کنید..."; btn.disabled = true;
-    await loadDataFromServer(); 
-    let w = allWithdrawals.find(x => x.id === id); 
-    if(w) { w.status = "رد شد ❌"; w.rejectReason = r; }
-    
-    if(w && db[w.username]) {
-      let uw = db[w.username].withdrawHistory.find(x => x.id === id); 
-      if(uw){ uw.status = "رد شد ❌"; uw.rejectReason = r; }
-      db[w.username].mined += w.amount; 
-      await saveDB(w.username); 
-    }
-    
-    await saveGlobalAdminData();
-    renderAdminWithdrawals(); 
-    renderAdminStats(); 
-    showCustomAlert("درخواست رد شد و وجه به کیف پول کاربر بازگشت.", "✅");
+    await loadDataFromServer(); let w = allWithdrawals.find(x => x.id === id); if(w) { w.status = "رد شد ❌"; w.rejectReason = r; }
+    if(w && db[w.username]) { let uw = db[w.username].withdrawHistory.find(x => x.id === id); if(uw){ uw.status = "رد شد ❌"; uw.rejectReason = r; } db[w.username].mined += w.amount; await saveDB(w.username); }
+    await saveGlobalAdminData(); renderAdminWithdrawals(); renderAdminStats(); showCustomAlert("برداشت رد شد و وجه بازگشت.", "✅");
   }
 
   function renderAdminChannelsManager() {
@@ -1464,22 +1357,15 @@
     let n = document.getElementById('newChannelName').value.trim(), l = document.getElementById('newChannelUrl').value.trim();
     if(!n || !l) return showCustomAlert("لطفاً مشخصات کانال را کامل کنید.", "⚠️");
     mandatoryChannels.push({ name: n, link: l }); document.getElementById('newChannelName').value = ''; document.getElementById('newChannelUrl').value = '';
-    
-    saveGlobalAdminData().then(() => {
-        renderAdminChannelsManager(); showCustomAlert("کانال جدید اضافه شد.", "✅");
-    });
+    saveGlobalAdminData().then(() => { renderAdminChannelsManager(); showCustomAlert("کانال جدید اضافه شد.", "✅"); });
   }
   
-  function deleteChannel(idx) { 
-      mandatoryChannels.splice(idx, 1); 
-      saveGlobalAdminData().then(() => renderAdminChannelsManager());
-  }
+  function deleteChannel(idx) { mandatoryChannels.splice(idx, 1); saveGlobalAdminData().then(() => renderAdminChannelsManager()); }
   
   function renderAdminReceipts() {
     let h = "";
     pendingReceipts.forEach((r, i) => { 
-      let isDone = r.status && r.status.includes('تایید');
-      let isRej = r.status && r.status.includes('رد');
+      let isDone = r.status && r.status.includes('تایید'); let isRej = r.status && r.status.includes('رد');
       h += `<div style="background:#252538; padding:10px; border-radius:6px; margin-bottom:8px; border:1px solid ${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')};">
               کاربر: <b>${r.username}</b> | درخواست: <b>${r.machine}</b><br>
               کد پیگیری/هش: <span style="color:#facc15;">${r.receipt}</span><br>
@@ -1496,12 +1382,17 @@
 
   async function approveReceipt(i, btn) {
     btn.innerText = "صبر کنید..."; btn.disabled = true;
-    let r = pendingReceipts[i]; 
-    await loadDataFromServer();
+    let r = pendingReceipts[i]; await loadDataFromServer();
     
     r.status = "تایید شد ✅";
     if(db[r.username]) { 
-      db[r.username].miners.push(r.machine === 'Pro' ? {name:"ماینر پرو (Pro)", hashrate:"320 TH/s", maxDaily:150000} : {name:"ماینر توربو (Turbo)", hashrate:"650 TH/s", maxDaily:250000}); 
+      // سیستم اضافه کردن ماینر با زمان‌بندی
+      let newMiner = { name: "ماینر نامشخص", hashrate: "0 TH/s", maxDaily: 0, expireAt: null };
+      if(r.machine === 'Pro') { newMiner = {name:"ماینر پرو (Pro)", hashrate:"320 TH/s", maxDaily:150000, expireAt: Date.now() + (90 * 86400000)}; } // 90 days
+      else if(r.machine === 'Turbo') { newMiner = {name:"ماینر توربو (Turbo)", hashrate:"650 TH/s", maxDaily:250000, expireAt: Date.now() + (180 * 86400000)}; } // 180 days
+      else if(r.machine === 'Infinity') { newMiner = {name:"ماینر اینفینیتی (VIP) 💎", hashrate:"1200 TH/s", maxDaily:400000, expireAt: null}; } // Permanent
+      
+      db[r.username].miners.push(newMiner);
       
       if(db[r.username].purchaseHistory) {
         let p = db[r.username].purchaseHistory.find(x => x.id === r.id);
@@ -1510,68 +1401,43 @@
       await saveDB(r.username); 
     }
     
-    pendingReceipts.splice(i, 1); 
-    await saveGlobalAdminData();
-    
-    renderAdminReceipts(); 
-    renderAdminStats(); 
-    showCustomAlert("رسید تایید و ماینر به حساب کاربر اضافه شد.", "✅");
+    pendingReceipts.splice(i, 1); await saveGlobalAdminData();
+    renderAdminReceipts(); renderAdminStats(); showCustomAlert("رسید تایید و ماینر فعال شد.", "✅");
   }
 
   async function rejectReceipt(i, btn) {
-    let reason = prompt("دلیل رد کردن رسید را بنویسید:");
-    if(!reason) return;
-
+    let reason = prompt("دلیل رد کردن رسید را بنویسید:"); if(!reason) return;
     btn.innerText = "صبر کنید..."; btn.disabled = true;
-    let r = pendingReceipts[i];
-    await loadDataFromServer();
+    let r = pendingReceipts[i]; await loadDataFromServer();
 
-    r.status = "رد شد ❌";
-    r.rejectReason = reason;
-
+    r.status = "رد شد ❌"; r.rejectReason = reason;
     if(db[r.username] && db[r.username].purchaseHistory) {
       let p = db[r.username].purchaseHistory.find(x => x.id === r.id);
       if(p) { p.status = "رد شد ❌"; p.rejectReason = reason; }
       await saveDB(r.username);
     }
-
-    pendingReceipts.splice(i, 1);
-    await saveGlobalAdminData();
-    
-    renderAdminReceipts();
-    showCustomAlert("رسید رد شد و دلیل آن برای کاربر ثبت گردید.", "✅");
+    pendingReceipts.splice(i, 1); await saveGlobalAdminData();
+    renderAdminReceipts(); showCustomAlert("رسید رد شد.", "✅");
   }
   
   async function updateUsername() {
     let n = document.getElementById('changeUsernameInput').value.trim();
     if(!n || db[n] || n === '_ADMIN_DATA_') return showCustomAlert("نام کاربری نامعتبر یا تکراری است.", "❌");
-    
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
     db[n] = db[currentUser]; delete db[currentUser]; currentUser = n; 
-    await saveDB(); 
-    document.getElementById('userGreeting').innerText = "کاربر: " + currentUser; 
-    btn.innerText = orig; btn.disabled = false;
-    showCustomAlert("نام کاربری با موفقیت تغییر کرد.", "✅");
+    await saveDB(); document.getElementById('userGreeting').innerText = "کاربر: " + currentUser; 
+    btn.innerText = orig; btn.disabled = false; showCustomAlert("نام کاربری با موفقیت تغییر کرد.", "✅");
   }
   
   async function updatePassword() {
     let p = document.getElementById('changePasswordInput').value.trim();
     if(!p) return showCustomAlert("رمز عبور نمی‌تواند خالی باشد.", "⚠️");
-    
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
-    db[currentUser].password = p; 
-    await saveDB(); 
-    btn.innerText = orig; btn.disabled = false;
-    showCustomAlert("رمز عبور با موفقیت تغییر کرد.", "✅");
+    db[currentUser].password = p; await saveDB(); 
+    btn.innerText = orig; btn.disabled = false; showCustomAlert("رمز عبور با موفقیت تغییر کرد.", "✅");
   }
 
-  // تلاش برای پر کردن خودکار کد معرف از طریق لینک هنگام بارگذاری برنامه
-  setTimeout(() => {
-    let autoCode = extractInviter();
-    if (autoCode) {
-        document.getElementById('refCodeInput').value = autoCode;
-    }
-  }, 800);
+  setTimeout(() => { let autoCode = extractInviter(); if (autoCode) { document.getElementById('refCodeInput').value = autoCode; } }, 800);
 
 </script>
 </body>
