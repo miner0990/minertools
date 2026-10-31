@@ -17,23 +17,11 @@
     .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
     .mini-stat { background: #0f172a; border: 1.5px solid #1e293b; border-radius: 14px; padding: 12px; text-align: center; }
     
-    /* افکت‌های گرافیکی دستگاه ماینر اصلی */
     .miner-box-container { position: relative; background: linear-gradient(180deg, #0f172a 0%, #030712 100%); border: 2px solid #38bdf8; border-radius: 20px; padding: 16px; text-align: center; margin-bottom: 14px; box-shadow: 0 8px 25px rgba(0,0,0,0.6); overflow: hidden; transition: 0.3s; }
     .miner-box-container.active-mining { border-color: #facc15 !important; box-shadow: 0 0 35px rgba(250, 204, 21, 0.5) !important; }
     
-    .electric-aura { position: absolute; inset: -20px; border-radius: 50%; opacity: 0; transition: 0.5s; z-index: 1; pointer-events: none; }
-    .active-mining .electric-aura { opacity: 1; animation: pulseAura 1.5s infinite alternate; }
+    .miner-visual-wrapper { position: relative; width: 100%; max-width: 220px; height: 160px; margin: 0 auto 15px auto; border-radius: 12px; overflow: hidden; display: flex; justify-content: center; align-items: center; background: rgba(3, 7, 18, 0.5); }
     
-    .miner-visual-wrapper { position: relative; width: 170px; height: 140px; margin: 0 auto 15px auto; }
-    
-    .led-light { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 6px #ef4444; z-index: 5; transition: 0.3s; }
-    .active-mining .led-light { background: #00ff88; box-shadow: 0 0 10px #00ff88; animation: blinkLed 0.8s infinite; }
-    
-    .hologram-fan { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); width: 80px; height: 80px; z-index: 4; opacity: 0.2; transition: 0.3s; pointer-events: none; }
-    .active-mining .hologram-fan { opacity: 0.85; }
-    .fan-spin { width: 100%; height: 100%; animation: fastSpin 0.3s linear infinite; animation-play-state: paused; filter: drop-shadow(0 0 5px #00ff88); }
-    .active-mining .fan-spin { animation-play-state: running; }
-
     .floating-coins { position: absolute; top: 0; left: 0; right: 0; height: 100%; pointer-events: none; opacity: 0; transition: 0.3s; z-index: 6; }
     .active-mining .floating-coins { opacity: 1; }
     .coin { position: absolute; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: bold; font-size: 10px; background: #030712; border: 2px solid; animation: floatUp 2.5s ease-in-out infinite; bottom: 20px; }
@@ -51,12 +39,9 @@
     .nav-item { background: none; border: none; color: #94a3b8; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
     .nav-item.active { color: #facc15; font-weight: bold; }
     
-    @keyframes pulseAura { 0% { transform: scale(0.9); opacity: 0.6; } 100% { transform: scale(1.1); opacity: 1; } }
-    @keyframes blinkLed { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-    @keyframes fastSpin { to { transform: rotate(360deg); } } 
     @keyframes floatUp { 0% { transform: translateY(0) scale(0.8); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(-40px) scale(1.1); opacity: 0; } }
     
-    .real-miner-pic { width: 100%; max-width: 90px; height: auto; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
+    .real-miner-pic { width: 100%; max-width: 90px; height: auto; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); border-radius: 8px; }
   </style>
 </head>
 <body>
@@ -120,30 +105,12 @@
         </div>
       </div>
       
-      <!-- باکس گرافیکی و انیمیشنی ماینر اصلی -->
+      <!-- باکس ویدئوی ماینر اصلی (داینامیک) -->
       <div class="miner-box-container" id="minerContainer">
         <div class="floating-coins"><div class="coin c-btc">₿</div><div class="coin c-usdt">₮</div><div class="coin c-trx">💎</div></div>
         
         <div class="miner-visual-wrapper">
-          <!-- هاله انرژی نورانی -->
-          <div class="electric-aura" id="minerAura"></div>
-          
-          <!-- چراغ‌های وضعیت -->
-          <div class="led-light" style="top: 15px; right: 25px;"></div>
-          <div class="led-light" style="top: 15px; left: 25px;"></div>
-          
-          <!-- عکس اصلی دستگاه -->
-          <img id="mainDashboardMinerImg" src="pro.png" style="width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.8));">
-          
-          <!-- پروانه شیشه‌ای چرخنده فن -->
-          <div class="hologram-fan">
-            <svg viewBox="0 0 100 100" class="fan-spin">
-              <circle cx="50" cy="50" r="46" fill="rgba(0,0,0,0.4)" stroke="#fff" stroke-width="1" stroke-dasharray="4 4"/>
-              <path d="M50 50 L50 10 L75 30 Z" fill="#fff" opacity="0.6"/><path d="M50 50 L90 50 L70 75 Z" fill="#fff" opacity="0.6"/>
-              <path d="M50 50 L50 90 L25 70 Z" fill="#fff" opacity="0.6"/><path d="M50 50 L10 50 L30 25 Z" fill="#fff" opacity="0.6"/>
-              <circle cx="50" cy="50" r="8" fill="#fff"/>
-            </svg>
-          </div>
+          <video id="mainDashboardMinerVideo" src="free.mp4" autoplay loop muted playsinline style="width: 100%; height: 100%; object-fit: contain;"></video>
         </div>
         
         <h3 style="font-size: 14px; color: #facc15;" id="machineTitle">ماینر رایگان (آماده استخراج)</h3>
@@ -181,8 +148,8 @@
       
       <!-- ماینر پرو (۳ ماهه) -->
       <div class="card card-blue" style="text-align: right; display: flex; align-items: center; gap: 12px;">
-        <div style="background: rgba(56,189,248,0.1); border: 1px solid #38bdf8; padding: 10px; border-radius: 12px; min-width: 70px; text-align:center;">
-          <img src="pro.png" class="real-miner-pic" alt="Pro Miner">
+        <div style="background: rgba(56,189,248,0.1); border: 1px solid #38bdf8; padding: 10px; border-radius: 12px; min-width: 70px; text-align:center; overflow:hidden;">
+          <video src="pro.mp4" autoplay loop muted playsinline class="real-miner-pic" alt="Pro Miner"></video>
         </div>
         <div style="flex: 1;">
           <b style="color: #38bdf8; font-size: 14px;">ماینر پرو (Pro)</b>
@@ -195,8 +162,8 @@
       
       <!-- ماینر توربو (۶ ماهه) -->
       <div class="card card-yellow" style="text-align: right; display: flex; align-items: center; gap: 12px;">
-        <div style="background: rgba(250,204,21,0.1); border: 1px solid #facc15; padding: 10px; border-radius: 12px; min-width: 70px; text-align:center;">
-          <img src="turbo.png" class="real-miner-pic" alt="Turbo Miner">
+        <div style="background: rgba(250,204,21,0.1); border: 1px solid #facc15; padding: 10px; border-radius: 12px; min-width: 70px; text-align:center; overflow:hidden;">
+          <video src="turbo.mp4" autoplay loop muted playsinline class="real-miner-pic" alt="Turbo Miner"></video>
         </div>
         <div style="flex: 1;">
           <b style="color: #facc15; font-size: 14px;">ماینر توربو (Turbo)</b>
@@ -209,8 +176,8 @@
 
       <!-- ماینر اینفینیتی (دائمی) -->
       <div class="card card-purple" style="text-align: right; display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg, rgba(168,85,247,0.05) 0%, rgba(15,23,42,1) 100%);">
-        <div style="background: rgba(168,85,247,0.15); border: 1px solid #a855f7; padding: 10px; border-radius: 12px; min-width: 70px; text-align:center;">
-          <img src="vip.png" class="real-miner-pic" alt="Infinity Miner">
+        <div style="background: rgba(168,85,247,0.15); border: 1px solid #a855f7; padding: 10px; border-radius: 12px; min-width: 70px; text-align:center; overflow:hidden;">
+          <video src="vip.mp4" autoplay loop muted playsinline class="real-miner-pic" alt="Infinity Miner"></video>
         </div>
         <div style="flex: 1;">
           <b style="color: #a855f7; font-size: 14px;">ماینر اینفینیتی (VIP) 💎</b>
@@ -865,22 +832,26 @@
     let hasTurbo = activeMiners.some(m => m.name.includes("توربو"));
     let hasInfinity = activeMiners.some(m => m.name.includes("اینفینیتی"));
     
-    // تنظیم تصویر و هاله صفحه اصلی براساس سطح کاربر
-    let mainImgSrc = "pro.png"; let auraColor = "rgba(56, 189, 248, 0.35)";
-    if(hasInfinity) { mainImgSrc = "vip.png"; auraColor = "rgba(168, 85, 247, 0.4)"; }
-    else if(hasTurbo) { mainImgSrc = "turbo.png"; auraColor = "rgba(250, 204, 21, 0.35)"; }
-    else if(hasPro) { mainImgSrc = "pro.png"; auraColor = "rgba(56, 189, 248, 0.35)"; }
-    
-    document.getElementById('mainDashboardMinerImg').src = mainImgSrc;
-    document.getElementById('minerAura').style.background = `radial-gradient(circle, ${auraColor} 0%, transparent 65%)`;
+    // سیستم ویدیوی اصلی
+    let mainVideoSrc = "free.mp4";
+    if(hasInfinity) mainVideoSrc = "vip.mp4";
+    else if(hasTurbo) mainVideoSrc = "turbo.mp4";
+    else if(hasPro) mainVideoSrc = "pro.mp4";
+
+    let mainVidEl = document.getElementById('mainDashboardMinerVideo');
+    if(!mainVidEl.getAttribute('src').includes(mainVideoSrc)) {
+        mainVidEl.setAttribute('src', mainVideoSrc);
+    }
 
     let btn = document.getElementById('startBtn'), con = document.getElementById('minerContainer');
     if(u.isMining) {
       btn.innerText = "توقف ماینر ⏸️"; btn.className = "btn-danger"; con.classList.add('active-mining');
       document.getElementById('statusText').innerText = `در حال استخراج ⚡️`;
+      if(mainVidEl.paused) mainVidEl.play().catch(e=>{});
     } else {
       btn.innerText = "شروع استخراج رایگان 🚀"; btn.className = "btn-yellow"; con.classList.remove('active-mining');
       document.getElementById('statusText').innerText = "متوقف شده ⏸️";
+      if(!mainVidEl.paused) mainVidEl.pause();
     }
     
     let pBox = document.getElementById('proPurchaseBtns');
