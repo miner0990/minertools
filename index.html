@@ -20,8 +20,8 @@
     .miner-box-container { position: relative; background: linear-gradient(180deg, #0f172a 0%, #030712 100%); border: 2px solid #38bdf8; border-radius: 20px; padding: 16px; text-align: center; margin-bottom: 14px; box-shadow: 0 8px 25px rgba(0,0,0,0.6); overflow: hidden; transition: 0.3s; }
     .miner-box-container.active-mining { border-color: #facc15 !important; box-shadow: 0 0 35px rgba(250, 204, 21, 0.5) !important; }
     
-    /* اصلاح سایز کادر ویدیو: برداشتن عرض و ارتفاع محدود */
-    .miner-visual-wrapper { position: relative; width: 100%; margin: 0 auto 15px auto; border-radius: 14px; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #030712; border: 1px solid #1e293b; }
+    /* تنظیم ارتفاع ثابت و ماسک کردن ویدیو برای پر کردن کامل کادر */
+    .miner-visual-wrapper { position: relative; width: 100%; height: 210px; margin: 0 auto 15px auto; border-radius: 14px; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #000; border: 1.5px solid #1e293b; }
     
     .floating-coins { position: absolute; top: 0; left: 0; right: 0; height: 100%; pointer-events: none; opacity: 0; transition: 0.3s; z-index: 6; }
     .active-mining .floating-coins { opacity: 1; }
@@ -42,8 +42,8 @@
     
     @keyframes floatUp { 0% { transform: translateY(0) scale(0.8); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(-40px) scale(1.1); opacity: 0; } }
     
-    /* اصلاح سایز ویدیو فروشگاه */
-    .real-miner-pic { width: 100%; max-width: 110px; height: auto; object-fit: cover; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+    /* برش کامل ویدیوهای بخش فروشگاه به صورت مربع جذاب */
+    .real-miner-pic { width: 95px; height: 95px; object-fit: cover; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transform: scale(1.05); background: #000; }
   </style>
 </head>
 <body>
@@ -107,12 +107,12 @@
         </div>
       </div>
       
-      <!-- باکس ویدئوی ماینر اصلی (داینامیک) -->
+      <!-- باکس ویدئوی ماینر اصلی (کامل پر شده) -->
       <div class="miner-box-container" id="minerContainer">
         <div class="floating-coins"><div class="coin c-btc">₿</div><div class="coin c-usdt">₮</div><div class="coin c-trx">💎</div></div>
         
         <div class="miner-visual-wrapper">
-          <video id="mainDashboardMinerVideo" src="free.mp4" autoplay loop muted playsinline style="width: 100%; height: auto; border-radius: 12px; object-fit: cover;"></video>
+          <video id="mainDashboardMinerVideo" src="free.mp4" autoplay loop muted playsinline style="width: 100%; height: 100%; object-fit: cover; transform: scale(1.03);"></video>
         </div>
         
         <h3 style="font-size: 14px; color: #facc15;" id="machineTitle">ماینر رایگان (آماده استخراج)</h3>
@@ -150,7 +150,7 @@
       
       <!-- ماینر پرو (۳ ماهه) -->
       <div class="card card-blue" style="text-align: right; display: flex; align-items: center; gap: 12px;">
-        <div style="background: rgba(56,189,248,0.1); border: 1px solid #38bdf8; padding: 10px; border-radius: 12px; min-width: 80px; max-width: 90px; text-align:center; overflow:hidden;">
+        <div style="background: rgba(56,189,248,0.1); border: 1px solid #38bdf8; padding: 6px; border-radius: 12px; text-align:center;">
           <video src="pro.mp4" autoplay loop muted playsinline class="real-miner-pic" alt="Pro Miner"></video>
         </div>
         <div style="flex: 1;">
@@ -164,7 +164,7 @@
       
       <!-- ماینر توربو (۶ ماهه) -->
       <div class="card card-yellow" style="text-align: right; display: flex; align-items: center; gap: 12px;">
-        <div style="background: rgba(250,204,21,0.1); border: 1px solid #facc15; padding: 10px; border-radius: 12px; min-width: 80px; max-width: 90px; text-align:center; overflow:hidden;">
+        <div style="background: rgba(250,204,21,0.1); border: 1px solid #facc15; padding: 6px; border-radius: 12px; text-align:center;">
           <video src="turbo.mp4" autoplay loop muted playsinline class="real-miner-pic" alt="Turbo Miner"></video>
         </div>
         <div style="flex: 1;">
@@ -178,7 +178,7 @@
 
       <!-- ماینر اینفینیتی (دائمی) -->
       <div class="card card-purple" style="text-align: right; display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg, rgba(168,85,247,0.05) 0%, rgba(15,23,42,1) 100%);">
-        <div style="background: rgba(168,85,247,0.15); border: 1px solid #a855f7; padding: 10px; border-radius: 12px; min-width: 80px; max-width: 90px; text-align:center; overflow:hidden;">
+        <div style="background: rgba(168,85,247,0.15); border: 1px solid #a855f7; padding: 6px; border-radius: 12px; text-align:center;">
           <video src="vip.mp4" autoplay loop muted playsinline class="real-miner-pic" alt="Infinity Miner"></video>
         </div>
         <div style="flex: 1;">
