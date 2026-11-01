@@ -75,6 +75,7 @@
       <input type="password" class="select-box" id="passwordInput" placeholder="رمز عبور..." style="margin-bottom: 10px;">
       <input type="text" class="select-box" id="refCodeInput" placeholder="کد معرف (اختیاری)..." style="margin-bottom: 15px;" autocapitalize="none">
       <button class="btn-yellow" id="registerBtn" onclick="completeRegistration()">ورود به مزرعه و شروع ⛏️</button>
+      <button onclick="openRecoverAccount()" id="recoverBtn" style="background: none; border: none; color: #38bdf8; font-size: 12px; margin-top: 14px; width: 100%; cursor: pointer; text-decoration: underline;">نام کاربری یا رمزم را فراموش کرده‌ام 🔑</button>
     </div>
   </div>
 
@@ -326,6 +327,18 @@
     <h3 style="color: #facc15; font-size: 16px; margin-bottom: 10px;">پیام سیستم</h3>
     <p id="customAlertText" style="font-size: 12px; color: #ffffff; line-height: 1.7; margin-bottom: 20px;">عملیات با موفقیت انجام شد.</p>
     <button class="btn-yellow" style="margin: 0; padding: 10px; font-size: 13px;" onclick="closeCustomAlert()">متوجه شدم</button>
+  </div>
+</div>
+
+<div id="recoverModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 20000; justify-content: center; align-items: center; padding: 20px;" dir="rtl">
+  <div class="card card-yellow" style="max-width: 360px; width: 100%; text-align: right;">
+    <h3 style="color: #facc15; font-size: 16px; margin-bottom: 10px; text-align: center;">🔑 بازیابی حساب</h3>
+    <p style="font-size: 12px; color: #94a3b8; margin-bottom: 12px; line-height: 1.7;">حساب متصل به اکانت تلگرام شما پیدا شد. یک رمز عبور جدید انتخاب کنید و آن را یادداشت کنید.</p>
+    <div style="background: #030712; border: 1.5px dashed #facc15; padding: 10px; border-radius: 8px; text-align: center; font-size: 13px; margin-bottom: 12px;">نام کاربری شما: <b id="recoverUsername" style="color: #fff; font-family: monospace; font-size: 15px;"></b></div>
+    <input type="password" class="select-box" id="recoverPass1" placeholder="رمز عبور جدید..." style="margin-bottom: 8px;">
+    <input type="password" class="select-box" id="recoverPass2" placeholder="تکرار رمز عبور جدید..." style="margin-bottom: 12px;">
+    <button class="btn-yellow" id="recoverSaveBtn" onclick="saveRecoveredPassword()">ذخیره رمز جدید و ورود ✅</button>
+    <button class="btn-danger" onclick="closeRecoverModal()">انصراف</button>
   </div>
 </div>
 
@@ -716,6 +729,44 @@
         if(key !== '_ADMIN_DATA_' && key.toLowerCase() === lower) return key;
     }
     return null;
+  }
+
+  // ---- Forgot username / password: identity is checked by the server through Telegram ----
+  let recoverName = null;
+  async function openRecoverAccount() {
+    let initData = window.Telegram?.WebApp?.initData || '';
+    if (!initData) return showCustomAlert("لطفاً مینی‌اپ را از داخل ربات تلگرام باز کنید تا حساب شما پیدا شود.", "⚠️");
+    let btn = document.getElementById('recoverBtn'); let orig = btn.innerText; btn.innerText = "در حال جستجوی حساب شما... ⏳"; btn.disabled = true;
+    try {
+      let res = await fetch(`${API_URL}/api/recover`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData: initData }) });
+      let data = await res.json();
+      if (data && data.status === 'success') {
+        recoverName = data.username;
+        document.getElementById('recoverUsername').innerText = data.username;
+        document.getElementById('recoverPass1').value = ''; document.getElementById('recoverPass2').value = '';
+        document.getElementById('recoverModal').style.display = 'flex';
+      } else showCustomAlert((data && data.message) || "حسابی پیدا نشد.", "❌");
+    } catch(e) { showCustomAlert("خطای ارتباط با شبکه. لطفاً دوباره تلاش کنید.", "❌"); }
+    btn.innerText = orig; btn.disabled = false;
+  }
+  function closeRecoverModal() { document.getElementById('recoverModal').style.display = 'none'; }
+  async function saveRecoveredPassword() {
+    let p1 = document.getElementById('recoverPass1').value.trim(), p2 = document.getElementById('recoverPass2').value.trim();
+    if (!p1) return showCustomAlert("رمز عبور جدید را وارد کنید.", "⚠️");
+    if (p1 !== p2) return showCustomAlert("دو رمز وارد شده یکسان نیستند.", "⚠️");
+    let btn = document.getElementById('recoverSaveBtn'); let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
+    try {
+      let res = await fetch(`${API_URL}/api/reset_password`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData: window.Telegram?.WebApp?.initData || '', username: recoverName, newPassword: p1 }) });
+      let data = await res.json();
+      btn.innerText = orig; btn.disabled = false;
+      if (data && data.status === 'success') {
+        closeRecoverModal();
+        document.getElementById('usernameInput').value = data.username;
+        document.getElementById('passwordInput').value = p1;
+        await completeRegistration();
+      } else showCustomAlert((data && data.message) || "تغییر رمز انجام نشد.", "❌");
+    } catch(e) { btn.innerText = orig; btn.disabled = false; showCustomAlert("خطای ارتباط با شبکه. لطفاً دوباره تلاش کنید.", "❌"); }
   }
 
   async function completeRegistration() {
