@@ -423,10 +423,14 @@
       <button onclick="switchAdminTab('referralCfg')" style="background: #3498db; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📝 متن دعوت</button>
       <button onclick="switchAdminTab('channels')" style="background: #34495e; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📢 کانال‌ها</button>
       <button onclick="switchAdminTab('bonus')" style="background: #d35400; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🎁 سایر تنظیمات</button>
+      <button onclick="switchAdminTab('botmsgs')" style="background: #8e44ad; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🤖 پیام‌های ربات</button>
     </div>
 
     <div id="adminTab-stats" class="admin-tab-content">
-      <div style="background: #252538; padding: 12px; border-radius: 8px; margin-bottom: 15px;"><p style="font-size: 11px; color: #aaa;">تعداد کل کاربران ثبت‌نامی</p><h3 id="statTotalUsers" style="color: #3498db; margin-top: 5px;">0</h3></div>
+      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <div style="flex: 1; background: #252538; padding: 12px; border-radius: 8px;"><p style="font-size: 11px; color: #aaa;">تعداد کل کاربران ثبت‌نامی</p><h3 id="statTotalUsers" style="color: #3498db; margin-top: 5px;">0</h3></div>
+        <div id="statMiningBox" onclick="toggleMiningFilter()" style="flex: 1; background: #252538; padding: 12px; border-radius: 8px; cursor: pointer; border: 1px solid transparent;"><p style="font-size: 11px; color: #aaa;">کاربران در حال استخراج ⚡</p><h3 id="statMiningUsers" style="color: #00ff88; margin-top: 5px;">0</h3><p id="statMiningHint" style="font-size: 10px; color: #777; margin-top: 4px;">برای دیدن لیست بزنید</p></div>
+      </div>
       <input type="text" id="adminSearchInput" onkeyup="renderAdminStats()" placeholder="🔍 جستجوی نام کاربری..." class="select-box" style="margin-bottom: 15px; background: #252538 !important; border: 1px solid #444 !important;">
       <h4 style="color: #facc15; border-bottom: 1px solid #444; padding-bottom: 8px;">لیست تفکیک شده کاربران:</h4>
       <div id="adminUsersListDetailed" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;"></div>
@@ -479,6 +483,11 @@
       </div>
       <div style="margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom:15px;"><h4 style="color: #facc15; margin-bottom: 10px;">پاداش ورود روزانه (تومان)</h4><input type="number" id="editBonusAmount" class="select-box" style="margin-bottom: 10px;"><button onclick="saveAdminDailyBonus()" class="btn-yellow">ذخیره پاداش روزانه</button></div>
       <div><h4 style="color: #fff; margin-bottom: 10px;">تنظیم کارت و ولت واریزی ادمین</h4><input type="text" id="editCardInput" class="select-box" style="margin-bottom: 8px;" placeholder="شماره کارت"><input type="text" id="editNameInput" class="select-box" style="margin-bottom: 8px;" placeholder="نام صاحب کارت"><input type="text" id="editWalletInput" class="select-box" style="margin-bottom: 10px;" dir="ltr" placeholder="آدرس ولت ترون"><button onclick="saveAdminFinancialSettings()" class="btn-yellow">ذخیره حساب مدیریت</button></div>
+    </div>
+    <div id="adminTab-botmsgs" class="admin-tab-content" style="display: none;">
+      <h4>پیام‌های اطلاع‌رسانی ربات</h4>
+      <p style="font-size:11px; color:#aaa; margin: 6px 0 15px 0; line-height: 1.7;">ربات این پیام‌ها را خودکار برای کاربر می‌فرستد. هر پیام را می‌توانید روشن/خاموش کنید و متنش را تغییر دهید. جای‌خالی‌ها (مثل {username}) هنگام ارسال با اطلاعات کاربر پر می‌شوند. پیام فقط به کسانی می‌رسد که ربات را حداقل یک بار استارت کرده باشند.</p>
+      <div id="botMsgsList"></div>
     </div>
     <div id="adminTab-receipts" class="admin-tab-content" style="display: none;"><h4>رسیدهای خرید</h4><div id="adminReceiptsList" style="margin-top: 15px;"></div></div>
   </div>
@@ -1441,18 +1450,25 @@
           document.getElementById('adminNoticeLink').value = globalNotice.link || ''; 
       }
       btn.innerText = "ورود به مدیریت"; btn.disabled = false; document.getElementById('adminDashboardPanel').style.display = 'block';
-      loadBotWelcomeText();
+      loadBotWelcomeText(); loadBotMsgs();
     } else showCustomAlert("رمز عبور ادمین اشتباه است!", "❌");
   }
   function closeAdminDashboard() { document.getElementById('adminDashboardPanel').style.display = 'none'; isAdminLoggedIn = false; }
 
   function switchAdminTab(t) { document.querySelectorAll('.admin-tab-content').forEach(e => e.style.display='none'); document.getElementById('adminTab-'+t).style.display='block'; }
 
+  let adminMiningOnly = false;
+  function isMiningNow(x) { return !!(x && x.isMining) && (Date.now() - (Number(x.miningStartTime) || 0)) < 86400000; }
+  function toggleMiningFilter() { adminMiningOnly = !adminMiningOnly; renderAdminStats(); }
+
   function renderAdminStats() {
-    let q = document.getElementById('adminSearchInput').value.toLowerCase().trim(); let total = 0, h = "";
+    let q = document.getElementById('adminSearchInput').value.toLowerCase().trim(); let total = 0, miningCount = 0, h = "";
     for(let u in db) {
       if(u !== '_ADMIN_DATA_') {
         total++;
+        let miningNow = isMiningNow(db[u]);
+        if(miningNow) miningCount++;
+        if(adminMiningOnly && !miningNow) continue;
         if(q && !u.toLowerCase().includes(q)) continue;
         
         let wHistoryHTML = "";
@@ -1472,12 +1488,16 @@
                 <b>یوزر: <span style="color:#38bdf8;">${u}</span></b><br>
                 <span style="color:#aaa;">موجودی:</span> <span style="color:#00ff88;">${Math.floor(db[u].mined).toLocaleString()} ت</span><br>
                 <span style="color:#aaa;">زیرمجموعه‌ها:</span> <b style="color:#facc15;">${db[u].referrals || 0} نفر</b><br>
+                <span style="color:#aaa;">وضعیت:</span> ${miningNow ? '<b style="color:#00ff88;">در حال استخراج ⚡</b>' : '<span style="color:#94a3b8;">متوقف ⏸️</span>'}<br>
                 <span style="color:#aaa;">دستگاه‌ها:</span> ${db[u].miners.map(m=>m.name).join('، ')}
                 ${wHistoryHTML}
               </div>`;
       }
     }
     document.getElementById('statTotalUsers').innerText = total; document.getElementById('adminUsersListDetailed').innerHTML = h || "<p style='color:#aaa; font-size:12px;'>یافت نشد.</p>";
+    document.getElementById('statMiningUsers').innerText = miningCount;
+    document.getElementById('statMiningHint').innerText = adminMiningOnly ? "فقط در حال استخراج‌ها نمایش داده می‌شوند (برای همه بزنید)" : "برای دیدن لیست بزنید";
+    document.getElementById('statMiningBox').style.borderColor = adminMiningOnly ? "#00ff88" : "transparent";
   }
 
   function renderAdminTickets() {
@@ -1509,6 +1529,56 @@
       saveGlobalAdminData().then(() => { showCustomAlert("متن بنر بروزرسانی شد!", "✅"); if(currentUser) updateUI(); });
   }
   
+  const BOT_MSG_DEFS = [
+    ['withdraw_paid',     '✅ تأیید برداشت',             'وقتی برداشت کاربر را تأیید می‌کنید',                     '{username} {amount} {type}'],
+    ['withdraw_rejected', '❌ رد برداشت',                'وقتی برداشت کاربر را رد می‌کنید',                         '{username} {amount} {type} {reason}'],
+    ['new_referral',      '🎉 زیرمجموعه جدید',           'به معرف، وقتی دوستِ دعوت‌شده اولین استخراجش را می‌زند', '{username} {referrals}'],
+    ['ticket_reply',      '💬 جواب تیکت',                'وقتی به تیکت کاربر جواب می‌دهید',                         '{username} {subject}'],
+    ['bonus_ready',       '🎁 یادآوری پاداش روزانه',     '۲۴ ساعت بعد از آخرین پاداش روزانه کاربر',                  '{username}'],
+    ['mining_ended',      '⛏️ پایان استخراج ۲۴ ساعته',  'وقتی استخراج ۲۴ ساعته کاربر تمام می‌شود',                  '{username}'],
+  ];
+  function renderBotMsgs() {
+    let h = "";
+    BOT_MSG_DEFS.forEach(d => {
+      h += `<div style="background:#252538; padding:12px; border-radius:8px; margin-bottom:12px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <b style="font-size:13px;">${d[1]}</b>
+                <label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="botMsgOn-${d[0]}" style="vertical-align:middle;"> فعال</label>
+              </div>
+              <p style="font-size:10px; color:#aaa; margin-bottom:6px;">${d[2]} | جای‌خالی‌ها: <span dir="ltr">${d[3]}</span></p>
+              <textarea id="botMsgText-${d[0]}" class="select-box" style="height:100px; margin-bottom:8px; line-height:1.6;"></textarea>
+              <button class="btn-yellow" style="margin-top:0; padding:8px; font-size:12px;" onclick="saveBotMsg('${d[0]}')">ذخیره ✅</button>
+            </div>`;
+    });
+    document.getElementById('botMsgsList').innerHTML = h;
+  }
+  async function loadBotMsgs() {
+    renderBotMsgs();
+    try {
+      let res = await fetch(`${API_URL}/api/bot_msgs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      let data = await res.json();
+      if (data && data.status === 'success') {
+        BOT_MSG_DEFS.forEach(d => {
+          let m = data.messages[d[0]]; if (!m) return;
+          document.getElementById('botMsgOn-' + d[0]).checked = !!m.enabled;
+          document.getElementById('botMsgText-' + d[0]).value = m.text;
+        });
+      }
+    } catch(e) {}
+  }
+  async function saveBotMsg(name) {
+    let enabled = document.getElementById('botMsgOn-' + name).checked, text = document.getElementById('botMsgText-' + name).value.trim();
+    try {
+      let res = await fetch(`${API_URL}/api/bot_msg_set`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name, enabled: enabled, text: text }) });
+      let data = await res.json();
+      if (data && data.status === 'success') {
+        document.getElementById('botMsgOn-' + name).checked = !!data.enabled;
+        document.getElementById('botMsgText-' + name).value = data.text;
+        showCustomAlert(data.enabled ? "پیام ربات ذخیره شد و فعال است." : "پیام ربات ذخیره شد (خاموش).", "✅");
+      } else showCustomAlert("ذخیره پیام انجام نشد.", "❌");
+    } catch(e) { showCustomAlert("خطای ارتباط با شبکه. لطفاً دوباره تلاش کنید.", "❌"); }
+  }
+
   async function loadBotWelcomeText() {
       try {
           let res = await fetch(`${API_URL}/api/bot_welcome`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
