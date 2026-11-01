@@ -506,48 +506,73 @@
     document.getElementById('customAlertModal').style.display = 'none';
   }
 
+  // خواندن اطلاعات (با سیستم پشتیبان آفلاین)
   async function loadDataFromServer() {
-    // پیاده‌سازی تایمر مرگ 7 ثانیه‌ای (جلوگیری از قفل شدن مرورگر)
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 7000);
+    let controller = window.AbortController ? new AbortController() : null;
+    let timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
     
     try {
-      let res = await fetch(`${API_URL}/api/get_all?t=${Date.now()}`, { 
-          cache: "no-store",
-          signal: controller.signal
-      });
-      clearTimeout(timeoutId);
+      let options = { cache: "no-store" };
+      if(controller) options.signal = controller.signal;
       
-      if(!res.ok) return false;
-      let data = await res.json();
-      if(data) {
-        db = data;
-        if(db['_ADMIN_DATA_']) {
-          allWithdrawals = db['_ADMIN_DATA_'].allWithdrawals || [];
-          pendingReceipts = db['_ADMIN_DATA_'].pendingReceipts || [];
-          if(db['_ADMIN_DATA_'].bannerText) adminConfig.bannerText = db['_ADMIN_DATA_'].bannerText;
-          if(db['_ADMIN_DATA_'].channels) mandatoryChannels = db['_ADMIN_DATA_'].channels;
-          if(db['_ADMIN_DATA_'].card) adminConfig.card = adminConfig.card;
-          if(db['_ADMIN_DATA_'].name) adminConfig.name = adminConfig.name;
-          if(db['_ADMIN_DATA_'].wallet) adminConfig.wallet = db['_ADMIN_DATA_'].wallet;
-          if(db['_ADMIN_DATA_'].cryptoRates) cryptoRates = db['_ADMIN_DATA_'].cryptoRates;
-          if(db['_ADMIN_DATA_'].globalNotice) globalNotice = db['_ADMIN_DATA_'].globalNotice;
+      let res = await fetch(`${API_URL}/api/get_all?t=${Date.now()}`, options);
+      if(timeoutId) clearTimeout(timeoutId);
+      
+      if(res.ok) {
+        let data = await res.json();
+        if(data) {
+          db = data;
+          // ذخیره کپی در گوشی شما برای زمان قطعی سرور
+          localStorage.setItem('minertools_db_backup', JSON.stringify(db));
+          
+          if(db['_ADMIN_DATA_']) {
+            allWithdrawals = db['_ADMIN_DATA_'].allWithdrawals || [];
+            pendingReceipts = db['_ADMIN_DATA_'].pendingReceipts || [];
+            if(db['_ADMIN_DATA_'].bannerText) adminConfig.bannerText = db['_ADMIN_DATA_'].bannerText;
+            if(db['_ADMIN_DATA_'].channels) mandatoryChannels = db['_ADMIN_DATA_'].channels;
+            if(db['_ADMIN_DATA_'].card) adminConfig.card = db['_ADMIN_DATA_'].card;
+            if(db['_ADMIN_DATA_'].name) adminConfig.name = db['_ADMIN_DATA_'].name;
+            if(db['_ADMIN_DATA_'].wallet) adminConfig.wallet = db['_ADMIN_DATA_'].wallet;
+            if(db['_ADMIN_DATA_'].cryptoRates) cryptoRates = db['_ADMIN_DATA_'].cryptoRates;
+            if(db['_ADMIN_DATA_'].globalNotice) globalNotice = db['_ADMIN_DATA_'].globalNotice;
+          }
+          return true;
         }
-        return true;
       }
-      return false;
-    } catch (err) {
-      // در صورت قطع اینترنت یا گذشت 7 ثانیه، پروسه متوقف شده و فالس برمی‌گردد
-      clearTimeout(timeoutId);
-      console.log("ارتباط برقرار نشد یا تایم‌اوت رخ داد.", err); 
-      return false;
+    } catch (err) { 
+      if(timeoutId) clearTimeout(timeoutId);
+      console.log("سرور اصلی قطع است، در حال انتقال به حافظه پشتیبان...");
     }
+
+    // حالت آفلاین: سرور جواب نداده است. از روی حافظه پنهان گوشی می‌خوانیم تا شما پشت در نمانید!
+    let backup = localStorage.getItem('minertools_db_backup');
+    if(backup) {
+        try {
+            db = JSON.parse(backup);
+            if(db['_ADMIN_DATA_']) {
+                allWithdrawals = db['_ADMIN_DATA_'].allWithdrawals || [];
+                pendingReceipts = db['_ADMIN_DATA_'].pendingReceipts || [];
+                if(db['_ADMIN_DATA_'].bannerText) adminConfig.bannerText = db['_ADMIN_DATA_'].bannerText;
+                if(db['_ADMIN_DATA_'].channels) mandatoryChannels = db['_ADMIN_DATA_'].channels;
+                if(db['_ADMIN_DATA_'].card) adminConfig.card = db['_ADMIN_DATA_'].card;
+                if(db['_ADMIN_DATA_'].name) adminConfig.name = db['_ADMIN_DATA_'].name;
+                if(db['_ADMIN_DATA_'].wallet) adminConfig.wallet = db['_ADMIN_DATA_'].wallet;
+                if(db['_ADMIN_DATA_'].cryptoRates) cryptoRates = db['_ADMIN_DATA_'].cryptoRates;
+                if(db['_ADMIN_DATA_'].globalNotice) globalNotice = db['_ADMIN_DATA_'].globalNotice;
+            }
+            return true;
+        } catch(e) {}
+    }
+    return false;
   }
 
   let saveQueue = Promise.resolve();
   function saveDB(forceUser = null) {
     let u = forceUser || currentUser;
     if(!u) return Promise.resolve();
+    
+    // همیشه در لحظه روی گوشی کپی بگیریم تا با قطعی سرور اطلاعات نپرد
+    localStorage.setItem('minertools_db_backup', JSON.stringify(db));
     
     let p = new Promise(resolve => {
         saveQueue = saveQueue.then(async () => {
@@ -558,7 +583,7 @@
                 body: JSON.stringify({ username: u, userData: db[u] }) 
             });
             await new Promise(r => setTimeout(r, 400)); 
-          } catch(e) { console.log(e); }
+          } catch(e) { /* اگر سرور قطع بود ارور نمی‌دهد و دفعه بعد سینک می‌کند */ }
           resolve();
         });
     });
@@ -577,6 +602,8 @@
     db['_ADMIN_DATA_'].cryptoRates = cryptoRates;
     db['_ADMIN_DATA_'].globalNotice = globalNotice;
     
+    localStorage.setItem('minertools_db_backup', JSON.stringify(db));
+    
     let p = new Promise(resolve => {
         saveQueue = saveQueue.then(async () => {
           try {
@@ -586,7 +613,7 @@
                 body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) 
             });
             await new Promise(r => setTimeout(r, 400));
-          } catch(e) { console.log(e); }
+          } catch(e) {}
           resolve();
         });
     });
@@ -623,7 +650,7 @@
         }
         if(!inviter) inviter = hashParams.get('tgWebAppStartParam') || hashParams.get('startapp') || hashParams.get('start');
       }
-    } catch (e) { console.log(e); }
+    } catch (e) {}
     return inviter ? inviter.trim() : null;
   }
 
@@ -648,7 +675,7 @@
     let tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
     let currentTgId = tgUser ? tgUser.id : null;
     
-    // اثر انگشت اختصاصی دستگاه (اگر تلگرام آیدی را نداد یا کاربر خارج از تلگرام بود)
+    // سیستم اثر انگشت جایگزین (اگه کاربر بیرون از تلگرام بود یا تلگرام آیدی رو مخفی کرد)
     let currentDeviceId = localStorage.getItem('minertools_dev_id');
     if(!currentDeviceId) {
         currentDeviceId = 'DEV-' + Math.random().toString(36).substr(2, 9) + Date.now();
@@ -657,17 +684,11 @@
 
     let btn = document.getElementById('registerBtn');
     let origBtnText = btn.innerText;
-    btn.innerText = "در حال ارتباط با سرور... ⏳";
+    btn.innerText = "در حال بررسی... ⏳";
     btn.disabled = true;
 
-    // بارگیری دیتابیس با سیستم قفل مطلق
-    let isLoaded = await loadDataFromServer();
-    if(!isLoaded && Object.keys(db).length === 0) {
-        // اگر ارتباط برقرار نشد، ثبت نام جدید متوقف می‌شود تا اکانت‌های قدیمی صفر نشوند
-        showCustomAlert("ارتباط با سرور برقرار نشد (ترافیک بالا). لطفاً چند دقیقه دیگر تلاش کنید.", "❌");
-        btn.innerText = origBtnText; btn.disabled = false;
-        return;
-    }
+    // بارگیری اطلاعات (بدون اینکه اگر سرور قطع بود شما را مسدود کند)
+    await loadDataFromServer();
     
     if (u === '_ADMIN_DATA_') { 
         showCustomAlert("نام کاربری نامعتبر است.", "❌"); 
@@ -675,7 +696,7 @@
         return; 
     }
     
-    // سد دفاعی: پیدا کردن اکانت دیگری که روی همین گوشی یا با همین آیدی تلگرام ساخته شده
+    // جستجوی دیتابیس برای جلوگیری از کاربر فیک
     let existingUserForDevice = null;
     for (let key in db) {
         if (key !== '_ADMIN_DATA_') {
@@ -691,7 +712,6 @@
     let realInviter = null;
 
     if(!db[u]) {
-      // ثبت‌نام کاربر جدید
       if (existingUserForDevice) {
           showCustomAlert(`شما قبلاً با نام کاربری [ ${existingUserForDevice} ] ثبت‌نام کرده‌اید. هر گوشی/اکانت فقط مجاز به داشتن یک مزرعه است.`, "🚫");
           btn.innerText = origBtnText; btn.disabled = false;
@@ -707,8 +727,8 @@
 
       db[u] = { 
         password: p,
-        tgId: currentTgId,       // اگر تلگرام متصل باشد ثبت می‌شود
-        deviceId: currentDeviceId, // همیشه ثبت می‌شود به عنوان اثر انگشت
+        tgId: currentTgId,       
+        deviceId: currentDeviceId, 
         mined: realInviter ? 5000 : 0, 
         miners: [{ name: "ماینر رایگان پایه", hashrate: "68.4 TH/s", maxDaily: 35000 }], 
         withdrawHistory: [], 
@@ -730,18 +750,16 @@
           db[realInviter].referrals = (db[realInviter].referrals || 0) + 1;
       }
     } else {
-      // ورود کاربر قدیمی
       if(db[u].password !== p) { 
           showCustomAlert("⚠️ رمز عبور اشتباه است.", "❌"); 
           btn.innerText = origBtnText; btn.disabled = false;
           return; 
       }
       
-      // اگر کاربر قدیمی اثر انگشت یا آیدی ندارد، در این لحظه قفل می‌شود
       if (!db[u].tgId && currentTgId) db[u].tgId = currentTgId;
       if (!db[u].deviceId) db[u].deviceId = currentDeviceId;
 
-      // سد ضد سرقت: اگر آیدی تلگرامش ثبت شده، باید حتماً با همان تلگرام وارد شود
+      // قفل ضد سرقت:
       if (db[u].tgId && currentTgId && db[u].tgId !== currentTgId) {
           showCustomAlert("🚫 این حساب به اکانت تلگرام دیگری متصل است و شما اجازه ورود ندارید.", "🚨");
           btn.innerText = origBtnText; btn.disabled = false;
@@ -771,9 +789,10 @@
     btn.innerText = origBtnText;
     btn.disabled = false;
 
+    // دیگر نیازی به اخطارهای ترسناک سرور نیست
     if (isNewUser) {
         if (realInviter) setTimeout(() => showCustomAlert(`ثبت‌نام موفق! شما با دعوت ${realInviter} وارد شدید و ۵,۰۰۰ تومان پاداش ورود گرفتید.`, "🎁"), 500);
-        else setTimeout(() => showCustomAlert(`ثبت‌نام شما با موفقیت انجام شد. حساب به این دستگاه قفل شد.`, "✅"), 500);
+        else setTimeout(() => showCustomAlert(`ثبت‌نام شما با موفقیت انجام شد.`, "✅"), 500);
     } else {
         setTimeout(() => showCustomAlert(`ورود موفق! خوش آمدید.`, "✅"), 500);
     }
@@ -1122,6 +1141,7 @@
            
            updateUI(); 
            
+           // هر 15 ثانیه برای ذخیره در سرور تلاش کن و اگه نشد حداقل رو گوشی ذخیره میمونه
            localSyncTimer++;
            if (localSyncTimer >= 15) {
                saveDB();
