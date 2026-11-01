@@ -506,7 +506,6 @@
     document.getElementById('customAlertModal').style.display = 'none';
   }
 
-  // خواندن اطلاعات (با سیستم پشتیبان آفلاین)
   async function loadDataFromServer() {
     let controller = window.AbortController ? new AbortController() : null;
     let timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
@@ -522,7 +521,6 @@
         let data = await res.json();
         if(data) {
           db = data;
-          // ذخیره کپی در گوشی شما برای زمان قطعی سرور
           localStorage.setItem('minertools_db_backup', JSON.stringify(db));
           
           if(db['_ADMIN_DATA_']) {
@@ -541,10 +539,8 @@
       }
     } catch (err) { 
       if(timeoutId) clearTimeout(timeoutId);
-      console.log("سرور اصلی قطع است، در حال انتقال به حافظه پشتیبان...");
     }
 
-    // حالت آفلاین: سرور جواب نداده است. از روی حافظه پنهان گوشی می‌خوانیم تا شما پشت در نمانید!
     let backup = localStorage.getItem('minertools_db_backup');
     if(backup) {
         try {
@@ -571,7 +567,6 @@
     let u = forceUser || currentUser;
     if(!u) return Promise.resolve();
     
-    // همیشه در لحظه روی گوشی کپی بگیریم تا با قطعی سرور اطلاعات نپرد
     localStorage.setItem('minertools_db_backup', JSON.stringify(db));
     
     let p = new Promise(resolve => {
@@ -583,7 +578,7 @@
                 body: JSON.stringify({ username: u, userData: db[u] }) 
             });
             await new Promise(r => setTimeout(r, 400)); 
-          } catch(e) { /* اگر سرور قطع بود ارور نمی‌دهد و دفعه بعد سینک می‌کند */ }
+          } catch(e) {}
           resolve();
         });
     });
@@ -671,11 +666,9 @@
     let p = document.getElementById('passwordInput').value.trim();
     if(!u || !p) { showCustomAlert("لطفاً نام کاربری و رمز عبور را وارد کنید.", "⚠️"); return; }
     
-    // استخراج آیدی تلگرام
     let tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
     let currentTgId = tgUser ? tgUser.id : null;
     
-    // سیستم اثر انگشت جایگزین (اگه کاربر بیرون از تلگرام بود یا تلگرام آیدی رو مخفی کرد)
     let currentDeviceId = localStorage.getItem('minertools_dev_id');
     if(!currentDeviceId) {
         currentDeviceId = 'DEV-' + Math.random().toString(36).substr(2, 9) + Date.now();
@@ -687,7 +680,6 @@
     btn.innerText = "در حال بررسی... ⏳";
     btn.disabled = true;
 
-    // بارگیری اطلاعات (بدون اینکه اگر سرور قطع بود شما را مسدود کند)
     await loadDataFromServer();
     
     if (u === '_ADMIN_DATA_') { 
@@ -696,7 +688,6 @@
         return; 
     }
     
-    // جستجوی دیتابیس برای جلوگیری از کاربر فیک
     let existingUserForDevice = null;
     for (let key in db) {
         if (key !== '_ADMIN_DATA_') {
@@ -759,7 +750,6 @@
       if (!db[u].tgId && currentTgId) db[u].tgId = currentTgId;
       if (!db[u].deviceId) db[u].deviceId = currentDeviceId;
 
-      // قفل ضد سرقت:
       if (db[u].tgId && currentTgId && db[u].tgId !== currentTgId) {
           showCustomAlert("🚫 این حساب به اکانت تلگرام دیگری متصل است و شما اجازه ورود ندارید.", "🚨");
           btn.innerText = origBtnText; btn.disabled = false;
@@ -789,7 +779,6 @@
     btn.innerText = origBtnText;
     btn.disabled = false;
 
-    // دیگر نیازی به اخطارهای ترسناک سرور نیست
     if (isNewUser) {
         if (realInviter) setTimeout(() => showCustomAlert(`ثبت‌نام موفق! شما با دعوت ${realInviter} وارد شدید و ۵,۰۰۰ تومان پاداش ورود گرفتید.`, "🎁"), 500);
         else setTimeout(() => showCustomAlert(`ثبت‌نام شما با موفقیت انجام شد.`, "✅"), 500);
@@ -1141,7 +1130,6 @@
            
            updateUI(); 
            
-           // هر 15 ثانیه برای ذخیره در سرور تلاش کن و اگه نشد حداقل رو گوشی ذخیره میمونه
            localSyncTimer++;
            if (localSyncTimer >= 15) {
                saveDB();
