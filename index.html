@@ -110,7 +110,7 @@
         <div class="floating-coins"><div class="coin c-btc">₿</div><div class="coin c-usdt">₮</div><div class="coin c-trx">💎</div></div>
         
         <div class="miner-visual-wrapper">
-          <video id="mainDashboardMinerVideo" src="free.mp4" autoplay loop muted playsinline class="miner-main-vid"></video>
+          <video id="mainDashboardMinerVideo" src="free.mp4" poster="free-poster.jpg" autoplay loop muted playsinline class="miner-main-vid"></video>
         </div>
         
         <h3 style="font-size: 14px; color: #facc15;" id="machineTitle">ماینر رایگان (آماده استخراج)</h3>
@@ -973,6 +973,7 @@
 
     let mainVidEl = document.getElementById('mainDashboardMinerVideo');
     if(!mainVidEl.getAttribute('src').includes(mainVideoSrc)) {
+        mainVidEl.setAttribute('poster', mainVideoSrc.replace('.mp4', '-poster.jpg'));
         mainVidEl.setAttribute('src', mainVideoSrc);
     }
 
