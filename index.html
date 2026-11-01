@@ -20,7 +20,6 @@
     .miner-box-container { position: relative; background: linear-gradient(180deg, #0f172a 0%, #030712 100%); border: 2px solid #38bdf8; border-radius: 20px; padding: 16px; text-align: center; margin-bottom: 14px; box-shadow: 0 8px 25px rgba(0,0,0,0.6); overflow: hidden; transition: 0.3s; }
     .miner-box-container.active-mining { border-color: #facc15 !important; box-shadow: 0 0 35px rgba(250, 204, 21, 0.5) !important; }
     
-    /* استایل ویدیوی صفحه اصلی (مزرعه) */
     .miner-visual-wrapper { position: relative; width: 100%; height: 210px; margin: 0 auto 15px auto; border-radius: 14px; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #000; border: 1.5px solid #1e293b; }
     .miner-main-vid { width: 100%; height: 100%; object-fit: contain; } 
 
@@ -43,7 +42,6 @@
     
     @keyframes floatUp { 0% { transform: translateY(0) scale(0.8); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(-40px) scale(1.1); opacity: 0; } }
     
-    /* استایل اختصاصی برای ویدیوهای بخش فروشگاه */
     .shop-miner-vid { width: 90px; height: 90px; object-fit: contain; border-radius: 8px; background: transparent; }
   </style>
 </head>
@@ -108,7 +106,6 @@
         </div>
       </div>
       
-      <!-- باکس ویدئوی ماینر اصلی (مزرعه) -->
       <div class="miner-box-container" id="minerContainer">
         <div class="floating-coins"><div class="coin c-btc">₿</div><div class="coin c-usdt">₮</div><div class="coin c-trx">💎</div></div>
         
@@ -139,7 +136,7 @@
       <div id="myMinersList" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
 
-    <!-- تب ۳: فروشگاه (ویدیوهای زنده با کادر اختصاصی) -->
+    <!-- تب ۳: فروشگاه -->
     <div id="tab-shop" class="section">
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">فروشگاه ماینرها</h2></header>
       <div class="card card-cyan" style="text-align: right; background: rgba(0, 255, 136, 0.05); margin-bottom: 15px;">
@@ -149,7 +146,6 @@
         </p>
       </div>
       
-      <!-- ماینر پرو (۳ ماهه) -->
       <div class="card card-blue" style="text-align: right; display: flex; align-items: center; gap: 12px;">
         <div style="background: rgba(56,189,248,0.1); border: 1px solid #38bdf8; padding: 6px; border-radius: 12px; text-align:center;">
           <video src="pro.mp4" autoplay loop muted playsinline class="shop-miner-vid" id="shopVidPro"></video>
@@ -163,7 +159,6 @@
         </div>
       </div>
       
-      <!-- ماینر توربو (۶ ماهه) -->
       <div class="card card-yellow" style="text-align: right; display: flex; align-items: center; gap: 12px;">
         <div style="background: rgba(250,204,21,0.1); border: 1px solid #facc15; padding: 6px; border-radius: 12px; text-align:center;">
           <video src="turbo.mp4" autoplay loop muted playsinline class="shop-miner-vid" id="shopVidTurbo"></video>
@@ -177,7 +172,6 @@
         </div>
       </div>
 
-      <!-- ماینر اینفینیتی (دائمی) -->
       <div class="card card-purple" style="text-align: right; display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg, rgba(168,85,247,0.05) 0%, rgba(15,23,42,1) 100%);">
         <div style="background: rgba(168,85,247,0.15); border: 1px solid #a855f7; padding: 6px; border-radius: 12px; text-align:center;">
           <video src="vip.mp4" autoplay loop muted playsinline class="shop-miner-vid" id="shopVidVip"></video>
@@ -347,7 +341,10 @@
       <b style="color: #fff;">⚙️ بخش ماینرها:</b> لیست دستگاه‌های فعال شما و اعتبار زمانی آن‌ها را نشان می‌دهد.<br><br>
       <b style="color: #fff;">🛒 بخش فروشگاه:</b> خرید دستگاه باعث افزایش چشمگیر سرعت استخراج می‌شود. ماینرهای پایه زمان‌دار و ماینر VIP دائمی است.<br><br>
       <b style="color: #fff;">💳 بخش کیف پول:</b> برداشت به صورت تومانی یا ترون در این قسمت انجام می‌شود.<br><br>
-      <b style="color: #fff;">👥 بخش پاداش (دعوت):</b> با دعوت هر دوست، او <b style="color:#00ff88;">۵,۰۰۰ تومان</b> پاداش ورود می‌گیرد و شما <b style="color:#facc15;">۱۰,۰۰۰ تومان</b> نقد به همراه <b style="color:#38bdf8;">۵٪ از کل سود استخراج</b> او را برای همیشه دریافت می‌کنید!
+      <div style="background: rgba(250, 204, 21, 0.1); border: 1px solid rgba(250, 204, 21, 0.3); padding: 10px; border-radius: 8px; margin-top: 12px; text-align: justify;">
+        <b style="color: #facc15;">👥 بخش پاداش (دعوت):</b><br>
+        با دعوت هر دوست، او <b style="color:#00ff88;">۵,۰۰۰ تومان</b> پاداش ورود می‌گیرد و شما <b style="color:#facc15;">۱۰,۰۰۰ تومان</b> نقد به همراه <b style="color:#38bdf8;">۵٪ از کل سود استخراج</b> او را برای همیشه دریافت می‌کنید!
+      </div>
     </div>
     <button class="btn-blue" onclick="document.getElementById('guideModal').style.display='none'" style="margin-top: 15px;">متوجه شدم ✕</button>
   </div>
@@ -497,6 +494,8 @@
   
   let activeChatTicketId = null;
   let activeChatUsername = null;
+  
+  let localSyncTimer = 0; 
 
   function showCustomAlert(msg, icon = '✅') {
     document.getElementById('customAlertIcon').innerText = icon;
@@ -510,6 +509,7 @@
   async function loadDataFromServer() {
     try {
       let res = await fetch(`${API_URL}/api/get_all?t=${Date.now()}`, { cache: "no-store" });
+      if(!res.ok) return false;
       let data = await res.json();
       if(data) {
         db = data;
@@ -524,8 +524,13 @@
           if(db['_ADMIN_DATA_'].cryptoRates) cryptoRates = db['_ADMIN_DATA_'].cryptoRates;
           if(db['_ADMIN_DATA_'].globalNotice) globalNotice = db['_ADMIN_DATA_'].globalNotice;
         }
+        return true;
       }
-    } catch (err) { console.log(err); }
+      return false;
+    } catch (err) { 
+      console.log(err); 
+      return false;
+    }
   }
 
   let saveQueue = Promise.resolve();
@@ -628,17 +633,41 @@
     let p = document.getElementById('passwordInput').value.trim();
     if(!u || !p) { showCustomAlert("لطفاً نام کاربری و رمز عبور را وارد کنید.", "⚠️"); return; }
     
+    // استخراج دقیق و ایمن آیدی عددی کاربر از تلگرام
+    let tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    let tgId = tgUser ? tgUser.id : null;
+
+    if (!tgId) {
+        showCustomAlert("برای حفظ امنیت حساب، لطفاً مینی‌اپ را مستقیماً از داخل تلگرام باز کنید.", "🔒");
+        return;
+    }
+
     let btn = document.getElementById('registerBtn');
     let origBtnText = btn.innerText;
     btn.innerText = "در حال ارتباط با سرور... ⏳";
     btn.disabled = true;
 
-    await loadDataFromServer();
+    // بارگیری دیتابیس و بررسی ترافیک
+    let isLoaded = await loadDataFromServer();
+    if(!isLoaded && Object.keys(db).length === 0) {
+        showCustomAlert("ارتباط با سرور برقرار نشد (ترافیک بالا). لطفاً چند دقیقه دیگر تلاش کنید.", "❌");
+        btn.innerText = origBtnText; btn.disabled = false;
+        return;
+    }
     
     if (u === '_ADMIN_DATA_') { 
         showCustomAlert("نام کاربری نامعتبر است.", "❌"); 
         btn.innerText = origBtnText; btn.disabled = false;
         return; 
+    }
+    
+    // سد دفاعی اول: جستجو در دیتابیس برای پیدا کردن اکانت دیگر با همین آیدی تلگرام
+    let existingUsernameForTgId = null;
+    for (let key in db) {
+        if (key !== '_ADMIN_DATA_' && db[key].tgId === tgId) {
+            existingUsernameForTgId = key;
+            break;
+        }
     }
 
     currentUser = u;
@@ -646,6 +675,13 @@
     let realInviter = null;
 
     if(!db[u]) {
+      // کاربر جدید
+      if (existingUsernameForTgId) {
+          showCustomAlert(`شما قبلاً با نام کاربری [ ${existingUsernameForTgId} ] در سیستم ثبت‌نام کرده‌اید. لطفاً با همان حساب وارد شوید. هر اکانت تلگرام فقط مجاز به داشتن یک مزرعه است.`, "🚫");
+          btn.innerText = origBtnText; btn.disabled = false;
+          return;
+      }
+
       isNewUser = true;
       let manualCode = document.getElementById('refCodeInput').value.trim();
       let autoCode = extractInviter();
@@ -654,7 +690,8 @@
       if (realInviter && realInviter.toLowerCase() === u.toLowerCase()) realInviter = null;
 
       db[u] = { 
-        password: p, 
+        password: p,
+        tgId: tgId, // ذخیره قفل آیدی تلگرام
         mined: realInviter ? 5000 : 0, 
         miners: [{ name: "ماینر رایگان پایه", hashrate: "68.4 TH/s", maxDaily: 35000 }], 
         withdrawHistory: [], 
@@ -676,11 +713,25 @@
           db[realInviter].referrals = (db[realInviter].referrals || 0) + 1;
       }
     } else {
+      // ورود کاربر قدیمی
       if(db[u].password !== p) { 
-          showCustomAlert("⚠️ این نام کاربری قبلاً ثبت شده است!\n\nاگر این حساب شماست، رمز عبور اشتباه است.\nاگر کاربر جدید هستید، لطفاً یک نام کاربری دیگر انتخاب کنید.", "❌"); 
+          showCustomAlert("⚠️ رمز عبور اشتباه است.", "❌"); 
           btn.innerText = origBtnText; btn.disabled = false;
           return; 
       }
+      
+      // سد دفاعی دوم: قفل ضد سرقت (آیدی فعلی تلگرام با آیدی ثبت شده مطابقت داشته باشد)
+      if (db[u].tgId) {
+          if (db[u].tgId !== tgId) {
+              showCustomAlert("🚫 خطا! این حساب کاربری به اکانت تلگرام دیگری متصل است و شما اجازه ورود به آن را ندارید.", "🚨");
+              btn.innerText = origBtnText; btn.disabled = false;
+              return;
+          }
+      } else {
+          // اکانت‌های قدیمی که آیدی نداشتند، الان به آیدی تلگرام متصل و قفل می‌شوند
+          db[u].tgId = tgId;
+      }
+
       isNewUser = false;
       if(!db[u].tickets) db[u].tickets = []; 
       if(!db[u].purchaseHistory) db[u].purchaseHistory = []; 
@@ -706,7 +757,7 @@
 
     if (isNewUser) {
         if (realInviter) setTimeout(() => showCustomAlert(`ثبت‌نام موفق! شما با دعوت ${realInviter} وارد شدید و ۵,۰۰۰ تومان پاداش ورود گرفتید.`, "🎁"), 500);
-        else setTimeout(() => showCustomAlert(`ثبت‌نام شما با موفقیت انجام شد.`, "✅"), 500);
+        else setTimeout(() => showCustomAlert(`ثبت‌نام شما با موفقیت انجام شد. حساب شما به اکانت تلگرام شما قفل شد.`, "✅"), 500);
     } else {
         setTimeout(() => showCustomAlert(`ورود موفق! خوش آمدید.`, "✅"), 500);
     }
@@ -1041,17 +1092,26 @@
     miningInterval = setInterval(() => {
       let u = db[currentUser];
       if(u && u.isMining) {
-        if(Date.now() - (u.miningStartTime || Date.now()) >= 86400000) { checkBackgroundMining(); updateUI(); }
+        if(Date.now() - (u.miningStartTime || Date.now()) >= 86400000) { 
+            checkBackgroundMining(); updateUI(); 
+        }
         else { 
            let amount = (getTotalMaxDaily(u) / 86400);
            u.mined += amount; 
            
            if (u.referredBy && db[u.referredBy]) {
                db[u.referredBy].mined += (amount * 0.05);
-               inviterSyncCounter++;
-               if (inviterSyncCounter >= 10) { saveDB(u.referredBy); inviterSyncCounter = 0; }
            }
-           u.lastMiningTime = Date.now(); saveDB(); updateUI(); 
+           u.lastMiningTime = Date.now();
+           
+           updateUI(); 
+           
+           localSyncTimer++;
+           if (localSyncTimer >= 15) {
+               saveDB();
+               if (u.referredBy && db[u.referredBy]) saveDB(u.referredBy);
+               localSyncTimer = 0;
+           }
         }
       }
     }, 1000);
@@ -1208,7 +1268,6 @@
     await saveDB(); await saveGlobalAdminData();
     btn.innerText = orig; btn.disabled = false;
     
-    // پیام اصلاح شده و هوشمند بعد از ثبت رسید
     showCustomAlert(`رسید شما با موفقیت ثبت شد. بعد از بررسی توسط مدیریت، ماینر ${selectedMachineToBuy.name} برای شما فعال می‌شود. از بخش حساب کاربری می‌توانید وضعیت خرید خود را پیگیری کنید.`, "✅"); 
     closeCheckout(); 
   }
@@ -1252,7 +1311,6 @@
         total++;
         if(q && !u.toLowerCase().includes(q)) continue;
         
-        // استخراج و ساخت لیست تاریخچه برداشت برای ادمین
         let wHistoryHTML = "";
         if(db[u].withdrawHistory && db[u].withdrawHistory.length > 0) {
             wHistoryHTML = "<div style='margin-top:8px; border-top:1px solid #444; padding-top:8px;'><b style='color:#facc15; font-size:11px;'>تاریخچه برداشت‌ها:</b><ul style='list-style:none; padding:0; margin-top:4px;'>";
