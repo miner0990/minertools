@@ -218,7 +218,7 @@
       <header style="margin-bottom: 15px;"><h2 style="color: #facc15; font-size: 20px;">👥 دعوت + پاداش</h2></header>
       <div class="card card-yellow" style="text-align: right; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);">
         <h3 style="color: #facc15; font-size: 15px; margin-bottom: 8px; text-align: center;">⚡ استخراج مشترک!</h3>
-        <p style="font-size: 11px; color: #94a3b8; line-height: 1.6; text-align: center; margin-bottom: 12px;">زیرمجموعه شما باید <b style="color: #fff;">کد معرف شما را در صفحه ثبت‌نام وارد کند</b> تا <b>۱۰,۰۰۰ تومان پول نقد</b> و <b>۵٪ از سود استخراجش</b> برای همیشه مال شما شود. او نیز <b>۵,۰۰۰ تومان پاداش ورود</b> می‌گیرد!</p>
+        <p style="font-size: 11px; color: #94a3b8; line-height: 1.6; text-align: center; margin-bottom: 12px;">زیرمجموعه شما کافیست <b style="color: #fff;">روی لینک دعوت شما بزند</b> و با اولین استخراجش <b>۱۰,۰۰۰ تومان پول نقد</b> و <b>۵٪ از سود استخراجش</b> برای همیشه مال شما شود. او نیز <b>۵,۰۰۰ تومان پاداش ورود</b> می‌گیرد!</p>
       </div>
       
       <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; border: 1.5px dashed #facc15; font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 14px;">
@@ -435,6 +435,10 @@
       <p style="font-size:11px; color:#aaa; margin-bottom:10px;">متن دلخواه خود را بنویسید (بدون درج لینک). سیستم به صورت خودکار کد دعوت و لینک را فقط در انتهای این متن اضافه می‌کند.</p>
       <textarea id="editBannerText" class="select-box" style="height:120px; margin-bottom:15px; line-height: 1.6;"></textarea>
       <button onclick="saveAdminBanner()" class="btn-yellow">ذخیره متن بنر ✅</button>
+      <h4 style="margin-top: 25px; border-top: 1px solid #333; padding-top: 15px;">پیام خوش‌آمد ربات</h4>
+      <p style="font-size:11px; color:#aaa; margin-bottom:10px;">این پیام وقتی کسی ربات را استارت کند (یا روی لینک دعوت بزند) همراه دکمه «ورود به مینی‌اپ» ارسال می‌شود. به‌جای {name} اسم کوچک کاربر قرار می‌گیرد.</p>
+      <textarea id="editBotWelcomeText" class="select-box" style="height:140px; margin-bottom:15px; line-height: 1.6;"></textarea>
+      <button onclick="saveBotWelcomeText()" class="btn-yellow">ذخیره پیام خوش‌آمد ربات ✅</button>
     </div>
     <div id="adminTab-channels" class="admin-tab-content" style="display: none;">
       <h4>مدیریت کانال‌های تلگرام (عضویت اجباری)</h4>
@@ -497,6 +501,35 @@
   
   let localSyncTimer = 0; 
 
+  // ---- Safe saving: send only what this phone changed, and the balance as a difference ----
+  const SYNC_FIELDS = ['password', 'tgId', 'deviceId', 'miners', 'withdrawHistory', 'purchaseHistory', 'lastMiningTime', 'miningStartTime',
+                       'isMining', 'isChannelJoined', 'lastBonusTime', 'miningCrypto', 'tickets', 'refCode', 'referredBy'];
+  let syncBase = {};          // what the server had for each user when this phone last loaded/saved it
+  let newUsers = new Set();   // users created on this phone that are not on the server yet
+  function fieldJson(v) { return JSON.stringify(v === undefined ? null : v); }
+  function takeSnapshot(name) {
+    let u = db[name]; if (!u) return;
+    let f = {}; SYNC_FIELDS.forEach(k => f[k] = fieldJson(u[k]));
+    syncBase[name] = { fields: f, mined: Number(u.mined) || 0, referrals: Number(u.referrals) || 0 };
+  }
+  function resetSyncBase() { syncBase = {}; for (let k in db) { if (k !== '_ADMIN_DATA_') takeSnapshot(k); } }
+  async function syncBeforeChange() { await saveDB(); await loadDataFromServer(); }
+
+  // Referral rewards are given on the friend's first mining (accounts made before this change were rewarded at sign-up)
+  const REF_ON_FIRST_MINING_SINCE = 1793566490914;
+  function grantFirstMiningReferral(u) {
+    if (!u || !u.referredBy || u.miningStartTime) return false;
+    if ((u.lastMiningTime || 0) < REF_ON_FIRST_MINING_SINCE) return false;
+    u.mined += 5000;
+    let inv = db[u.referredBy];
+    if (inv) {
+      inv.mined = (Number(inv.mined) || 0) + 10000;
+      inv.referrals = (Number(inv.referrals) || 0) + 1;
+      saveDB(u.referredBy);
+    }
+    return true;
+  }
+
   function showCustomAlert(msg, icon = '✅') {
     document.getElementById('customAlertIcon').innerText = icon;
     document.getElementById('customAlertText').innerText = msg;
@@ -521,6 +554,7 @@
         let data = await res.json();
         if(data) {
           db = data;
+          resetSyncBase();
           localStorage.setItem('minertools_db_backup', JSON.stringify(db));
           
           if(db['_ADMIN_DATA_']) {
@@ -545,6 +579,7 @@
     if(backup) {
         try {
             db = JSON.parse(backup);
+            resetSyncBase();
             if(db['_ADMIN_DATA_']) {
                 allWithdrawals = db['_ADMIN_DATA_'].allWithdrawals || [];
                 pendingReceipts = db['_ADMIN_DATA_'].pendingReceipts || [];
@@ -571,14 +606,36 @@
     
     let p = new Promise(resolve => {
         saveQueue = saveQueue.then(async () => {
+          let rec = db[u];
+          if (!rec) { resolve(); return; }
+          let base = syncBase[u];
+          let creating = newUsers.has(u) || !base;
+          let body;
+          if (creating) {
+            body = { mode: 'v2', create: true, username: u, userData: rec };
+          } else {
+            let changes = {};
+            SYNC_FIELDS.forEach(k => { if (fieldJson(rec[k]) !== base.fields[k]) changes[k] = rec[k] === undefined ? null : rec[k]; });
+            let minedDelta = (Number(rec.mined) || 0) - base.mined;
+            let referralsDelta = (Number(rec.referrals) || 0) - base.referrals;
+            if (!Object.keys(changes).length && Math.abs(minedDelta) < 1e-9 && referralsDelta === 0) { resolve(); return; }
+            body = { mode: 'v2', username: u, changes: changes, minedDelta: minedDelta, referralsDelta: referralsDelta };
+          }
+          takeSnapshot(u);   // assume success; put the old snapshot back if the save fails
           try {
-            await fetch(`${API_URL}/api/update`, { 
+            let res = await fetch(`${API_URL}/api/update`, { 
                 method: 'POST', 
                 headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ username: u, userData: db[u] }) 
+                body: JSON.stringify(body) 
             });
+            let out = await res.json().catch(() => null);
+            if (out && out.status === 'success') { newUsers.delete(u); }
+            else {
+              if (base) syncBase[u] = base; else delete syncBase[u];
+              if (out && out.code === 'not_found') newUsers.add(u);
+            }
             await new Promise(r => setTimeout(r, 400)); 
-          } catch(e) {}
+          } catch(e) { if (base) syncBase[u] = base; else delete syncBase[u]; }
           resolve();
         });
     });
@@ -720,7 +777,7 @@
         password: p,
         tgId: currentTgId,       
         deviceId: currentDeviceId, 
-        mined: realInviter ? 5000 : 0, 
+        mined: 0, 
         miners: [{ name: "ماینر رایگان پایه", hashrate: "68.4 TH/s", maxDaily: 35000 }], 
         withdrawHistory: [], 
         purchaseHistory: [], 
@@ -736,10 +793,7 @@
         referredBy: realInviter
       };
 
-      if (realInviter) {
-          db[realInviter].mined += 10000;
-          db[realInviter].referrals = (db[realInviter].referrals || 0) + 1;
-      }
+      newUsers.add(u);
     } else {
       if(db[u].password !== p) { 
           showCustomAlert("⚠️ رمز عبور اشتباه است.", "❌"); 
@@ -763,9 +817,6 @@
     }
     
     await saveDB(u); 
-    if (isNewUser && realInviter) {
-        await saveDB(realInviter); 
-    }
 
     checkBackgroundMining();
     document.getElementById('tab-welcome').classList.remove('active');
@@ -780,7 +831,7 @@
     btn.disabled = false;
 
     if (isNewUser) {
-        if (realInviter) setTimeout(() => showCustomAlert(`ثبت‌نام موفق! شما با دعوت ${realInviter} وارد شدید و ۵,۰۰۰ تومان پاداش ورود گرفتید.`, "🎁"), 500);
+        if (realInviter) setTimeout(() => showCustomAlert(`ثبت‌نام موفق! شما با دعوت ${realInviter} وارد شدید. با اولین استخراج، ۵,۰۰۰ تومان پاداش ورود می‌گیرید.`, "🎁"), 500);
         else setTimeout(() => showCustomAlert(`ثبت‌نام شما با موفقیت انجام شد.`, "✅"), 500);
     } else {
         setTimeout(() => showCustomAlert(`ورود موفق! خوش آمدید.`, "✅"), 500);
@@ -795,12 +846,12 @@
   function getInviteMessage() { 
       let myCode = db[currentUser]?.refCode || currentUser;
       let cleanText = getCleanedBannerText();
-      return cleanText + "\n\n🎁 کد معرف من: " + myCode + "\nلینک ورود:\nhttps://t.me/minernew_vibot/minertools?startapp=" + myCode; 
+      return cleanText + "\n\n🎁 کد معرف من: " + myCode + "\nلینک ورود:\nhttps://t.me/minernew_vibot?start=" + myCode; 
   }
   
   function shareToTelegram() { 
       let myCode = db[currentUser]?.refCode || currentUser;
-      window.open('https://t.me/share/url?url=' + encodeURIComponent("https://t.me/minernew_vibot/minertools?startapp=" + myCode) + '&text=' + encodeURIComponent(getInviteMessage())); 
+      window.open('https://t.me/share/url?url=' + encodeURIComponent("https://t.me/minernew_vibot?start=" + myCode) + '&text=' + encodeURIComponent(getInviteMessage())); 
   }
   
   function copyShareText() { 
@@ -908,7 +959,7 @@
     document.getElementById('myRefCodeDisplay').innerText = u.refCode;
     
     let cleanHTML = getCleanedBannerText().replace(/\n/g, '<br>');
-    let shareHTML = cleanHTML + '<br><br>🎁 کد معرف من: <b style="color:#facc15;">' + u.refCode + '</b><br><span style="color: #00ff88; font-size:11px;">https://t.me/minernew_vibot/minertools?startapp=' + u.refCode + '</span>';
+    let shareHTML = cleanHTML + '<br><br>🎁 کد معرف من: <b style="color:#facc15;">' + u.refCode + '</b><br><span style="color: #00ff88; font-size:11px;">https://t.me/minernew_vibot?start=' + u.refCode + '</span>';
     document.getElementById('shareTextTemplate').innerHTML = shareHTML;
     
     let hasPro = activeMiners.some(m => m.name.includes("پرو"));
@@ -1017,8 +1068,10 @@
                 
                 if (data.status === "success" && data.joined === true) {
                    btn.innerText = origText; btn.disabled = false;
+                   let rewarded = grantFirstMiningReferral(u);
                    u.isMining = true; u.miningStartTime = Date.now(); u.lastMiningTime = Date.now();
                    saveDB(); updateUI();
+                   if (rewarded) showCustomAlert("🎁 ۵,۰۰۰ تومان پاداش ورود به کیف پول شما اضافه شد.", "🎁");
                    return;
                 } else {
                    btn.innerText = origText; btn.disabled = false;
@@ -1029,7 +1082,9 @@
         }
         renderModalChannels(); document.getElementById('channelModal').style.display = 'flex'; return; 
       }
+      let rewarded = grantFirstMiningReferral(u);
       u.isMining = true; u.miningStartTime = Date.now(); u.lastMiningTime = Date.now();
+      if (rewarded) setTimeout(() => showCustomAlert("🎁 ۵,۰۰۰ تومان پاداش ورود به کیف پول شما اضافه شد.", "🎁"), 300);
     } else {
       u.isMining = false;
     }
@@ -1066,10 +1121,11 @@
         let data = await res.json();
 
         if (data.status === "success" && data.joined === true) {
+           let rewarded = grantFirstMiningReferral(db[currentUser]);
            db[currentUser].isChannelJoined = true; db[currentUser].isMining = true;
            db[currentUser].miningStartTime = Date.now(); db[currentUser].lastMiningTime = Date.now();
            saveDB(); document.getElementById('channelModal').style.display = 'none';
-           showCustomAlert("عضویت شما با موفقیت تایید شد! استخراج آغاز می‌شود.", "✅"); updateUI();
+           showCustomAlert("عضویت شما با موفقیت تایید شد! استخراج آغاز می‌شود." + (rewarded ? "\n🎁 ۵,۰۰۰ تومان پاداش ورود هم به کیف پول شما اضافه شد." : ""), "✅"); updateUI();
            btn.innerText = originalText; btn.disabled = false;
         } else {
            btn.innerText = "درحال تایید نهایی از تلگرام... ⏳";
@@ -1082,10 +1138,11 @@
                    let dataRetry = await resRetry.json();
                    
                    if (dataRetry.status === "success" && dataRetry.joined === true) {
+                       let rewarded = grantFirstMiningReferral(db[currentUser]);
                        db[currentUser].isChannelJoined = true; db[currentUser].isMining = true;
                        db[currentUser].miningStartTime = Date.now(); db[currentUser].lastMiningTime = Date.now();
                        saveDB(); document.getElementById('channelModal').style.display = 'none';
-                       showCustomAlert("عضویت شما با موفقیت تایید شد! استخراج آغاز می‌شود.", "✅"); updateUI();
+                       showCustomAlert("عضویت شما با موفقیت تایید شد! استخراج آغاز می‌شود." + (rewarded ? "\n🎁 ۵,۰۰۰ تومان پاداش ورود هم به کیف پول شما اضافه شد." : ""), "✅"); updateUI();
                    } else { showCustomAlert("شما هنوز در تمام کانال‌ها عضو نشده‌اید.", "❌"); }
                } catch (errRetry) { showCustomAlert("خطا در تایید تلگرام.", "❌"); }
                btn.innerText = originalText; btn.disabled = false;
@@ -1160,9 +1217,11 @@
   async function submitTomanWithdraw() {
     let u = db[currentUser], c = document.getElementById('wCardNumber').value, h = document.getElementById('wCardHolder').value, a = parseInt(document.getElementById('wTomanAmount').value);
     if(c.length < 16 || !h || a <= 0 || a > u.mined) return showCustomAlert("اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست.", "❌");
+    let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
+    await syncBeforeChange(); u = db[currentUser];
+    if(!u || a > u.mined) { btn.innerText = orig; btn.disabled = false; updateUI(); return showCustomAlert("اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست.", "❌"); }
     u.mined -= a; let w = { id: Date.now(), username: currentUser, type: "تومانی", details: c + " (" + h + ")", amount: a, status: "در حال بررسی ⏳" };
     u.withdrawHistory.unshift(w); allWithdrawals.unshift(w);
-    let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
     await saveDB(); await saveGlobalAdminData(); updateUI(); 
     btn.innerText = orig; btn.disabled = false;
     showCustomAlert("درخواست برداشت تومانی شما با موفقیت ثبت شد و هم‌اکنون در حال بررسی است.", "✅");
@@ -1170,9 +1229,11 @@
   async function submitCryptoWithdraw() {
     let u = db[currentUser], ad = document.getElementById('wCryptoAddress').value, a = parseInt(document.getElementById('wCryptoAmount').value);
     if(!ad || a <= 0 || a > u.mined) return showCustomAlert("اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست.", "❌");
+    let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
+    await syncBeforeChange(); u = db[currentUser];
+    if(!u || a > u.mined) { btn.innerText = orig; btn.disabled = false; updateUI(); return showCustomAlert("اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست.", "❌"); }
     u.mined -= a; let w = { id: Date.now(), username: currentUser, type: "TRC20", details: ad, amount: a, status: "در حال بررسی ⏳" };
     u.withdrawHistory.unshift(w); allWithdrawals.unshift(w);
-    let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
     await saveDB(); await saveGlobalAdminData(); updateUI(); 
     btn.innerText = orig; btn.disabled = false;
     showCustomAlert("درخواست برداشت ترون شما با موفقیت ثبت شد.", "✅");
@@ -1187,9 +1248,11 @@
     document.getElementById('accountWithdrawHistory').innerHTML = h || "هنوز برداشتی ثبت نشده.";
   }
 
-  function openNewTicketPrompt() {
+  async function openNewTicketPrompt() {
     let sub = prompt("موضوع تیکت خود را کوتاه بنویسید:"); if(!sub) return;
     let txt = prompt("پیام کامل خود را بنویسید:"); if(!txt) return;
+    await syncBeforeChange();
+    if(!db[currentUser]) return;
     db[currentUser].tickets.unshift({ id: Date.now(), subject: sub, status: "در حال بررسی ⏳", messages: [ { sender: currentUser, text: txt, time: new Date().toLocaleTimeString('fa-IR') } ] });
     saveDB(); renderUserTickets(); 
     showCustomAlert("تیکت شما با موفقیت ثبت شد.", "✅");
@@ -1235,19 +1298,23 @@
   async function sendTicketMessage() {
     let inp = document.getElementById('tcReplyInput');
     let text = inp.value.trim(); if(!text) return;
-    let t = db[activeChatUsername].tickets.find(x => x.id === activeChatTicketId);
+    let btn = event.target; btn.innerText = "..."; btn.disabled = true;
+    await syncBeforeChange();
+    let t = db[activeChatUsername] && db[activeChatUsername].tickets.find(x => x.id === activeChatTicketId);
+    if(!t) { btn.innerText = "ارسال"; btn.disabled = false; return; }
     t.messages.push({ sender: isAdminLoggedIn ? 'admin' : activeChatUsername, text: text, time: new Date().toLocaleTimeString('fa-IR') });
     t.status = isAdminLoggedIn ? "پاسخ داده شده 💬" : "در حال بررسی ⏳";
     inp.value = ''; renderTicketMessages();
-    let btn = event.target; btn.innerText = "..."; btn.disabled = true;
     if(!isAdminLoggedIn) { await saveDB(); renderUserTickets(); } else { await saveDB(activeChatUsername); renderAdminTickets(); }
     btn.innerText = "ارسال"; btn.disabled = false;
   }
 
   async function closeActiveTicket() {
-    let t = db[activeChatUsername].tickets.find(x => x.id === activeChatTicketId);
-    t.status = "بسته شده 🔒";
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
+    await syncBeforeChange();
+    let t = db[activeChatUsername] && db[activeChatUsername].tickets.find(x => x.id === activeChatTicketId);
+    if(!t) { btn.innerText = orig; btn.disabled = false; return; }
+    t.status = "بسته شده 🔒";
     await saveDB(activeChatUsername);
     btn.innerText = orig; btn.disabled = false;
     document.getElementById('ticketChatModal').style.display = 'none';
@@ -1322,6 +1389,7 @@
           document.getElementById('adminNoticeLink').value = globalNotice.link || ''; 
       }
       btn.innerText = "ورود به مدیریت"; btn.disabled = false; document.getElementById('adminDashboardPanel').style.display = 'block';
+      loadBotWelcomeText();
     } else showCustomAlert("رمز عبور ادمین اشتباه است!", "❌");
   }
   function closeAdminDashboard() { document.getElementById('adminDashboardPanel').style.display = 'none'; isAdminLoggedIn = false; }
@@ -1389,6 +1457,23 @@
       saveGlobalAdminData().then(() => { showCustomAlert("متن بنر بروزرسانی شد!", "✅"); if(currentUser) updateUI(); });
   }
   
+  async function loadBotWelcomeText() {
+      try {
+          let res = await fetch(`${API_URL}/api/bot_welcome`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+          let data = await res.json();
+          if (data && data.status === 'success') document.getElementById('editBotWelcomeText').value = data.text;
+      } catch(e) {}
+  }
+  async function saveBotWelcomeText() {
+      let text = document.getElementById('editBotWelcomeText').value.trim();
+      try {
+          let res = await fetch(`${API_URL}/api/bot_welcome_set`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: text }) });
+          let data = await res.json();
+          if (data && data.status === 'success') { document.getElementById('editBotWelcomeText').value = data.text; showCustomAlert("پیام خوش‌آمد ربات ذخیره شد.", "✅"); }
+          else showCustomAlert("ذخیره پیام خوش‌آمد انجام نشد.", "❌");
+      } catch(e) { showCustomAlert("خطای ارتباط با شبکه. لطفاً دوباره تلاش کنید.", "❌"); }
+  }
+
   function saveAdminDailyBonus() { dailyBonusAmount = parseInt(document.getElementById('editBonusAmount').value); showCustomAlert("مبلغ پاداش ذخیره شد.", "✅"); }
   
   function saveAdminAnnouncement() { 
@@ -1522,7 +1607,7 @@
     let n = document.getElementById('changeUsernameInput').value.trim();
     if(!n || db[n] || n === '_ADMIN_DATA_') return showCustomAlert("نام کاربری نامعتبر یا تکراری است.", "❌");
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
-    db[n] = db[currentUser]; delete db[currentUser]; currentUser = n; 
+    db[n] = db[currentUser]; delete db[currentUser]; currentUser = n; newUsers.add(n); 
     await saveDB(); document.getElementById('userGreeting').innerText = "کاربر: " + currentUser; 
     btn.innerText = orig; btn.disabled = false; showCustomAlert("نام کاربری با موفقیت تغییر کرد.", "✅");
   }
