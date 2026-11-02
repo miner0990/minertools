@@ -85,7 +85,10 @@
     <div id="tab-home" class="section active">
       <div class="top-header">
         <div><h3 style="font-size: 16px; color: #00ff88;" id="userGreeting">سلام کاربر</h3><span style="font-size: 10px; color: #94a3b8;" id="statusText">وضعیت: آماده به کار 💤</span></div>
-        <div class="wallet-box"><span style="font-size: 9px; color: #94a3b8; display: block;">موجودی کل ولت</span><span style="font-size: 12px; font-weight: bold; color: #00ff88;" id="headerWallet">0.0000 USDT</span></div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="wallet-box"><span style="font-size: 9px; color: #94a3b8; display: block;">موجودی کل ولت</span><span style="font-size: 12px; font-weight: bold; color: #00ff88;" id="headerWallet">0.0000 USDT</span></div>
+          <button id="soundToggleBtn" onclick="toggleSound()" title="صدا" style="width: 34px; height: 34px; border-radius: 50%; background: #030712; border: 1.5px solid #334155; color: #fff; font-size: 15px; cursor: pointer; padding: 0; flex-shrink: 0;">🔊</button>
+        </div>
       </div>
       <button class="btn-blue" style="width: 100%; margin: 0 0 14px 0; background: #1e293b !important; border: 1px solid #38bdf8 !important; padding: 10px; font-size: 12px;" onclick="document.getElementById('guideModal').style.display='flex'">📖 راهنمای استفاده از مزرعه و فروشگاه</button>
       <div class="card card-cyan" style="text-align: right; padding: 12px; margin-bottom: 14px;">
@@ -560,6 +563,118 @@
     }
     return true;
   }
+
+  // ---- Minimal sounds: a soft click for buttons and a quiet miner hum while mining ----
+  // Made with Web Audio (no sound files). On/off is remembered on this phone.
+  const MTSound = (() => {
+    let ctx = null, hum = null, enabled = true;
+    try { enabled = localStorage.getItem('minertools_sound') !== 'off'; } catch (e) {}
+
+    function getCtx() {
+      if (!ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        try { ctx = new AC(); } catch (e) { return null; }
+      }
+      return ctx;
+    }
+    // short soft "tick"
+    function playClick(c, dest, t) {
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(1100, t);
+      o.frequency.exponentialRampToValueAtTime(620, t + 0.05);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.05, t + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+      o.connect(g); g.connect(dest);
+      o.start(t); o.stop(t + 0.08);
+    }
+    // quiet fan-like hum with a slow, gentle pulse
+    function makeHum(c, dest, t) {
+      const len = Math.floor(c.sampleRate * 3), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+      let last = 0;
+      for (let i = 0; i < len; i++) { last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02; d[i] = last * 3.5; }
+      const drift = d[len - 1] - d[0];
+      for (let i = 0; i < len; i++) d[i] -= drift * i / (len - 1);     // seamless loop
+      const src = c.createBufferSource(); src.buffer = buf; src.loop = true;
+      const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 480;
+      const tone = c.createOscillator(); tone.type = 'sine'; tone.frequency.value = 92;
+      const toneG = c.createGain(); toneG.gain.value = 0.22;
+      const master = c.createGain();
+      master.gain.setValueAtTime(0, t);
+      master.gain.linearRampToValueAtTime(0.045, t + 1.2);
+      const lfo = c.createOscillator(); lfo.frequency.value = 0.22;
+      const lfoG = c.createGain(); lfoG.gain.value = 0.01;
+      lfo.connect(lfoG); lfoG.connect(master.gain);
+      src.connect(lp); lp.connect(master);
+      tone.connect(toneG); toneG.connect(master);
+      master.connect(dest);
+      src.start(t); tone.start(t); lfo.start(t);
+      return { src, tone, lfo, master };
+    }
+    function startHum() {
+      const c = getCtx();
+      if (hum || !c || c.state !== 'running') return;
+      hum = makeHum(c, c.destination, c.currentTime);
+    }
+    function stopHum() {
+      if (!hum || !ctx) { hum = null; return; }
+      const h = hum, t = ctx.currentTime; hum = null;
+      try {
+        h.master.gain.cancelScheduledValues(t);
+        h.master.gain.setValueAtTime(h.master.gain.value, t);
+        h.master.gain.linearRampToValueAtTime(0, t + 0.4);
+        [h.src, h.tone, h.lfo].forEach(n => n.stop(t + 0.5));
+      } catch (e) {}
+    }
+    function shouldHum() {
+      try {
+        const u = db[currentUser];
+        if (!u || !u.isMining) return false;
+        if (document.visibilityState !== 'visible') return false;
+        if (document.getElementById('mainScene').style.display === 'none') return false;
+        if (!document.getElementById('tab-home').classList.contains('active')) return false;
+        if (document.getElementById('adminDashboardPanel').style.display === 'block') return false;
+        return true;
+      } catch (e) { return false; }
+    }
+    function update() { if (enabled && shouldHum()) startHum(); else stopHum(); }
+    function click() {
+      if (!enabled) return;
+      const c = getCtx(); if (!c) return;
+      if (c.state !== 'running') { c.resume().then(() => playClick(c, c.destination, c.currentTime)).catch(() => {}); return; }
+      playClick(c, c.destination, c.currentTime);
+    }
+    // browsers allow sound only after the user touches the page
+    function unlock() {
+      const c = getCtx(); if (!c) return;
+      if (c.state !== 'running') c.resume().then(update).catch(() => {}); else update();
+    }
+    function setIcon() { const b = document.getElementById('soundToggleBtn'); if (b) b.innerText = enabled ? '🔊' : '🔇'; }
+    function toggle() {
+      enabled = !enabled;
+      try { localStorage.setItem('minertools_sound', enabled ? 'on' : 'off'); } catch (e) {}
+      setIcon();
+      if (enabled) { unlock(); click(); } else stopHum();
+    }
+
+    document.addEventListener('pointerdown', unlock, { passive: true });
+    document.addEventListener('touchstart', unlock, { passive: true });
+    document.addEventListener('click', (e) => {
+      const el = e.target && e.target.closest ? e.target.closest('button, a.btn-blue, a.btn-yellow, .nav-item') : null;
+      if (!el || el.disabled || el.id === 'soundToggleBtn') return;
+      click();
+    }, true);
+    document.addEventListener('visibilitychange', update);
+    window.addEventListener('pagehide', stopHum);
+    document.addEventListener('DOMContentLoaded', setIcon);
+    setIcon();
+
+    return { update, toggle, isOn: () => enabled, isHumming: () => !!hum, _playClick: playClick, _makeHum: makeHum };
+  })();
+  function toggleSound() { MTSound.toggle(); }
+  function updateMinerSound() { MTSound.update(); }
 
   function showCustomAlert(msg, icon = '✅') {
     document.getElementById('customAlertIcon').innerText = icon;
@@ -1081,6 +1196,7 @@
     }
 
     renderWithdrawHistory(); renderPurchaseHistory(); renderMyMiners(); renderUserTickets(); renderLeaderboard();
+    updateMinerSound();
   }
 
   function renderMyMiners() {
@@ -1273,6 +1389,7 @@
     document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
     document.getElementById('tab-' + t).classList.add('active');
     if(el) el.classList.add('active');
+    updateMinerSound();
     
     if(t === 'shop') {
         document.querySelectorAll('.shop-miner-vid').forEach(v => {
@@ -1462,7 +1579,7 @@
       loadBotWelcomeText(); loadBotMsgs(); loadBotLinks();
     } else showCustomAlert("رمز عبور ادمین اشتباه است!", "❌");
   }
-  function closeAdminDashboard() { document.getElementById('adminDashboardPanel').style.display = 'none'; isAdminLoggedIn = false; }
+  function closeAdminDashboard() { document.getElementById('adminDashboardPanel').style.display = 'none'; isAdminLoggedIn = false; updateMinerSound(); }
 
   function switchAdminTab(t) { document.querySelectorAll('.admin-tab-content').forEach(e => e.style.display='none'); document.getElementById('adminTab-'+t).style.display='block'; }
 
