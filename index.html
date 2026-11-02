@@ -554,13 +554,7 @@
   function grantFirstMiningReferral(u) {
     if (!u || !u.referredBy || u.miningStartTime) return false;
     if ((u.lastMiningTime || 0) < REF_ON_FIRST_MINING_SINCE) return false;
-    u.mined += 5000;
-    let inv = db[u.referredBy];
-    if (inv) {
-      inv.mined = (Number(inv.mined) || 0) + 10000;
-      inv.referrals = (Number(inv.referrals) || 0) + 1;
-      saveDB(u.referredBy);
-    }
+    u.mined += 5000;   // the inviter's 10,000 and +1 referral are added by the server
     return true;
   }
 
@@ -685,6 +679,21 @@
     document.getElementById('customAlertModal').style.display = 'none';
   }
 
+  // ---- Security: every request to the server carries Telegram's signed login data ----
+  let adminToken = null, authAlertShown = false;
+  function apiFetch(url, options) {
+    options = options || {};
+    let h = Object.assign({}, options.headers || {});
+    let initData = window.Telegram?.WebApp?.initData || '';
+    if (initData) h['X-Telegram-Init-Data'] = initData;
+    if (adminToken) h['X-Admin-Token'] = adminToken;
+    options.headers = h;
+    return fetch(url, options).then(res => {
+      if (res.status === 401 && !authAlertShown) { authAlertShown = true; showCustomAlert("لطفاً مینی‌اپ را ببندید و دوباره از داخل ربات تلگرام باز کنید.", "⚠️"); }
+      return res;
+    });
+  }
+
   async function loadDataFromServer() {
     let controller = window.AbortController ? new AbortController() : null;
     let timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
@@ -693,7 +702,7 @@
       let options = { cache: "no-store" };
       if(controller) options.signal = controller.signal;
       
-      let res = await fetch(`${API_URL}/api/get_all?t=${Date.now()}`, options);
+      let res = await apiFetch(`${API_URL}/api/get_all?t=${Date.now()}&u=${encodeURIComponent(currentUser || '')}`, options);
       if(timeoutId) clearTimeout(timeoutId);
       
       if(res.ok) {
@@ -769,7 +778,7 @@
           }
           takeSnapshot(u);   // assume success; put the old snapshot back if the save fails
           try {
-            let res = await fetch(`${API_URL}/api/update`, { 
+            let res = await apiFetch(`${API_URL}/api/update`, { 
                 method: 'POST', 
                 headers: { 'Content-Type': 'application/json' }, 
                 body: JSON.stringify(body) 
@@ -805,7 +814,7 @@
     let p = new Promise(resolve => {
         saveQueue = saveQueue.then(async () => {
           try {
-            await fetch(`${API_URL}/api/update`, { 
+            await apiFetch(`${API_URL}/api/update`, { 
                 method: 'POST', 
                 headers: { 'Content-Type': 'application/json' }, 
                 body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) 
@@ -871,7 +880,7 @@
     if (!initData) return showCustomAlert("لطفاً مینی‌اپ را از داخل ربات تلگرام باز کنید تا حساب شما پیدا شود.", "⚠️");
     let btn = document.getElementById('recoverBtn'); let orig = btn.innerText; btn.innerText = "در حال جستجوی حساب شما... ⏳"; btn.disabled = true;
     try {
-      let res = await fetch(`${API_URL}/api/recover`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData: initData }) });
+      let res = await apiFetch(`${API_URL}/api/recover`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData: initData }) });
       let data = await res.json();
       if (data && data.status === 'success') {
         recoverName = data.username;
@@ -889,7 +898,7 @@
     if (p1 !== p2) return showCustomAlert("دو رمز وارد شده یکسان نیستند.", "⚠️");
     let btn = document.getElementById('recoverSaveBtn'); let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
     try {
-      let res = await fetch(`${API_URL}/api/reset_password`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      let res = await apiFetch(`${API_URL}/api/reset_password`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ initData: window.Telegram?.WebApp?.initData || '', username: recoverName, newPassword: p1 }) });
       let data = await res.json();
       btn.innerText = orig; btn.disabled = false;
@@ -921,86 +930,46 @@
     btn.innerText = "در حال بررسی... ⏳";
     btn.disabled = true;
 
-    await loadDataFromServer();
-    
     if (u === '_ADMIN_DATA_') { 
         showCustomAlert("نام کاربری نامعتبر است.", "❌"); 
         btn.innerText = origBtnText; btn.disabled = false;
         return; 
     }
-    
-    let existingUserForDevice = null;
-    for (let key in db) {
-        if (key !== '_ADMIN_DATA_') {
-            if ((currentTgId && db[key].tgId === currentTgId) || (db[key].deviceId === currentDeviceId)) {
-                existingUserForDevice = key;
-                break;
-            }
-        }
+    if (!window.Telegram?.WebApp?.initData) {
+        showCustomAlert("لطفاً مینی‌اپ را حتماً از داخل برنامه تلگرام باز کنید.", "⚠️");
+        btn.innerText = origBtnText; btn.disabled = false;
+        return;
     }
 
-    currentUser = u;
-    let isNewUser = false;
-    let realInviter = null;
+    let manualCode = document.getElementById('refCodeInput').value.trim();
+    let autoCode = extractInviter();
+    let rawCode = manualCode ? manualCode : autoCode;
 
-    if(!db[u]) {
-      if (existingUserForDevice) {
-          showCustomAlert(`شما قبلاً با نام کاربری [ ${existingUserForDevice} ] ثبت‌نام کرده‌اید. هر گوشی/اکانت فقط مجاز به داشتن یک مزرعه است.`, "🚫");
-          btn.innerText = origBtnText; btn.disabled = false;
-          return;
-      }
-
-      isNewUser = true;
-      let manualCode = document.getElementById('refCodeInput').value.trim();
-      let autoCode = extractInviter();
-      let rawCode = manualCode ? manualCode : autoCode;
-      realInviter = findRealUsername(rawCode);
-      if (realInviter && realInviter.toLowerCase() === u.toLowerCase()) realInviter = null;
-
-      db[u] = { 
-        password: p,
-        tgId: currentTgId,       
-        deviceId: currentDeviceId, 
-        mined: 0, 
-        miners: [{ name: "ماینر رایگان پایه", hashrate: "68.4 TH/s", maxDaily: 35000 }], 
-        withdrawHistory: [], 
-        purchaseHistory: [], 
-        lastMiningTime: Date.now(), 
-        miningStartTime: 0, 
-        isMining: false, 
-        isChannelJoined: false, 
-        lastBonusTime: 0, 
-        miningCrypto: 'USDT', 
-        referrals: 0, 
-        tickets: [],
-        refCode: "REF" + Math.floor(10000 + Math.random() * 90000), 
-        referredBy: realInviter
-      };
-
-      newUsers.add(u);
-    } else {
-      if(db[u].password !== p) { 
-          showCustomAlert("⚠️ رمز عبور اشتباه است.", "❌"); 
-          btn.innerText = origBtnText; btn.disabled = false;
-          return; 
-      }
-      
-      if (!db[u].tgId && currentTgId) db[u].tgId = currentTgId;
-      if (!db[u].deviceId) db[u].deviceId = currentDeviceId;
-
-      if (db[u].tgId && currentTgId && db[u].tgId !== currentTgId) {
-          showCustomAlert("🚫 این حساب به اکانت تلگرام دیگری متصل است و شما اجازه ورود ندارید.", "🚨");
-          btn.innerText = origBtnText; btn.disabled = false;
-          return;
-      }
-
-      isNewUser = false;
-      if(!db[u].tickets) db[u].tickets = []; 
-      if(!db[u].purchaseHistory) db[u].purchaseHistory = []; 
-      if(!db[u].refCode) db[u].refCode = "REF" + Math.floor(10000 + Math.random() * 90000); 
+    let login = null;
+    try {
+        let res = await apiFetch(`${API_URL}/api/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: u, password: p, refCode: rawCode || '', deviceId: currentDeviceId }) });
+        login = await res.json();
+    } catch(e) { login = null; }
+    if (!login || login.status !== 'success') {
+        showCustomAlert((login && login.message) || "خطای ارتباط شبکه. لطفاً دوباره تلاش کنید.", (login && login.icon) || "❌");
+        btn.innerText = origBtnText; btn.disabled = false;
+        return;
     }
-    
-    await saveDB(u); 
+
+    currentUser = login.username;
+    let isNewUser = !!login.isNew;
+    let realInviter = login.inviter || null;
+    await loadDataFromServer();
+    if (!db[currentUser]) {
+        showCustomAlert("خطای ارتباط شبکه. لطفاً دوباره تلاش کنید.", "❌");
+        btn.innerText = origBtnText; btn.disabled = false;
+        return;
+    }
+    if(!db[currentUser].tickets) db[currentUser].tickets = []; 
+    if(!db[currentUser].purchaseHistory) db[currentUser].purchaseHistory = []; 
+    if(!db[currentUser].refCode) db[currentUser].refCode = "REF" + Math.floor(10000 + Math.random() * 90000); 
+    await saveDB(currentUser); 
 
     checkBackgroundMining();
     document.getElementById('tab-welcome').classList.remove('active');
@@ -1088,11 +1057,7 @@
       }
       
       if (minedAmount > 0) {
-         u.mined += minedAmount;
-         if (u.referredBy && db[u.referredBy]) {
-             db[u.referredBy].mined += (minedAmount * 0.05);
-             saveDB(u.referredBy);
-         }
+         u.mined += minedAmount;   // the inviter's 5% is added by the server
       }
       saveDB();
     }
@@ -1245,7 +1210,7 @@
             btn.disabled = true;
             try {
                 let channelLinks = mandatoryChannels.map(c => sanitizeChannelLink(c.link));
-                let res = await fetch(`${API_URL}/api/check_membership`, {
+                let res = await apiFetch(`${API_URL}/api/check_membership`, {
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
                     body: JSON.stringify({ user_id: userId, channels: channelLinks })
@@ -1297,7 +1262,7 @@
     let channelLinks = mandatoryChannels.map(c => sanitizeChannelLink(c.link));
 
     try {
-        let res = await fetch(`${API_URL}/api/check_membership`, {
+        let res = await apiFetch(`${API_URL}/api/check_membership`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
             body: JSON.stringify({ user_id: userId, channels: channelLinks })
@@ -1317,7 +1282,7 @@
            btn.innerText = "درحال تایید نهایی از تلگرام... ⏳";
            setTimeout(async () => {
                try {
-                   let resRetry = await fetch(`${API_URL}/api/check_membership`, {
+                   let resRetry = await apiFetch(`${API_URL}/api/check_membership`, {
                        method: 'POST', headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
                        body: JSON.stringify({ user_id: userId, channels: channelLinks })
                    });
@@ -1364,11 +1329,7 @@
         }
         else { 
            let amount = (getTotalMaxDaily(u) / 86400);
-           u.mined += amount; 
-           
-           if (u.referredBy && db[u.referredBy]) {
-               db[u.referredBy].mined += (amount * 0.05);
-           }
+           u.mined += amount;   // the inviter's 5% is added by the server
            u.lastMiningTime = Date.now();
            
            updateUI(); 
@@ -1376,7 +1337,6 @@
            localSyncTimer++;
            if (localSyncTimer >= 15) {
                saveDB();
-               if (u.referredBy && db[u.referredBy]) saveDB(u.referredBy);
                localSyncTimer = 0;
            }
         }
@@ -1555,7 +1515,17 @@
 
   async function verifyAdminPassword() {
     let btn = event.target;
-    if(document.getElementById('adminPasswordInput').value === "Safasafa0990@") {
+    let pass = document.getElementById('adminPasswordInput').value;
+    let check = null;
+    btn.innerText = "صبر کنید..."; btn.disabled = true;
+    try {
+      let res = await apiFetch(`${API_URL}/api/admin_login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pass }) });
+      check = await res.json();
+    } catch(e) { check = null; }
+    btn.innerText = "ورود به مدیریت"; btn.disabled = false;
+    if (check && check.status === 'success') {
+      adminToken = check.adminToken;
+      document.getElementById('adminPasswordInput').value = '';
       btn.innerText = "صبر کنید..."; btn.disabled = true;
       closeAdminLoginModal();
       await loadDataFromServer(); isAdminLoggedIn = true;
@@ -1577,9 +1547,16 @@
       }
       btn.innerText = "ورود به مدیریت"; btn.disabled = false; document.getElementById('adminDashboardPanel').style.display = 'block';
       loadBotWelcomeText(); loadBotMsgs(); loadBotLinks();
-    } else showCustomAlert("رمز عبور ادمین اشتباه است!", "❌");
+    } else showCustomAlert((check && check.message) || "رمز عبور ادمین اشتباه است!", "❌");
   }
-  function closeAdminDashboard() { document.getElementById('adminDashboardPanel').style.display = 'none'; isAdminLoggedIn = false; updateMinerSound(); }
+  function closeAdminDashboard() {
+    document.getElementById('adminDashboardPanel').style.display = 'none'; isAdminLoggedIn = false; updateMinerSound();
+    if (adminToken) {
+      apiFetch(`${API_URL}/api/admin_logout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }).catch(() => {});
+      adminToken = null;
+      if (currentUser) loadDataFromServer().then(() => { if (db[currentUser]) updateUI(); });
+    }
+  }
 
   function switchAdminTab(t) { document.querySelectorAll('.admin-tab-content').forEach(e => e.style.display='none'); document.getElementById('adminTab-'+t).style.display='block'; }
 
@@ -1681,7 +1658,7 @@
   async function loadBotMsgs() {
     renderBotMsgs();
     try {
-      let res = await fetch(`${API_URL}/api/bot_msgs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      let res = await apiFetch(`${API_URL}/api/bot_msgs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
       let data = await res.json();
       if (data && data.status === 'success') {
         BOT_MSG_DEFS.forEach(d => {
@@ -1695,7 +1672,7 @@
   function linkToId(u) { let m = String(u || '').match(/^https:\/\/t\.me\/([A-Za-z][A-Za-z0-9_]{3,31})$/); return m ? '@' + m[1] : (u || ''); }
   async function loadBotLinks() {
     try {
-      let res = await fetch(`${API_URL}/api/bot_links`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      let res = await apiFetch(`${API_URL}/api/bot_links`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
       let data = await res.json();
       if (data && data.status === 'success') {
         document.getElementById('botLinkSupport').value = linkToId(data.support);
@@ -1706,7 +1683,7 @@
   async function saveBotLinks() {
     let support = document.getElementById('botLinkSupport').value.trim(), channel = document.getElementById('botLinkChannel').value.trim();
     try {
-      let res = await fetch(`${API_URL}/api/bot_links_set`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ support: support, channel: channel }) });
+      let res = await apiFetch(`${API_URL}/api/bot_links_set`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ support: support, channel: channel }) });
       let data = await res.json();
       if (data && data.status === 'success') {
         document.getElementById('botLinkSupport').value = linkToId(data.support);
@@ -1719,7 +1696,7 @@
   async function saveBotMsg(name) {
     let enabled = document.getElementById('botMsgOn-' + name).checked, text = document.getElementById('botMsgText-' + name).value.trim();
     try {
-      let res = await fetch(`${API_URL}/api/bot_msg_set`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name, enabled: enabled, text: text }) });
+      let res = await apiFetch(`${API_URL}/api/bot_msg_set`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name, enabled: enabled, text: text }) });
       let data = await res.json();
       if (data && data.status === 'success') {
         document.getElementById('botMsgOn-' + name).checked = !!data.enabled;
@@ -1731,7 +1708,7 @@
 
   async function loadBotWelcomeText() {
       try {
-          let res = await fetch(`${API_URL}/api/bot_welcome`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+          let res = await apiFetch(`${API_URL}/api/bot_welcome`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
           let data = await res.json();
           if (data && data.status === 'success') document.getElementById('editBotWelcomeText').value = data.text;
       } catch(e) {}
@@ -1739,7 +1716,7 @@
   async function saveBotWelcomeText() {
       let text = document.getElementById('editBotWelcomeText').value.trim();
       try {
-          let res = await fetch(`${API_URL}/api/bot_welcome_set`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: text }) });
+          let res = await apiFetch(`${API_URL}/api/bot_welcome_set`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: text }) });
           let data = await res.json();
           if (data && data.status === 'success') { document.getElementById('editBotWelcomeText').value = data.text; showCustomAlert("پیام خوش‌آمد ربات ذخیره شد.", "✅"); }
           else showCustomAlert("ذخیره پیام خوش‌آمد انجام نشد.", "❌");
@@ -1877,10 +1854,19 @@
   
   async function updateUsername() {
     let n = document.getElementById('changeUsernameInput').value.trim();
-    if(!n || db[n] || n === '_ADMIN_DATA_') return showCustomAlert("نام کاربری نامعتبر یا تکراری است.", "❌");
+    if(!n || n === currentUser || n === '_ADMIN_DATA_') return showCustomAlert("نام کاربری نامعتبر یا تکراری است.", "❌");
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
-    db[n] = db[currentUser]; delete db[currentUser]; currentUser = n; newUsers.add(n); 
-    await saveDB(); document.getElementById('userGreeting').innerText = "کاربر: " + currentUser; 
+    await saveDB();
+    let r = null;
+    try {
+      let res = await apiFetch(`${API_URL}/api/rename`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: currentUser, newName: n }) });
+      r = await res.json();
+    } catch(e) { r = null; }
+    if (!r || r.status !== 'success') { btn.innerText = orig; btn.disabled = false; return showCustomAlert((r && r.message) || "خطای ارتباط شبکه. لطفاً دوباره تلاش کنید.", "❌"); }
+    db[n] = db[currentUser]; db[n].username = n; delete db[currentUser];
+    if (syncBase[currentUser]) { syncBase[n] = syncBase[currentUser]; delete syncBase[currentUser]; }
+    currentUser = n;
+    document.getElementById('userGreeting').innerText = "کاربر: " + currentUser; 
     btn.innerText = orig; btn.disabled = false; showCustomAlert("نام کاربری با موفقیت تغییر کرد.", "✅");
   }
   
