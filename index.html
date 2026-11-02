@@ -487,6 +487,15 @@
     <div id="adminTab-botmsgs" class="admin-tab-content" style="display: none;">
       <h4>پیام‌های اطلاع‌رسانی ربات</h4>
       <p style="font-size:11px; color:#aaa; margin: 6px 0 15px 0; line-height: 1.7;">ربات این پیام‌ها را خودکار برای کاربر می‌فرستد. هر پیام را می‌توانید روشن/خاموش کنید و متنش را تغییر دهید. جای‌خالی‌ها (مثل {username}) هنگام ارسال با اطلاعات کاربر پر می‌شوند. پیام فقط به کسانی می‌رسد که ربات را حداقل یک بار استارت کرده باشند.</p>
+      <div style="background:#252538; padding:12px; border-radius:8px; margin-bottom:15px; border:1px solid #8e44ad;">
+        <b style="font-size:13px;">🔗 دکمه‌های پشتیبانی و کانال</b>
+        <p style="font-size:10px; color:#aaa; margin:6px 0 10px 0; line-height:1.7;">این دو دکمه زیر پیام خوش‌آمد و همه پیام‌های ربات، زیر دکمه «🚀 ورود به استخراج ارز دیجیتال» نمایش داده می‌شوند. آیدی را به شکل @username یا لینک t.me وارد کنید. اگر خالی بماند، آن دکمه نمایش داده نمی‌شود.</p>
+        <label style="font-size:11px; color:#ccc;">🎧 آیدی پشتیبانی (اکانت شخصی شما):</label>
+        <input type="text" id="botLinkSupport" class="select-box" dir="ltr" placeholder="@YourID" style="margin:4px 0 10px 0; text-align:left;">
+        <label style="font-size:11px; color:#ccc;">📢 آیدی کانال رسمی:</label>
+        <input type="text" id="botLinkChannel" class="select-box" dir="ltr" placeholder="@MinerToolsChannel" style="margin:4px 0 10px 0; text-align:left;">
+        <button class="btn-yellow" style="margin-top:0; padding:8px; font-size:12px;" onclick="saveBotLinks()">ذخیره دکمه‌ها ✅</button>
+      </div>
       <div id="botMsgsList"></div>
     </div>
     <div id="adminTab-receipts" class="admin-tab-content" style="display: none;"><h4>رسیدهای خرید</h4><div id="adminReceiptsList" style="margin-top: 15px;"></div></div>
@@ -1450,7 +1459,7 @@
           document.getElementById('adminNoticeLink').value = globalNotice.link || ''; 
       }
       btn.innerText = "ورود به مدیریت"; btn.disabled = false; document.getElementById('adminDashboardPanel').style.display = 'block';
-      loadBotWelcomeText(); loadBotMsgs();
+      loadBotWelcomeText(); loadBotMsgs(); loadBotLinks();
     } else showCustomAlert("رمز عبور ادمین اشتباه است!", "❌");
   }
   function closeAdminDashboard() { document.getElementById('adminDashboardPanel').style.display = 'none'; isAdminLoggedIn = false; }
@@ -1566,6 +1575,30 @@
       }
     } catch(e) {}
   }
+  function linkToId(u) { let m = String(u || '').match(/^https:\/\/t\.me\/([A-Za-z][A-Za-z0-9_]{3,31})$/); return m ? '@' + m[1] : (u || ''); }
+  async function loadBotLinks() {
+    try {
+      let res = await fetch(`${API_URL}/api/bot_links`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      let data = await res.json();
+      if (data && data.status === 'success') {
+        document.getElementById('botLinkSupport').value = linkToId(data.support);
+        document.getElementById('botLinkChannel').value = linkToId(data.channel);
+      }
+    } catch(e) {}
+  }
+  async function saveBotLinks() {
+    let support = document.getElementById('botLinkSupport').value.trim(), channel = document.getElementById('botLinkChannel').value.trim();
+    try {
+      let res = await fetch(`${API_URL}/api/bot_links_set`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ support: support, channel: channel }) });
+      let data = await res.json();
+      if (data && data.status === 'success') {
+        document.getElementById('botLinkSupport').value = linkToId(data.support);
+        document.getElementById('botLinkChannel').value = linkToId(data.channel);
+        showCustomAlert("دکمه‌های پشتیبانی و کانال ذخیره شدند.", "✅");
+      } else showCustomAlert((data && data.message) || "ذخیره انجام نشد.", "❌");
+    } catch(e) { showCustomAlert("خطای ارتباط با شبکه. لطفاً دوباره تلاش کنید.", "❌"); }
+  }
+
   async function saveBotMsg(name) {
     let enabled = document.getElementById('botMsgOn-' + name).checked, text = document.getElementById('botMsgText-' + name).value.trim();
     try {
