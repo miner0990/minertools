@@ -1090,8 +1090,14 @@
     document.getElementById('machineTitle').innerText = latestMinerName + " (فعال و در حال استخراج ⚡)";
 
     document.getElementById('dailyLimitLabel').innerText = `موجودی استخراج شده (سقف: ${tMax.toLocaleString()})`;
-    document.getElementById('progressBar').style.width = (tMax > 0 ? Math.min(100, (u.mined / tMax) * 100) : 0) + "%";
-    document.getElementById('progressText').innerText = Math.floor(tMax > 0 ? Math.min(100, (u.mined / tMax) * 100) : 0) + "% از ظرفیت کلی";
+    // progress of the current 24h mining round (starts again from 0 each time mining is started)
+    let roundPct = 0, rStart = Number(u.miningStartTime) || 0;
+    if (tMax > 0 && rStart > 0) {
+      let rEnd = u.isMining ? Date.now() : (Number(u.lastMiningTime) || rStart);
+      roundPct = Math.max(0, Math.min(100, (Math.min(rEnd, rStart + 86400000) - rStart) / 864000));
+    }
+    document.getElementById('progressBar').style.width = roundPct + "%";
+    document.getElementById('progressText').innerText = Math.floor(roundPct) + "% از ظرفیت کلی";
 
     document.getElementById('accValToman').innerText = toman.toLocaleString() + " تومان";
     document.getElementById('accValUsdt').innerText = usdt + " USDT";
