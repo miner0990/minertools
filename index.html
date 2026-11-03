@@ -1091,6 +1091,7 @@
 
     document.getElementById('dailyLimitLabel').innerText = `موجودی استخراج شده (سقف: ${tMax.toLocaleString()})`;
     document.getElementById('progressBar').style.width = (tMax > 0 ? Math.min(100, (u.mined / tMax) * 100) : 0) + "%";
+    document.getElementById('progressText').innerText = Math.floor(tMax > 0 ? Math.min(100, (u.mined / tMax) * 100) : 0) + "% از ظرفیت کلی";
 
     document.getElementById('accValToman').innerText = toman.toLocaleString() + " تومان";
     document.getElementById('accValUsdt').innerText = usdt + " USDT";
