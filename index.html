@@ -570,6 +570,17 @@
 
   // Referral rewards are given on the friend's first mining (accounts made before this change were rewarded at sign-up)
   const REF_ON_FIRST_MINING_SINCE = 1793566490914;
+  // Start mining. After "stop", pressing start again continues the same 24h round (bar, percent and
+  // today's amount carry on from where they were). A new round starts only when the previous one was
+  // finished, or when the miner was stopped for more than 24 hours.
+  function beginMiningRound(u) {
+    let now = Date.now(), st = Number(u.miningStartTime) || 0, last = Number(u.lastMiningTime) || st;
+    let done = st > 0 ? Math.min(Math.max(last, st), st + 86400000) - st : 0;   // time already mined in this round
+    if (st > 0 && done > 0 && done < 86400000 - 60000 && now - last < 86400000) u.miningStartTime = now - done;
+    else u.miningStartTime = now;
+    u.lastMiningTime = now; u.isMining = true;
+  }
+
   function grantFirstMiningReferral(u) {
     if (!u || !u.referredBy || u.miningStartTime) return false;
     if ((u.lastMiningTime || 0) < REF_ON_FIRST_MINING_SINCE) return false;
@@ -1263,7 +1274,7 @@
                 if (data.status === "success" && data.joined === true) {
                    btn.innerText = origText; btn.disabled = false;
                    let rewarded = grantFirstMiningReferral(u);
-                   u.isMining = true; u.miningStartTime = Date.now(); u.lastMiningTime = Date.now();
+                   beginMiningRound(u);
                    saveDB(); updateUI();
                    if (rewarded) showCustomAlert("🎁 ۵,۰۰۰ تومان پاداش ورود به کیف پول شما اضافه شد.", "🎁");
                    return;
@@ -1277,7 +1288,7 @@
         renderModalChannels(); document.getElementById('channelModal').style.display = 'flex'; return; 
       }
       let rewarded = grantFirstMiningReferral(u);
-      u.isMining = true; u.miningStartTime = Date.now(); u.lastMiningTime = Date.now();
+      beginMiningRound(u);
       if (rewarded) setTimeout(() => showCustomAlert("🎁 ۵,۰۰۰ تومان پاداش ورود به کیف پول شما اضافه شد.", "🎁"), 300);
     } else {
       u.isMining = false;
@@ -1316,8 +1327,8 @@
 
         if (data.status === "success" && data.joined === true) {
            let rewarded = grantFirstMiningReferral(db[currentUser]);
-           db[currentUser].isChannelJoined = true; db[currentUser].isMining = true;
-           db[currentUser].miningStartTime = Date.now(); db[currentUser].lastMiningTime = Date.now();
+           db[currentUser].isChannelJoined = true; 
+           beginMiningRound(db[currentUser]);
            saveDB(); document.getElementById('channelModal').style.display = 'none';
            showCustomAlert("عضویت شما با موفقیت تایید شد! استخراج آغاز می‌شود." + (rewarded ? "\n🎁 ۵,۰۰۰ تومان پاداش ورود هم به کیف پول شما اضافه شد." : ""), "✅"); updateUI();
            btn.innerText = originalText; btn.disabled = false;
@@ -1333,8 +1344,8 @@
                    
                    if (dataRetry.status === "success" && dataRetry.joined === true) {
                        let rewarded = grantFirstMiningReferral(db[currentUser]);
-                       db[currentUser].isChannelJoined = true; db[currentUser].isMining = true;
-                       db[currentUser].miningStartTime = Date.now(); db[currentUser].lastMiningTime = Date.now();
+                       db[currentUser].isChannelJoined = true; 
+                       beginMiningRound(db[currentUser]);
                        saveDB(); document.getElementById('channelModal').style.display = 'none';
                        showCustomAlert("عضویت شما با موفقیت تایید شد! استخراج آغاز می‌شود." + (rewarded ? "\n🎁 ۵,۰۰۰ تومان پاداش ورود هم به کیف پول شما اضافه شد." : ""), "✅"); updateUI();
                    } else { showCustomAlert("شما هنوز در تمام کانال‌ها عضو نشده‌اید.", "❌"); }
