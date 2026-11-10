@@ -43,7 +43,23 @@
     @keyframes floatUp { 0% { transform: translateY(0) scale(0.8); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(-40px) scale(1.1); opacity: 0; } }
     
     .shop-miner-vid { width: 90px; height: 90px; object-fit: contain; border-radius: 8px; background: transparent; }
-  </style>
+    /* live hash feed under the miner (only while mining) */
+  .hash-feed { max-height: 0; opacity: 0; overflow: hidden; margin: 0; padding: 0 12px; border-radius: 12px;
+    background: linear-gradient(180deg, #0c1117, #06080c); border: 0 solid transparent; position: relative;
+    transition: max-height .45s ease, opacity .35s ease, margin .45s ease, padding .45s ease, border-color .45s ease; }
+  .hash-feed.on { max-height: 96px; opacity: 1; margin: -4px 0 14px; padding: 9px 12px 8px; border: 1px solid #273142; }
+  .hash-feed::after { content: ''; position: absolute; top: 0; bottom: 0; width: 60px; left: -80px; pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(148,163,184,.10), transparent); animation: hfSweep 2.6s linear infinite; }
+  .hf-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; direction: rtl; }
+  .hf-title { font-size: 10px; color: #94a3b8; }
+  .hf-live { display: inline-flex; align-items: center; gap: 5px; direction: ltr; font: 700 9px/1 Consolas, "Courier New", monospace; letter-spacing: 1.5px;
+    color: #cbd5e1; border: 1px solid #3a4454; border-radius: 5px; padding: 3px 7px; }
+  .hf-live i { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 6px #22c55e; animation: hfBlink 1s ease-in-out infinite; }
+  .hf-line { direction: ltr; text-align: left; font: 12px/1.6 Consolas, "Courier New", monospace; letter-spacing: 1.2px; color: #6b7685; white-space: nowrap; overflow: hidden; }
+  .hf-line span { color: #8b95a5; } .hf-line b { color: #e5e7eb; font-weight: 600; }
+  @keyframes hfBlink { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+  @keyframes hfSweep { from { left: -80px; } to { left: 110%; } }
+</style>
 </head>
 <body>
 
@@ -118,6 +134,12 @@
         </div>
         
         <h3 style="font-size: 14px; color: #facc15;" id="machineTitle">ماینر رایگان (آماده استخراج)</h3>
+      </div>
+
+      <div id="hashFeed" class="hash-feed" aria-hidden="true">
+        <div class="hf-head"><span class="hf-title">⛏ در حال پردازش هش‌ها</span><span class="hf-live"><i></i>LIVE</span></div>
+        <div class="hf-line" id="hfL1"></div>
+        <div class="hf-line" id="hfL2"></div>
       </div>
       
       <div class="card card-yellow">
@@ -1109,8 +1131,25 @@
     }
   }
 
+  let hashFeedTimer = null;
+  function hfHex(n) { let h = '0123456789abcdef', s = ''; for (let i = 0; i < n; i++) s += h[Math.floor(Math.random() * 16)]; return s; }
+  function hashFeedTick() {
+    if (document.hidden) return;
+    let l1 = document.getElementById('hfL1'), l2 = document.getElementById('hfL2'); if (!l1 || !l2) return;
+    l1.innerHTML = `<span>hash </span>${'*'.repeat(10 + Math.floor(Math.random() * 3))}<b>${hfHex(6)}</b>`;
+    l2.innerHTML = `<span>nonce</span> ${'*'.repeat(5)} ${'*'.repeat(6)} ${'*'.repeat(4)}<b>${hfHex(4)}</b>`;
+  }
+  function updateHashFeed(u) {
+    let el = document.getElementById('hashFeed'); if (!el) return;
+    let on = !!(u && u.isMining);
+    el.classList.toggle('on', on);
+    if (on && !hashFeedTimer) { hashFeedTick(); hashFeedTimer = setInterval(hashFeedTick, 150); }
+    if (!on && hashFeedTimer) { clearInterval(hashFeedTimer); hashFeedTimer = null; }
+  }
+
   function updateUI() {
     let u = db[currentUser];
+    updateHashFeed(u);
     if(!u) return;
     
     if(!u.refCode) { u.refCode = "REF" + Math.floor(10000 + Math.random() * 90000); saveDB(); }
