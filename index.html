@@ -1172,7 +1172,9 @@
     let activeMiners = getActiveMiners(u);
     let latestMinerName = activeMiners.length > 0 ? activeMiners[activeMiners.length - 1].name : "بدون ماینر";
     document.getElementById('activeMachineName').innerText = latestMinerName;
-    document.getElementById('machineTitle').innerText = latestMinerName + " (فعال و در حال استخراج ⚡)";
+    let mTitle = document.getElementById('machineTitle');
+    mTitle.innerText = latestMinerName + (u.isMining ? " (فعال و در حال استخراج ⚡)" : " (متوقف شده ⏸️)");
+    mTitle.style.color = u.isMining ? "#facc15" : "#94a3b8";
 
     document.getElementById('dailyLimitLabel').innerText = `موجودی کل شما (سقف استخراج روزانه: ${tMax.toLocaleString()})`;
     // progress of the current 24h mining round (starts again from 0 each time mining is started)
