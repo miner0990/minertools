@@ -1430,7 +1430,7 @@
            updateUI(); 
            
            localSyncTimer++;
-           if (localSyncTimer >= 15) {
+           if (localSyncTimer >= 60) {   // save to the server once a minute (was every 15 s)
                saveDB();
                localSyncTimer = 0;
            }
