@@ -228,6 +228,7 @@
         <input type="text" class="select-box" id="wCardHolder" placeholder="نام صاحب کارت" style="margin-bottom: 10px; text-align: right;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;"><label style="font-size: 12px; color: #94a3b8;">مقدار برداشت (تومان):</label><span style="font-size: 11px; color: #00ff88; cursor: pointer;" onclick="setMaxToman()">کل موجودی ⚡</span></div>
         <input type="number" class="select-box" id="wTomanAmount" placeholder="مبلغ..." style="margin-bottom: 15px; text-align: right;">
+        <div style="font-size: 11px; color: #94a3b8; margin: -8px 0 12px;">حداقل برداشت: <span class="wMinLabel">30,000</span> تومان · هر روز فقط یک درخواست برداشت</div>
         <button class="btn-yellow" style="margin-top:0;" onclick="submitTomanWithdraw()">ثبت برداشت تومانی ✅</button>
       </div>
 
@@ -235,6 +236,7 @@
         <h3 style="color: #38bdf8; font-size: 14px; margin-bottom: 6px;">برداشت ترون روی شبکه TRC20</h3>
         <input type="text" class="select-box" id="wCryptoAddress" placeholder="آدرس ولت ترون (TRC20)..." style="margin-bottom: 10px; text-align: left;" dir="ltr">
         <input type="number" class="select-box" id="wCryptoAmount" placeholder="مبلغ درخواستی معادل تومان..." style="margin-bottom: 15px; text-align: right;">
+        <div style="font-size: 11px; color: #94a3b8; margin: -8px 0 12px;">حداقل برداشت: <span class="wMinLabel">30,000</span> تومان · هر روز فقط یک درخواست برداشت</div>
         <button class="btn-blue" style="margin-top:0;" onclick="submitCryptoWithdraw()">ثبت برداشت ترون 🪙</button>
       </div>
       <div class="card" style="text-align: right; margin-top: 15px;">
@@ -521,6 +523,13 @@
         <input type="text" inputmode="decimal" id="editTrxPrice" class="select-box" style="margin-bottom: 8px;" placeholder="قیمت یک ترون (مثلا 6000)">
         <input type="text" inputmode="decimal" id="editBtcPrice" class="select-box" style="margin-bottom: 10px;" placeholder="قیمت یک بیت‌کوین (مثلا 4200000000)">
         <button onclick="saveAdminPrices()" class="btn-yellow">ذخیره قیمت ارزها 🔄</button>
+      </div>
+      <div style="margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom:15px;">
+        <h4 style="color: #facc15; margin-bottom: 10px;">تنظیمات برداشت</h4>
+        <label style="font-size: 12px; color: #94a3b8;">حداقل مبلغ برداشت (تومان):</label>
+        <input type="text" inputmode="numeric" id="editWithdrawMin" class="select-box" style="margin: 6px 0 8px;" placeholder="مثلاً 30000">
+        <div style="font-size: 11px; color: #777; margin-bottom: 10px;">هر کاربر روزانه فقط یک درخواست برداشت (تومانی یا ترون) می‌تواند ثبت کند؛ روز از ساعت ۰۰:۰۰ به وقت ایران شروع می‌شود.</div>
+        <button onclick="saveAdminWithdrawMin()" class="btn-yellow">ذخیره تنظیمات برداشت 💾</button>
       </div>
       <div style="margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom:15px;">
         <h4 style="color: #38bdf8; margin-bottom: 10px;">پیام پاپ‌آپ همگانی (اطلاعیه)</h4>
@@ -849,13 +858,14 @@
             body = { mode: 'v2', username: u, changes: changes, minedDelta: minedDelta, referralsDelta: referralsDelta };
           }
           takeSnapshot(u);   // assume success; put the old snapshot back if the save fails
+          let out = null;
           try {
             let res = await apiFetch(`${API_URL}/api/update`, { 
                 method: 'POST', 
                 headers: { 'Content-Type': 'application/json' }, 
                 body: JSON.stringify(body) 
             });
-            let out = await res.json().catch(() => null);
+            out = await res.json().catch(() => null);
             if (out && out.status === 'success') { newUsers.delete(u); }
             else {
               if (base) syncBase[u] = base; else delete syncBase[u];
@@ -863,7 +873,7 @@
             }
             await new Promise(r => setTimeout(r, 400)); 
           } catch(e) { if (base) syncBase[u] = base; else delete syncBase[u]; }
-          resolve();
+          resolve(out);
         });
     });
     return p;
@@ -1457,35 +1467,58 @@
     }
   }
 
+  // ---- withdrawal rules (the server checks them too) ----
+  function withdrawMinAmount() { let v = Number((db['_ADMIN_DATA_'] || {}).withdrawMin); return v > 0 ? Math.ceil(v) : 30000; }
+  function tehranDayStart() { const off = 12600000, D = 86400000; return Math.floor((Date.now() + off) / D) * D - off; }   // 00:00 Iran time (UTC+03:30)
+  function withdrewToday(u) { let s = tehranDayStart(); return (u.withdrawHistory || []).some(w => Number(w.id) >= s && !String(w.status || '').includes('رد')); }
+  const W_DAILY_MSG = "شما امروز یک درخواست برداشت ثبت کرده‌اید. برداشت بعدی از ساعت ۰۰:۰۰ امشب (به وقت ایران) امکان‌پذیر است.";
+  function wMinMsg() { return `حداقل مبلغ برداشت ${withdrawMinAmount().toLocaleString()} تومان است.`; }
+  // after the server refused a request: show the real balance again and say why
+  async function withdrawRefused(saved, btn, orig) {
+    await loadDataFromServer(); updateUI(); btn.innerText = orig; btn.disabled = false;
+    showCustomAlert((saved && saved.message) || "ثبت درخواست انجام نشد. لطفاً اتصال اینترنت را بررسی کنید و دوباره امتحان کنید.", "❌");
+  }
+
   function switchWithdrawTab(t) { document.getElementById('withdrawTomanSection').style.display = t === 'toman'?'block':'none'; document.getElementById('withdrawCryptoSection').style.display = t === 'crypto'?'block':'none'; }
   function setMaxToman() { document.getElementById('wTomanAmount').value = Math.floor(db[currentUser].mined); }
 
   async function submitTomanWithdraw() {
     let u = db[currentUser], c = document.getElementById('wCardNumber').value, h = document.getElementById('wCardHolder').value, a = parseInt(document.getElementById('wTomanAmount').value);
     if(c.length < 16 || !h || a <= 0 || a > u.mined) return showCustomAlert("اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست.", "❌");
+    if(!(a >= withdrawMinAmount())) return showCustomAlert(wMinMsg(), "⚠️");
+    if(withdrewToday(u)) return showCustomAlert(W_DAILY_MSG, "⏳");
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
     await syncBeforeChange(); u = db[currentUser];
     if(!u || a > u.mined) { btn.innerText = orig; btn.disabled = false; updateUI(); return showCustomAlert("اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست.", "❌"); }
+    if(withdrewToday(u)) { btn.innerText = orig; btn.disabled = false; updateUI(); return showCustomAlert(W_DAILY_MSG, "⏳"); }
     u.mined -= a; let w = { id: Date.now(), username: currentUser, type: "تومانی", details: c + " (" + h + ")", amount: a, status: "در حال بررسی ⏳" };
     u.withdrawHistory.unshift(w); allWithdrawals.unshift(w);
-    await saveDB(); await saveGlobalAdminData(); updateUI(); 
+    let saved = await saveDB();
+    if(!saved || saved.status !== 'success') return withdrawRefused(saved, btn, orig);
+    await saveGlobalAdminData(); updateUI(); 
     btn.innerText = orig; btn.disabled = false;
     showCustomAlert("درخواست برداشت تومانی شما با موفقیت ثبت شد و هم‌اکنون در حال بررسی است.", "✅");
   }
   async function submitCryptoWithdraw() {
     let u = db[currentUser], ad = document.getElementById('wCryptoAddress').value, a = parseInt(document.getElementById('wCryptoAmount').value);
     if(!ad || a <= 0 || a > u.mined) return showCustomAlert("اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست.", "❌");
+    if(!(a >= withdrawMinAmount())) return showCustomAlert(wMinMsg(), "⚠️");
+    if(withdrewToday(u)) return showCustomAlert(W_DAILY_MSG, "⏳");
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
     await syncBeforeChange(); u = db[currentUser];
     if(!u || a > u.mined) { btn.innerText = orig; btn.disabled = false; updateUI(); return showCustomAlert("اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست.", "❌"); }
+    if(withdrewToday(u)) { btn.innerText = orig; btn.disabled = false; updateUI(); return showCustomAlert(W_DAILY_MSG, "⏳"); }
     u.mined -= a; let w = { id: Date.now(), username: currentUser, type: "TRC20", details: ad, amount: a, status: "در حال بررسی ⏳" };
     u.withdrawHistory.unshift(w); allWithdrawals.unshift(w);
-    await saveDB(); await saveGlobalAdminData(); updateUI(); 
+    let saved = await saveDB();
+    if(!saved || saved.status !== 'success') return withdrawRefused(saved, btn, orig);
+    await saveGlobalAdminData(); updateUI(); 
     btn.innerText = orig; btn.disabled = false;
     showCustomAlert("درخواست برداشت ترون شما با موفقیت ثبت شد.", "✅");
   }
 
   function renderWithdrawHistory() {
+    document.querySelectorAll('.wMinLabel').forEach(e => e.innerText = withdrawMinAmount().toLocaleString());
     let h = "";
     db[currentUser].withdrawHistory.forEach(w => {
       let col = w.status.includes('واریز') ? '#00ff88' : (w.status.includes('رد') ? '#ef4444' : '#38bdf8');
@@ -1697,6 +1730,7 @@
       document.getElementById('editWalletInput').value = adminConfig.wallet;
       document.getElementById('editBonusAmount').value = dailyBonusAmount;
       document.getElementById('editUsdtPrice').value = cryptoRates.usdt;
+      document.getElementById('editWithdrawMin').value = withdrawMinAmount();
       document.getElementById('editTrxPrice').value = cryptoRates.trx;
       document.getElementById('editBtcPrice').value = cryptoRates.btc;
       
@@ -1846,6 +1880,16 @@
       if (!usdt || !trx || !btc) return showCustomAlert("قیمت واردشده معتبر نیست. لطفاً فقط عدد بنویسید (مثلاً 267000). قیمت‌ها تغییر نکردند.", "⚠️");
       cryptoRates.usdt = usdt; cryptoRates.trx = trx; cryptoRates.btc = btc;
       saveGlobalAdminData().then(() => { showCustomAlert(`قیمت ارزها با موفقیت بروزرسانی شد.\nتتر: ${usdt.toLocaleString()} | ترون: ${trx.toLocaleString()} | بیت‌کوین: ${btc.toLocaleString()} تومان`, "✅"); if (currentUser) updateUI(); });
+  }
+
+  function saveAdminWithdrawMin() {
+      let v = parsePriceInput(document.getElementById('editWithdrawMin').value);
+      if (!v || v < 1000) return showCustomAlert("مبلغ واردشده معتبر نیست. لطفاً فقط عدد بنویسید (مثلاً 30000). تنظیمات تغییر نکرد.", "⚠️");
+      v = Math.ceil(v);
+      if (!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
+      db['_ADMIN_DATA_'].withdrawMin = v;
+      document.getElementById('editWithdrawMin').value = v;
+      saveGlobalAdminData().then(() => showCustomAlert(`حداقل مبلغ برداشت روی ${v.toLocaleString()} تومان تنظیم شد.`, "✅"));
   }
 
   function saveAdminBanner() { 
