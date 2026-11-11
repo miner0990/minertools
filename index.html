@@ -59,6 +59,10 @@
   .hf-line span { color: #8b95a5; } .hf-line b { color: #e5e7eb; font-weight: 600; }
   @keyframes hfBlink { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
   @keyframes hfSweep { from { left: -80px; } to { left: 110%; } }
+  /* admin panel: next / previous page */
+  .adm-pager { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 12px 0 4px; font-size: 12px; color: #aaa; }
+  .adm-pager button { background: #252538; color: #fff; border: 1px solid #444; border-radius: 6px; padding: 7px 14px; font-size: 12px; cursor: pointer; font-family: inherit; }
+  .adm-pager button:disabled { opacity: .35; cursor: default; }
 </style>
 </head>
 <body>
@@ -475,7 +479,7 @@
         <div style="flex: 1; background: #252538; padding: 12px; border-radius: 8px;"><p style="font-size: 11px; color: #aaa;">تعداد کل کاربران ثبت‌نامی</p><h3 id="statTotalUsers" style="color: #3498db; margin-top: 5px;">0</h3></div>
         <div id="statMiningBox" onclick="toggleMiningFilter()" style="flex: 1; background: #252538; padding: 12px; border-radius: 8px; cursor: pointer; border: 1px solid transparent;"><p style="font-size: 11px; color: #aaa;">کاربران در حال استخراج ⚡</p><h3 id="statMiningUsers" style="color: #00ff88; margin-top: 5px;">0</h3><p id="statMiningHint" style="font-size: 10px; color: #777; margin-top: 4px;">برای دیدن لیست بزنید</p></div>
       </div>
-      <input type="text" id="adminSearchInput" onkeyup="renderAdminStats()" placeholder="🔍 جستجوی نام کاربری..." class="select-box" style="margin-bottom: 15px; background: #252538 !important; border: 1px solid #444 !important;">
+      <input type="text" id="adminSearchInput" oninput="adminSearchChanged()" placeholder="🔍 جستجوی نام کاربری..." class="select-box" style="margin-bottom: 15px; background: #252538 !important; border: 1px solid #444 !important;">
       <h4 style="color: #facc15; border-bottom: 1px solid #444; padding-bottom: 8px;">لیست تفکیک شده کاربران:</h4>
       <div id="adminUsersListDetailed" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
@@ -754,7 +758,7 @@
       let options = { cache: "no-store" };
       if(controller) options.signal = controller.signal;
       
-      let res = await apiFetch(`${API_URL}/api/get_all?t=${Date.now()}&u=${encodeURIComponent(currentUser || '')}`, options);
+      let res = await apiFetch(`${API_URL}/api/get_all?t=${Date.now()}&u=${encodeURIComponent(currentUser || '')}${adminToken ? '&paged=1' : ''}`, options);
       if(timeoutId) clearTimeout(timeoutId);
       
       if(res.ok) {
@@ -762,7 +766,7 @@
         if(data) {
           db = data;
           resetSyncBase();
-          localStorage.setItem('minertools_db_backup', JSON.stringify(db));
+          if (!adminToken) { try { localStorage.setItem('minertools_db_backup', JSON.stringify(db)); } catch (e) {} }
           
           if(db['_ADMIN_DATA_']) {
             allWithdrawals = db['_ADMIN_DATA_'].allWithdrawals || [];
@@ -825,7 +829,7 @@
     let u = forceUser || currentUser;
     if(!u) return Promise.resolve();
     
-    localStorage.setItem('minertools_db_backup', JSON.stringify(db));
+    if (!adminToken) { try { localStorage.setItem('minertools_db_backup', JSON.stringify(db)); } catch (e) {} }
     
     let p = new Promise(resolve => {
         saveQueue = saveQueue.then(async () => {
@@ -877,7 +881,7 @@
     db['_ADMIN_DATA_'].cryptoRates = cryptoRates;
     db['_ADMIN_DATA_'].globalNotice = globalNotice;
     
-    localStorage.setItem('minertools_db_backup', JSON.stringify(db));
+    if (!adminToken) { try { localStorage.setItem('minertools_db_backup', JSON.stringify(db)); } catch (e) {} }
     
     let p = new Promise(resolve => {
         saveQueue = saveQueue.then(async () => {
@@ -1542,6 +1546,7 @@
     let text = inp.value.trim(); if(!text) return;
     let btn = event.target; btn.innerText = "..."; btn.disabled = true;
     await syncBeforeChange();
+    if (isAdminLoggedIn) await adminLoadUser(activeChatUsername);
     let t = db[activeChatUsername] && db[activeChatUsername].tickets.find(x => x.id === activeChatTicketId);
     if(!t) { btn.innerText = "ارسال"; btn.disabled = false; return; }
     t.messages.push({ sender: isAdminLoggedIn ? 'admin' : activeChatUsername, text: text, time: new Date().toLocaleTimeString('fa-IR') });
@@ -1554,6 +1559,7 @@
   async function closeActiveTicket() {
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
     await syncBeforeChange();
+    if (isAdminLoggedIn) await adminLoadUser(activeChatUsername);
     let t = db[activeChatUsername] && db[activeChatUsername].tickets.find(x => x.id === activeChatTicketId);
     if(!t) { btn.innerText = orig; btn.disabled = false; return; }
     t.status = "بسته شده 🔒";
@@ -1683,6 +1689,7 @@
       closeAdminLoginModal();
       await loadDataFromServer(); isAdminLoggedIn = true;
       
+      adminUsersPage = 1; adminTicketsPage = 1; adminWPages = { pending: 1, done: 1, rejected: 1 };
       renderAdminStats(); renderAdminTickets(); renderAdminReceipts(); renderAdminWithdrawals(); renderAdminChannelsManager();
       document.getElementById('editBannerText').value = adminConfig.bannerText;
       document.getElementById('editCardInput').value = adminConfig.card;
@@ -1711,11 +1718,44 @@
     }
   }
 
+  // ---- admin panel, page by page: users, tickets and paid/rejected withdrawals come from the server one page at a time ----
+  let adminUsersPage = 1, adminTicketsPage = 1, adminWPages = { pending: 1, done: 1, rejected: 1 }, adminSearchTimer = null, adminUsersReq = 0;
+  async function adminGet(action, params) {
+    let qs = Object.keys(params || {}).map(k => `&${k}=${encodeURIComponent(params[k])}`).join('');
+    let res = await apiFetch(`${API_URL}/api/?action=${action}${qs}&t=${Date.now()}`, { cache: "no-store" });
+    let data = await res.json().catch(() => null);
+    return (data && data.status === 'success') ? data : null;
+  }
+  // fresh copy of one user, needed before the admin changes something of that user
+  async function adminLoadUser(name) {
+    if (!name) return false;
+    if (name === currentUser) await saveDB();   // the admin's own account: save its mining first
+    try {
+      let d = await adminGet('admin_user', { u: name });
+      if (d && d.user) { db[name] = d.user; takeSnapshot(name); return true; }
+    } catch (e) {}
+    return false;
+  }
+  function adminPager(page, pages, fn) {
+    if (pages <= 1) return '';
+    return `<div class="adm-pager"><button ${page <= 1 ? 'disabled' : ''} onclick="${fn}(${page - 1})">قبلی</button>` +
+           `<span>صفحه ${page.toLocaleString('fa-IR')} از ${pages.toLocaleString('fa-IR')}</span>` +
+           `<button ${page >= pages ? 'disabled' : ''} onclick="${fn}(${page + 1})">بعدی</button></div>`;
+  }
+  const ADMIN_LOAD_ERR = "<p style='color:#ef4444; font-size:12px;'>دریافت اطلاعات انجام نشد. اتصال اینترنت را بررسی کنید و دوباره امتحان کنید.</p>";
+  function adminSearchChanged() { clearTimeout(adminSearchTimer); adminSearchTimer = setTimeout(() => { adminUsersPage = 1; renderAdminStats(); }, 350); }
+  function adminUsersGo(p) { adminUsersPage = p; renderAdminStats().then(() => document.getElementById('adminUsersListDetailed').scrollIntoView({ block: 'start' })); }
+  function adminTicketsGo(p) { adminTicketsPage = p; renderAdminTickets(); }
+  async function adminOpenTicket(u, id) {
+    if (await adminLoadUser(u) && db[u].tickets && db[u].tickets.find(x => x.id === id)) openTicketChat(u, id);
+    else showCustomAlert("اطلاعات این تیکت دریافت نشد. لطفاً دوباره امتحان کنید.", "❌");
+  }
+
   function switchAdminTab(t) { document.querySelectorAll('.admin-tab-content').forEach(e => e.style.display='none'); document.getElementById('adminTab-'+t).style.display='block'; }
 
   let adminMiningOnly = false;
   function isMiningNow(x) { return !!(x && x.isMining) && (Date.now() - (Number(x.miningStartTime) || 0)) < 86400000; }
-  function toggleMiningFilter() { adminMiningOnly = !adminMiningOnly; renderAdminStats(); }
+  function toggleMiningFilter() { adminMiningOnly = !adminMiningOnly; adminUsersPage = 1; renderAdminStats(); }
 
   // balance now = saved balance + what the miner made since the user's app last saved (same rule as the app itself)
   function adminLiveBalance(x) {
@@ -1729,20 +1769,23 @@
   function adminWithdrawnTotal(x) {
     let t = 0; (x.withdrawHistory || []).forEach(w => { if (!(w.status || '').includes('رد')) t += Number(w.amount) || 0; }); return t;
   }
-  function renderAdminStats() {
-    let q = document.getElementById('adminSearchInput').value.toLowerCase().trim(); let total = 0, miningCount = 0, h = "";
-    for(let u in db) {
-      if(u !== '_ADMIN_DATA_') {
-        total++;
-        let miningNow = isMiningNow(db[u]);
-        if(miningNow) miningCount++;
-        if(adminMiningOnly && !miningNow) continue;
-        if(q && !u.toLowerCase().includes(q)) continue;
-        
+  async function renderAdminStats() {
+    let q = document.getElementById('adminSearchInput').value.toLowerCase().trim(), h = "";
+    let req = ++adminUsersReq, d = null;
+    try { d = await adminGet('admin_users', { page: adminUsersPage, q: q, mining: adminMiningOnly ? 1 : 0 }); } catch (e) {}
+    if (req !== adminUsersReq) return;   // a newer search / page is already on its way
+    if (!d) { document.getElementById('adminUsersListDetailed').innerHTML = ADMIN_LOAD_ERR; return; }
+    adminUsersPage = d.page;
+    let pageUsers = {}; d.users.forEach(x => pageUsers[x.username] = x);
+    for(let u in pageUsers) {
+      {
+        let rec = pageUsers[u];
+        let miningNow = isMiningNow(rec);
+
         let wHistoryHTML = "";
-        if(db[u].withdrawHistory && db[u].withdrawHistory.length > 0) {
+        if(rec.withdrawHistory && rec.withdrawHistory.length > 0) {
             wHistoryHTML = "<div style='margin-top:8px; border-top:1px solid #444; padding-top:8px;'><b style='color:#facc15; font-size:11px;'>تاریخچه برداشت‌ها:</b><ul style='list-style:none; padding:0; margin-top:4px;'>";
-            db[u].withdrawHistory.forEach(w => {
+            rec.withdrawHistory.forEach(w => {
                 let dateStr = new Date(w.id).toLocaleString('fa-IR');
                 let col = w.status.includes('واریز') ? '#00ff88' : (w.status.includes('رد') ? '#ef4444' : '#38bdf8');
                 wHistoryHTML += `<li style='font-size:10px; color:#ccc; margin-bottom:4px;'>- مبلغ: ${w.amount.toLocaleString()}ت (${w.type}) | <span style='color:${col}'>${w.status}</span> | ${dateStr}</li>`;
@@ -1754,37 +1797,41 @@
 
         h += `<div style="background:#252538; padding:10px; border-radius:8px; font-size:12px; margin-bottom: 8px;">
                 <b>یوزر: <span style="color:#38bdf8;">${u}</span></b><br>
-                <span style="color:#aaa;">موجودی به‌روز:</span> <span style="color:#00ff88;">${Math.floor(adminLiveBalance(db[u])).toLocaleString()} ت</span><br>
-                <span style="color:#aaa;">کل استخراج (موجودی + برداشت‌ها):</span> <span style="color:#facc15;">${Math.floor(adminLiveBalance(db[u]) + adminWithdrawnTotal(db[u])).toLocaleString()} ت</span><br>
-                <span style="color:#777; font-size:10px;">موجودی ذخیره‌شده روی سرور: ${Math.floor(Number(db[u].mined) || 0).toLocaleString()} ت</span><br>
-                <span style="color:#aaa;">زیرمجموعه‌ها:</span> <b style="color:#facc15;">${db[u].referrals || 0} نفر</b><br>
+                <span style="color:#aaa;">موجودی به‌روز:</span> <span style="color:#00ff88;">${Math.floor(adminLiveBalance(rec)).toLocaleString()} ت</span><br>
+                <span style="color:#aaa;">کل استخراج (موجودی + برداشت‌ها):</span> <span style="color:#facc15;">${Math.floor(adminLiveBalance(rec) + adminWithdrawnTotal(rec)).toLocaleString()} ت</span><br>
+                <span style="color:#777; font-size:10px;">موجودی ذخیره‌شده روی سرور: ${Math.floor(Number(rec.mined) || 0).toLocaleString()} ت</span><br>
+                <span style="color:#aaa;">زیرمجموعه‌ها:</span> <b style="color:#facc15;">${rec.referrals || 0} نفر</b><br>
                 <span style="color:#aaa;">وضعیت:</span> ${miningNow ? '<b style="color:#00ff88;">در حال استخراج ⚡</b>' : '<span style="color:#94a3b8;">متوقف ⏸️</span>'}<br>
-                <span style="color:#aaa;">دستگاه‌ها:</span> ${db[u].miners.map(m=>m.name).join('، ')}
+                <span style="color:#aaa;">دستگاه‌ها:</span> ${(rec.miners || []).map(m=>m.name).join('، ')}
                 ${wHistoryHTML}
               </div>`;
       }
     }
-    document.getElementById('statTotalUsers').innerText = total; document.getElementById('adminUsersListDetailed').innerHTML = h || "<p style='color:#aaa; font-size:12px;'>یافت نشد.</p>";
-    document.getElementById('statMiningUsers').innerText = miningCount;
+    document.getElementById('statTotalUsers').innerText = d.total;
+    document.getElementById('adminUsersListDetailed').innerHTML = (h || "<p style='color:#aaa; font-size:12px;'>یافت نشد.</p>") + adminPager(d.page, d.pages, 'adminUsersGo');
+    document.getElementById('statMiningUsers').innerText = d.mining;
     document.getElementById('statMiningHint').innerText = adminMiningOnly ? "فقط در حال استخراج‌ها نمایش داده می‌شوند (برای همه بزنید)" : "برای دیدن لیست بزنید";
     document.getElementById('statMiningBox').style.borderColor = adminMiningOnly ? "#00ff88" : "transparent";
   }
 
-  function renderAdminTickets() {
-    let h = "";
-    for(let u in db) {
-      if(u !== '_ADMIN_DATA_' && db[u].tickets) {
-        db[u].tickets.forEach(t => {
+  async function renderAdminTickets() {
+    let h = "", d = null;
+    try { d = await adminGet('admin_tickets', { page: adminTicketsPage }); } catch (e) {}
+    if (!d) { document.getElementById('adminTicketsList').innerHTML = ADMIN_LOAD_ERR; return; }
+    adminTicketsPage = d.page;
+    {
+      {
+        d.items.forEach(t => { let u = t.username;
           let col = t.status.includes('بسته') ? '#94a3b8' : (t.status.includes('پاسخ داده شده') ? '#00ff88' : '#facc15');
           h += `<div style="background: #252538; padding: 10px; border-radius: 8px; margin-bottom: 8px;">
                   <div style="display:flex; justify-content:space-between;"><b style="color:#38bdf8;">کاربر: ${u}</b><span style="color:${col}; font-size:10px;">${t.status}</span></div>
                   <div style="font-size:11px; color:#fff; margin:6px 0;">موضوع: ${t.subject}</div>
-                  <button class="btn-blue" style="margin:0; padding:6px; font-size:11px; width:auto;" onclick="openTicketChat('${u}', ${t.id})">مشاهده و پاسخ 💬</button>
+                  <button class="btn-blue" style="margin:0; padding:6px; font-size:11px; width:auto;" onclick="adminOpenTicket('${u}', ${t.id})">مشاهده و پاسخ 💬</button>
                 </div>`;
         });
       }
     }
-    document.getElementById('adminTicketsList').innerHTML = h || "هیچ تیکتی وجود ندارد.";
+    document.getElementById('adminTicketsList').innerHTML = (h || "هیچ تیکتی وجود ندارد.") + adminPager(d.page, d.pages, 'adminTicketsGo');
   }
 
   function parsePriceInput(v) {
@@ -1915,9 +1962,7 @@
       saveGlobalAdminData().then(() => { showCustomAlert("تنظیمات مالی ادمین ذخیره شد.", "✅"); });
   }
 
-  function renderAdminWithdrawals() {
-    let pendingHTML = "", doneHTML = "", rejectedHTML = "";
-    allWithdrawals.forEach(w => {
+  function adminWCard(w) {
       let isDone = w.status.includes('واریز'); let isRej = w.status.includes('رد');
       let card = `<div style="background:#252538; border: 1px solid ${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}; border-right: 4px solid ${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}; padding:12px; border-radius:6px; margin-bottom:8px;">
         <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><b style="color:#38bdf8; font-size:13px;">کاربر: ${w.username}</b><span style="font-size:10px; color:${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}">${w.status}</span></div>
@@ -1926,12 +1971,25 @@
         ${!isDone && !isRej ? `<div style="display:flex; gap:6px; margin-top:8px;"><button style="flex:1; background:#2ecc71; color:#fff; border:none; padding:8px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="approveW(${w.id}, this)">تایید پرداخت ✅</button><button style="flex:1; background:#e74c3c; color:#fff; border:none; padding:8px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="rejectW(${w.id}, this)">رد ❌</button></div>`:''}
         ${isRej && w.rejectReason ? `<div style="font-size:11px; color:#ef4444; margin-top:6px;">دلیل رد: ${w.rejectReason}</div>`:''}
       </div>`;
-      if(isDone) doneHTML += card; else if(isRej) rejectedHTML += card; else pendingHTML += card;
-    });
-    document.getElementById('adminWithdrawalsListPending').innerHTML = pendingHTML || "<p style='font-size:11px; color:#aaa;'>موردی یافت نشد.</p>";
-    document.getElementById('adminWithdrawalsListDone').innerHTML = doneHTML || "<p style='font-size:11px; color:#aaa;'>موردی یافت نشد.</p>";
-    document.getElementById('adminWithdrawalsListRejected').innerHTML = rejectedHTML || "<p style='font-size:11px; color:#aaa;'>موردی یافت نشد.</p>";
+      return card;
   }
+  const ADMIN_W_NONE = "<p style='font-size:11px; color:#aaa;'>موردی یافت نشد.</p>";
+  function renderAdminWithdrawals() { renderPendingW(); loadAdminWList('done'); loadAdminWList('rejected'); }
+  function renderPendingW() {
+    let per = 30, list = allWithdrawals.filter(w => !w.status.includes('واریز') && !w.status.includes('رد'));
+    let pages = Math.max(1, Math.ceil(list.length / per)), p = Math.min(adminWPages.pending, pages); adminWPages.pending = p;
+    document.getElementById('adminWithdrawalsListPending').innerHTML = (list.slice((p - 1) * per, p * per).map(adminWCard).join('') || ADMIN_W_NONE) + adminPager(p, pages, 'adminWGoPending');
+  }
+  async function loadAdminWList(kind) {
+    let el = document.getElementById(kind === 'done' ? 'adminWithdrawalsListDone' : 'adminWithdrawalsListRejected'), d = null;
+    try { d = await adminGet('admin_withdrawals', { status: kind, page: adminWPages[kind] }); } catch (e) {}
+    if (!d) { el.innerHTML = ADMIN_LOAD_ERR; return; }
+    adminWPages[kind] = d.page;
+    el.innerHTML = (d.items.map(adminWCard).join('') || ADMIN_W_NONE) + adminPager(d.page, d.pages, kind === 'done' ? 'adminWGoDone' : 'adminWGoRejected');
+  }
+  function adminWGoPending(p) { adminWPages.pending = p; renderPendingW(); }
+  function adminWGoDone(p) { adminWPages.done = p; loadAdminWList('done'); }
+  function adminWGoRejected(p) { adminWPages.rejected = p; loadAdminWList('rejected'); }
   
   function filterAdminW(type) {
      document.getElementById('adminWithdrawalsListPending').style.display = type==='pending' ? 'block' : 'none';
@@ -1941,7 +1999,7 @@
 
   async function approveW(id, btn) {
     btn.innerText = "صبر کنید..."; btn.disabled = true;
-    await loadDataFromServer(); let w = allWithdrawals.find(x => x.id === id); if(w) w.status = "واریز شد ✅"; 
+    await loadDataFromServer(); let w = allWithdrawals.find(x => x.id === id); if(w) w.status = "واریز شد ✅"; if(w) await adminLoadUser(w.username); 
     if(w && db[w.username]) { let uw = db[w.username].withdrawHistory.find(x => x.id === id); if(uw) uw.status = "واریز شد ✅"; await saveDB(w.username); }
     await saveGlobalAdminData(); renderAdminWithdrawals(); showCustomAlert("برداشت تایید شد.", "✅");
   }
@@ -1949,7 +2007,7 @@
   async function rejectW(id, btn) {
     let r = prompt("دلیل رد (مبلغ به حساب کاربر برمی‌گردد):"); if(!r) return;
     btn.innerText = "صبر کنید..."; btn.disabled = true;
-    await loadDataFromServer(); let w = allWithdrawals.find(x => x.id === id); if(w) { w.status = "رد شد ❌"; w.rejectReason = r; }
+    await loadDataFromServer(); let w = allWithdrawals.find(x => x.id === id); if(w) { w.status = "رد شد ❌"; w.rejectReason = r; } if(w) await adminLoadUser(w.username);
     if(w && db[w.username]) { let uw = db[w.username].withdrawHistory.find(x => x.id === id); if(uw){ uw.status = "رد شد ❌"; uw.rejectReason = r; } db[w.username].mined += w.amount; await saveDB(w.username); }
     await saveGlobalAdminData(); renderAdminWithdrawals(); renderAdminStats(); showCustomAlert("برداشت رد شد و وجه بازگشت.", "✅");
   }
@@ -1992,6 +2050,7 @@
   async function approveReceipt(i, btn) {
     btn.innerText = "صبر کنید..."; btn.disabled = true;
     let r = pendingReceipts[i]; await loadDataFromServer();
+    if(r) await adminLoadUser(r.username);
     
     r.status = "تایید شد ✅";
     if(db[r.username]) { 
@@ -2017,6 +2076,7 @@
     let reason = prompt("دلیل رد کردن رسید را بنویسید:"); if(!reason) return;
     btn.innerText = "صبر کنید..."; btn.disabled = true;
     let r = pendingReceipts[i]; await loadDataFromServer();
+    if(r) await adminLoadUser(r.username);
 
     r.status = "رد شد ❌"; r.rejectReason = reason;
     if(db[r.username] && db[r.username].purchaseHistory) {
