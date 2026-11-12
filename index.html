@@ -2133,7 +2133,11 @@
     let cards = [...el.querySelectorAll('[data-wuser]')]; if (!cards.length) return;
     let d = null; try { d = await adminPost('admin_user_flags', { users: [...new Set(cards.map(c => c.dataset.wuser))] }); } catch (e) {}
     if (!d || !d.flags) return;
-    cards.forEach(c => { let f = d.flags[c.dataset.wuser], slot = c.querySelector('.w-flags'); if (f && slot) slot.innerHTML = wFlagsHtml(f); });
+    cards.forEach(c => { let f = d.flags[c.dataset.wuser], slot = c.querySelector('.w-flags'); if (f && slot) slot.innerHTML = wFlagsHtml(f) + cardOwnerChip(f, c.dataset.wid); });
+  }
+  function cardOwnerChip(f, wid) {   // this request's card / wallet belongs to another account
+    let o = f.cards && wid ? f.cards[wid] : null;
+    return o ? `<span class="flag-c flag-s">کارت/ولت متعلق به حساب «${escH(o)}» است ⚠️</span>` : '';
   }
 
   function switchAdminTab(t) { document.querySelectorAll('.admin-tab-content').forEach(e => e.style.display='none'); document.getElementById('adminTab-'+t).style.display='block'; if (t === 'refs') renderRefs();
@@ -2361,7 +2365,7 @@
 
   function adminWCard(w) {
       let isDone = w.status.includes('واریز'); let isRej = w.status.includes('رد');
-      let card = `<div data-wuser="${escH(w.username)}" style="background:#252538; border: 1px solid ${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}; border-right: 4px solid ${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}; padding:12px; border-radius:6px; margin-bottom:8px;">
+      let card = `<div data-wuser="${escH(w.username)}" data-wid="${escH(String(w.id))}" style="background:#252538; border: 1px solid ${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}; border-right: 4px solid ${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}; padding:12px; border-radius:6px; margin-bottom:8px;">
         <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><b style="color:#38bdf8; font-size:13px;">کاربر: ${w.username}</b><span style="font-size:10px; color:${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}">${w.status}</span></div>
         <div class="w-flags"></div>
         <div style="font-size:12px; margin-bottom:4px;">مبلغ: <b style="color:#facc15;">${w.amount.toLocaleString()} تومان</b> (${w.type})</div>
