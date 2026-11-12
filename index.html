@@ -4,7 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>MinerTools Cloud Mining</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="telegram-web-app.js?v=1"></script>
+  <script>
+    // backup: if Telegram's script did not load, read the login data Telegram puts in the page address
+    (function () {
+      if (window.Telegram && window.Telegram.WebApp) return;
+      var raw = '';
+      try { raw = new URLSearchParams(location.hash.replace(/^#/, '')).get('tgWebAppData') || ''; } catch (e) {}
+      if (!raw) { try { raw = (JSON.parse(sessionStorage.getItem('__telegram__initParams')) || {}).tgWebAppData || ''; } catch (e) {} }
+      var unsafe = {};
+      try { new URLSearchParams(raw).forEach(function (v, k) { try { unsafe[k] = /^[\[{]/.test(v) ? JSON.parse(v) : v; } catch (e) { unsafe[k] = v; } }); } catch (e) {}
+      window.Telegram = window.Telegram || {};
+      window.Telegram.WebApp = { initData: raw, initDataUnsafe: unsafe, ready: function () {}, expand: function () {} };
+    })();
+  </script>
   <style>
     :root { --bg: #060913; --card-bg: #0f172a; --card-border: #1e293b; --cyan: #00ff88; --yellow: #facc15; --blue: #38bdf8; --purple: #a855f7; --text-main: #ffffff; --text-secondary: #94a3b8; --danger: #ef4444; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: Tahoma, Arial, sans-serif; }
