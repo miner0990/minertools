@@ -63,6 +63,37 @@
   .adm-pager { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 12px 0 4px; font-size: 12px; color: #aaa; }
   .adm-pager button { background: #252538; color: #fff; border: 1px solid #444; border-radius: 6px; padding: 7px 14px; font-size: 12px; cursor: pointer; font-family: inherit; }
   .adm-pager button:disabled { opacity: .35; cursor: default; }
+  /* admin: referrals section, account status and warning badges */
+  .refs-filters { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+  .refs-filters button { background: #252538; color: #cbd5e1; border: 1px solid #444; border-radius: 16px; padding: 6px 12px; font-size: 12px; cursor: pointer; font-family: inherit; }
+  .refs-filters button.on { background: #facc15; color: #111; border-color: #facc15; font-weight: bold; }
+  .refs-filters button b { margin-right: 4px; }
+  .ref-card, .ref-row { background: #252538; border: 1px solid #3a3a52; border-right: 4px solid #3a3a52; border-radius: 8px; padding: 12px; margin-bottom: 8px; text-align: right; }
+  .ref-card.lv1, .ref-row.warn { border-right-color: #facc15; }
+  .ref-card.lv2 { border-right-color: #ef4444; }
+  .ref-top { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+  .ref-top b { color: #38bdf8; font-size: 13px; word-break: break-all; }
+  .ref-meta { font-size: 11px; color: #aab; line-height: 1.9; }
+  .ref-meta b { color: #fff; }
+  .ref-reason { font-size: 11px; color: #fbbf24; line-height: 1.8; }
+  .ref-card.lv2 .ref-reason { color: #fca5a5; }
+  .ref-open, .ref-back { background: #1e293b; color: #e2e8f0; border: 1px solid #475569; border-radius: 6px; padding: 8px 12px; font-size: 12px; cursor: pointer; margin-top: 8px; font-family: inherit; }
+  .ref-back { margin: 10px 0; }
+  .ref-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .ab { border: none; border-radius: 6px; padding: 7px 10px; font-size: 11px; cursor: pointer; color: #fff; font-family: inherit; }
+  .ab-sus { background: #b45309; } .ab-blk { background: #b91c1c; } .ab-ok { background: #15803d; } .ab-tk { background: #1d4ed8; }
+  .ab-bulk { background: #7c2d12; margin-top: 8px; width: 100%; padding: 9px; }
+  .acct-b, .risk-b { font-size: 10px; border-radius: 10px; padding: 2px 8px; white-space: nowrap; }
+  .acct-sus { background: rgba(245,158,11,.18); color: #fbbf24; border: 1px solid #b45309; }
+  .acct-blk { background: rgba(239,68,68,.18); color: #fca5a5; border: 1px solid #b91c1c; }
+  .acct-ok { background: rgba(34,197,94,.15); color: #86efac; border: 1px solid #15803d; }
+  .risk-1 { background: rgba(250,204,21,.15); color: #facc15; border: 1px solid #a16207; }
+  .risk-2 { background: rgba(239,68,68,.18); color: #fca5a5; border: 1px solid #b91c1c; }
+  .flag-wrap, .w-flags { display: flex; gap: 5px; flex-wrap: wrap; margin: 6px 0 2px; }
+  .w-flags:empty { display: none; }
+  .flag-c { font-size: 10px; border-radius: 4px; padding: 2px 6px; background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
+  .flag-c.flag-s { background: rgba(239,68,68,.12); color: #fca5a5; border-color: #7f1d1d; }
+  .acct-banner { background: rgba(245,158,11,.14); border: 1px solid #b45309; color: #fde68a; font-size: 12px; line-height: 1.8; padding: 10px 12px; border-radius: 10px; margin: 0 0 12px; text-align: right; }
 </style>
 </head>
 <body>
@@ -101,6 +132,7 @@
 
   <!-- صحنه اصلی برنامه -->
   <div id="mainScene" style="display: none;">
+    <div id="acctBanner" class="acct-banner" style="display: none;">⚠️ حساب شما در حال بررسی است و فعلاً امکان برداشت ندارد. لطفاً در بخش «حساب» به تیکت پشتیبانی پاسخ دهید.</div>
     <!-- تب ۱: مزرعه (خانه) -->
     <div id="tab-home" class="section active">
       <div class="top-header">
@@ -403,6 +435,8 @@
     <div id="tcMessages" style="height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; padding: 5px;"></div>
     <div id="tcInputArea" style="display: flex; gap: 8px;">
       <input type="text" class="select-box" id="tcReplyInput" placeholder="پاسخ خود را بنویسید..." style="margin-bottom: 0;">
+      <button class="btn-blue" id="tcPhotoBtn" style="margin-top:0; width: 44px; padding: 8px; font-size: 14px;" onclick="pickTicketImg()" title="ارسال عکس">📎</button>
+      <input type="file" id="tcImgFile" accept="image/*" style="display: none;" onchange="onTicketImgChosen(this)">
       <button class="btn-blue" style="margin-top:0; width: 80px; padding: 8px; font-size: 12px;" onclick="sendTicketMessage()">ارسال</button>
     </div>
     <button id="tcCloseBtnUniversal" class="btn-danger" style="margin-top:10px; font-size:12px; padding:8px;" onclick="closeActiveTicket()">بستن دائمی این تیکت 🔒</button>
@@ -412,6 +446,19 @@
 <div id="announcementModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 4000; justify-content: center; align-items: center; padding: 20px;" dir="rtl"><div class="card card-yellow" style="max-width: 360px; width: 100%; text-align: right; position: relative;"><button onclick="document.getElementById('announcementModal').style.display='none'" style="position: absolute; top: 12px; left: 12px; background: #ef4444; color: white; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer;">✕</button><h3 style="color: #facc15; font-size: 16px; margin-bottom: 10px;" id="announcementTitle">📢 اطلاعیه مهم مدیریت</h3><p style="font-size: 12px; color: #ffffff; line-height: 1.6; margin-bottom: 15px;" id="announcementText"></p><div id="announcementLinkBox" style="display: none;"><a id="announcementLinkBtn" href="#" target="_blank" class="btn-blue" style="display: block; text-align: center; font-size: 12px; padding: 10px;">مشاهده لینک 🔗</a></div></div></div>
 
 <div id="channelModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px;" dir="rtl"><div class="card card-yellow" style="max-width: 380px; width: 100%; text-align: center; position: relative;"><button onclick="document.getElementById('channelModal').style.display='none'" style="position: absolute; top: 12px; left: 12px; background: #ef4444; color: white; border: none; width: 26px; height: 26px; border-radius: 50%; font-weight: bold; cursor: pointer;">✕</button><h3 style="color: #facc15; font-size: 16px; margin-bottom: 10px;">📢 عضویت اجباری در کانال‌ها</h3><div id="modalChannelsContainer" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;"></div><button class="btn-yellow" id="verifyChannelBtn" onclick="verifyAllMemberships()">تایید عضویت و شروع ⚡</button></div></div>
+
+<div id="adminTicketModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 15500; justify-content: center; align-items: center; padding: 15px;" dir="rtl">
+  <div class="card card-blue" style="max-width: 400px; width: 100%; text-align: right;">
+    <h3 style="color: #38bdf8; font-size: 14px; margin-bottom: 10px;">ارسال تیکت به <span id="atUser" style="color: #facc15;"></span></h3>
+    <input type="text" class="select-box" id="atSubject" maxlength="80" placeholder="موضوع تیکت" style="text-align: right;">
+    <textarea class="select-box" id="atText" rows="7" placeholder="متن پیام..." style="resize: vertical; line-height: 1.8; text-align: right; font-family: inherit;"></textarea>
+    <button class="btn-blue" style="font-size: 11px; padding: 7px; margin-top: 0;" onclick="adminTicketTemplate()">گذاشتن متن آماده 📝</button>
+    <div style="display: flex; gap: 8px; margin-top: 10px;">
+      <button class="btn-yellow" id="atSendBtn" style="margin-top: 0;" onclick="adminSendTicket()">ارسال تیکت ✉️</button>
+      <button class="btn-danger" style="margin-top: 0;" onclick="closeAdminTicket()">انصراف</button>
+    </div>
+  </div>
+</div>
 
 <div id="receiptViewer" onclick="closeReceiptViewer()" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.94); z-index: 24000; justify-content: center; align-items: center; padding: 14px; flex-direction: column;" dir="rtl">
   <img id="receiptViewerImg" alt="" style="max-width: 100%; max-height: 82vh; border-radius: 10px; object-fit: contain;">
@@ -470,6 +517,7 @@
       <button onclick="switchAdminTab('tickets')" style="background: #f1c40f; color: black; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🎫 تیکت‌ها</button>
       <button onclick="switchAdminTab('receipts')" style="background: #27ae60; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🧾 رسیدها</button>
       <button onclick="switchAdminTab('withdrawals')" style="background: #e74c3c; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">💸 برداشت‌ها</button>
+      <button onclick="switchAdminTab('refs')" style="background: #16a085; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">👥 زیرمجموعه‌ها</button>
       <button onclick="switchAdminTab('referralCfg')" style="background: #3498db; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📝 متن دعوت</button>
       <button onclick="switchAdminTab('channels')" style="background: #34495e; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📢 کانال‌ها</button>
       <button onclick="switchAdminTab('bonus')" style="background: #d35400; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🎁 سایر تنظیمات</button>
@@ -554,6 +602,15 @@
         <button class="btn-yellow" style="margin-top:0; padding:8px; font-size:12px;" onclick="saveBotLinks()">ذخیره دکمه‌ها ✅</button>
       </div>
       <div id="botMsgsList"></div>
+    </div>
+    <div id="adminTab-refs" class="admin-tab-content" style="display: none;">
+      <h4>زیرمجموعه‌ها و وضعیت حساب‌ها</h4>
+      <div id="refsListView">
+        <div id="refsFilters" class="refs-filters"></div>
+        <input type="text" id="refsSearch" oninput="refsSearchChanged()" placeholder="جستجوی نام کاربری..." style="width: 100%; padding: 10px; margin: 10px 0; background: #111; border: 1px solid #555; color: #fff; border-radius: 5px; text-align: right;">
+        <div id="refsList"></div>
+      </div>
+      <div id="refsDetailView" style="display: none;"></div>
     </div>
     <div id="adminTab-receipts" class="admin-tab-content" style="display: none;"><h4>رسیدهای خرید</h4><div id="adminReceiptsList" style="margin-top: 15px;"></div></div>
   </div>
@@ -754,9 +811,24 @@
     if (adminToken) h['X-Admin-Token'] = adminToken;
     options.headers = h;
     return fetch(url, options).then(res => {
+      if (res.status === 403 && !adminToken) res.clone().json().then(j => { if (j && j.code === 'blocked') showBlocked(j.message); }).catch(() => {});
       if (res.status === 401 && !authAlertShown) { authAlertShown = true; showCustomAlert("لطفاً مینی‌اپ را ببندید و دوباره از داخل ربات تلگرام باز کنید.", "⚠️"); }
       return res;
     });
+  }
+
+  // ---- the admin blocked this account: say so and stop (nothing is deleted; the admin can free it again) ----
+  let accountBlocked = false;
+  function escH(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+  function showBlocked(msg) {
+    if (accountBlocked || adminToken) return;
+    accountBlocked = true;
+    try { clearInterval(miningInterval); } catch (e) {}
+    let d = document.createElement('div');
+    d.id = 'blockedOverlay'; d.setAttribute('dir', 'rtl');
+    d.style.cssText = 'position:fixed; inset:0; z-index:30000; background:#05070c; display:flex; align-items:center; justify-content:center; padding:24px; text-align:center;';
+    d.innerHTML = `<div style="max-width:340px;"><div style="font-size:52px; margin-bottom:14px;">🚫</div><h3 style="color:#ef4444; font-size:17px; margin-bottom:10px;">حساب مسدود شده است</h3><p style="color:#cbd5e1; font-size:13px; line-height:1.9;">${escH(msg || 'حساب شما توسط مدیریت مسدود شده است.')}</p></div>`;
+    document.body.appendChild(d);
   }
 
   async function loadDataFromServer() {
@@ -1164,6 +1236,7 @@
   function updateUI() {
     let u = db[currentUser];
     updateHashFeed(u);
+    let acctBanner = document.getElementById('acctBanner'); if (acctBanner) acctBanner.style.display = (u && u.acctStatus === 'suspended') ? 'block' : 'none';
     if(!u) return;
     
     if(!u.refCode) { u.refCode = "REF" + Math.floor(10000 + Math.random() * 90000); saveDB(); }
@@ -1485,6 +1558,7 @@
   async function submitTomanWithdraw() {
     let u = db[currentUser], c = document.getElementById('wCardNumber').value, h = document.getElementById('wCardHolder').value, a = parseInt(document.getElementById('wTomanAmount').value);
     if(c.length < 16 || !h || a <= 0 || a > u.mined) return showCustomAlert("اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست.", "❌");
+    if(u.acctStatus === 'suspended') return showCustomAlert("حساب شما در حال بررسی است و فعلاً امکان ثبت برداشت ندارد. لطفاً به تیکت پشتیبانی پاسخ دهید.", "⏳");
     if(!(a >= withdrawMinAmount())) return showCustomAlert(wMinMsg(), "⚠️");
     if(withdrewToday(u)) return showCustomAlert(W_DAILY_MSG, "⏳");
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
@@ -1502,6 +1576,7 @@
   async function submitCryptoWithdraw() {
     let u = db[currentUser], ad = document.getElementById('wCryptoAddress').value, a = parseInt(document.getElementById('wCryptoAmount').value);
     if(!ad || a <= 0 || a > u.mined) return showCustomAlert("اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست.", "❌");
+    if(u.acctStatus === 'suspended') return showCustomAlert("حساب شما در حال بررسی است و فعلاً امکان ثبت برداشت ندارد. لطفاً به تیکت پشتیبانی پاسخ دهید.", "⏳");
     if(!(a >= withdrawMinAmount())) return showCustomAlert(wMinMsg(), "⚠️");
     if(withdrewToday(u)) return showCustomAlert(W_DAILY_MSG, "⏳");
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
@@ -1543,7 +1618,7 @@
       let col = t.status.includes('بسته') ? '#94a3b8' : (t.status.includes('پاسخ داده شده') ? '#00ff88' : '#facc15');
       h += `<div style="background: #0f172a; border: 1px solid #1e293b; padding: 10px; border-radius: 8px; cursor: pointer; margin-bottom: 6px;" onclick="openTicketChat('${currentUser}', ${t.id})">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><b style="color:#fff; font-size:12px;">${t.subject}</b><span style="color:${col}; font-size:10px;">${t.status}</span></div>
-              <div style="font-size:11px; color:#94a3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">آخرین پیام: ${t.messages[t.messages.length-1].text}</div>
+              <div style="font-size:11px; color:#94a3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">آخرین پیام: ${escH(t.messages[t.messages.length-1].text) || '📷 عکس'}</div>
             </div>`;
     });
     document.getElementById('userTicketsList').innerHTML = h || "<p style='color:#94a3b8; font-size:11px;'>تیکتی ثبت نکرده‌اید.</p>";
@@ -1556,6 +1631,7 @@
     let isClosed = t.status.includes('بسته');
     document.getElementById('tcCloseBtnUniversal').style.display = isClosed ? 'none' : 'block';
     document.getElementById('tcInputArea').style.display = isClosed ? 'none' : 'flex';
+    document.getElementById('tcPhotoBtn').style.display = isAdminLoggedIn ? 'none' : 'block';
     renderTicketMessages();
     document.getElementById('ticketChatModal').style.display = 'flex';
   }
@@ -1567,11 +1643,13 @@
       let isAdminMsg = m.sender === 'admin';
       h += `<div style="background: ${isAdminMsg ? '#1e293b' : 'rgba(56,189,248,0.1)'}; padding: 8px; border-radius: 8px; font-size: 11px; align-self: ${isAdminMsg ? 'flex-start' : 'flex-end'}; max-width: 85%; border: 1px solid ${isAdminMsg ? '#334155' : 'rgba(56,189,248,0.3)'}; color: #fff;">
               <div style="font-weight:bold; margin-bottom:2px; color:${isAdminMsg ? '#facc15' : '#38bdf8'};">${isAdminMsg ? 'مدیریت 🛠️' : 'کاربر 👤'}</div>
-              <div>${m.text}</div>
+              <div style="white-space: pre-wrap; word-break: break-word;">${escH(m.text)}</div>
+              ${m.img ? `<div data-timg="${escH(m.img)}" style="margin-top:6px; font-size:10px; color:#94a3b8;">در حال بارگذاری عکس...</div>` : ''}
               <div style="font-size:9px; color:#94a3b8; text-align:left; margin-top:4px;">${m.time}</div>
             </div>`;
     });
     let c = document.getElementById('tcMessages'); c.innerHTML = h; c.scrollTop = c.scrollHeight;
+    loadTicketImgs();
   }
 
   async function sendTicketMessage() {
@@ -1587,6 +1665,60 @@
     inp.value = ''; renderTicketMessages();
     if(!isAdminLoggedIn) { await saveDB(); renderUserTickets(); } else { await saveDB(activeChatUsername); renderAdminTickets(); }
     btn.innerText = "ارسال"; btn.disabled = false;
+  }
+
+  // ---- photo in a ticket message: shrink on the phone, upload, then add it to the ticket ----
+  function pickTicketImg() { document.getElementById('tcImgFile').click(); }
+  function shrinkImageFile(file) {
+    return new Promise((resolve, reject) => {
+      let url = URL.createObjectURL(file), img = new Image();
+      img.onload = function () {
+        let max = 1600, w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, max / Math.max(w, h));
+        let c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
+        let g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url); resolve(c.toDataURL('image/jpeg', 0.82));
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('img')); };
+      img.src = url;
+    });
+  }
+  async function onTicketImgChosen(inp) {
+    let file = inp.files && inp.files[0]; inp.value = '';
+    if (!file || isAdminLoggedIn) return;
+    if (file.type && !file.type.startsWith('image/')) return showCustomAlert("فقط فایل عکس قابل انتخاب است.", "⚠️");
+    let pb = document.getElementById('tcPhotoBtn'); pb.disabled = true; pb.innerText = '⏳';
+    try {
+      let data = await shrinkImageFile(file);
+      let res = await apiFetch(`${API_URL}/api/?action=receipt_upload`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: currentUser, image: data }) });
+      let j = await res.json().catch(() => null);
+      if (!j || j.status !== 'success' || !j.id) throw new Error((j && j.message) || 'upload');
+      await syncBeforeChange();
+      let t = db[activeChatUsername] && db[activeChatUsername].tickets.find(x => x.id === activeChatTicketId);
+      if (t && !t.status.includes('بسته')) {
+        let box = document.getElementById('tcReplyInput');
+        t.messages.push({ sender: activeChatUsername, text: box.value.trim(), img: j.id, time: new Date().toLocaleTimeString('fa-IR') });
+        t.status = "در حال بررسی ⏳"; box.value = '';
+        renderTicketMessages(); await saveDB(); renderUserTickets();
+      }
+    } catch (e) {
+      let m = e && e.message;
+      showCustomAlert(m === 'img' ? "این عکس باز نشد. لطفاً از آن اسکرین‌شات بگیرید و همان را انتخاب کنید." : (m && m !== 'upload' ? m : "ارسال عکس انجام نشد. لطفاً دوباره تلاش کنید."), "⚠️");
+    }
+    pb.disabled = false; pb.innerText = '📎';
+  }
+  function loadTicketImgs() {
+    document.querySelectorAll('[data-timg]').forEach(async el => {
+      let id = el.getAttribute('data-timg'); if (!/^[a-f0-9]{24}$/.test(id)) return;
+      try {
+        if (!receiptThumbCache[id]) {
+          let res = await apiFetch(`${API_URL}/api/?action=receipt_image&id=${id}`, { cache: "no-store" });
+          if (!res.ok) throw new Error('img');
+          receiptThumbCache[id] = URL.createObjectURL(await res.blob());
+        }
+        el.innerHTML = `<img src="${receiptThumbCache[id]}" alt="" style="max-width:100%; max-height:150px; border-radius:6px; border:1px solid #444; cursor:zoom-in;">`;
+        el.onclick = () => openReceiptViewer(receiptThumbCache[id]);
+      } catch (e) { el.innerHTML = '<span style="font-size:10px; color:#ef4444;">عکس بارگذاری نشد.</span>'; }
+    });
   }
 
   async function closeActiveTicket() {
@@ -1785,7 +1917,150 @@
     else showCustomAlert("اطلاعات این تیکت دریافت نشد. لطفاً دوباره امتحان کنید.", "❌");
   }
 
-  function switchAdminTab(t) { document.querySelectorAll('.admin-tab-content').forEach(e => e.style.display='none'); document.getElementById('adminTab-'+t).style.display='block'; }
+  // ---- admin: referrals section (who invited whom and when, warning signs, suspend / block / free, ticket to a user) ----
+  async function adminPost(action, body) {
+    let res = await apiFetch(`${API_URL}/api/?action=${action}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
+    let data = await res.json().catch(() => null);
+    return (data && data.status === 'success') ? data : null;
+  }
+  const FLAG_LABELS = { pw: 'رمز یکسان', name: 'نام شماره‌دارِ مشابه', card: 'کارت/ولت مشترک', device: 'یک گوشی', burst: 'ثبت‌نام پشت‌سرهم', newtg: 'تلگرام تازه', once: 'آمد و برنگشت' };
+  const STRONG_FLAGS = ['pw', 'name', 'card', 'device'];
+  function acctBadge(st, showActive) {
+    if (st === 'suspended') return '<span class="acct-b acct-sus">معلق ⏸️</span>';
+    if (st === 'blocked') return '<span class="acct-b acct-blk">مسدود 🚫</span>';
+    return showActive ? '<span class="acct-b acct-ok">فعال</span>' : '';
+  }
+  function riskBadge(lv) { return lv >= 2 ? '<span class="risk-b risk-2">⚠️ مشکوک</span>' : (lv === 1 ? '<span class="risk-b risk-1">⚠️ نیاز به بررسی</span>' : ''); }
+  function flagChips(flags) { return (flags || []).map(f => `<span class="flag-c ${STRONG_FLAGS.includes(f) ? 'flag-s' : ''}">${FLAG_LABELS[f] || escH(f)}</span>`).join(''); }
+  function fmtJoin(ms, old, approx) {
+    if (!ms) return old ? 'قدیمی (تاریخ ثبت نشده)' : 'نامشخص';
+    let t; try { t = new Date(ms).toLocaleString('fa-IR', { timeZone: 'Asia/Tehran', dateStyle: 'short', timeStyle: 'short' }); } catch (e) { t = new Date(ms).toLocaleString('fa-IR'); }
+    return (approx ? '≈ ' : '') + t;   // ≈ : worked out afterwards for accounts made before the sign-up log
+  }
+  const REFS_NONE = "<p style='color:#aaa; font-size:12px;'>موردی یافت نشد.</p>";
+  let refsFilter = 'all', refsPage = 1, refsDetailUser = null, refsDetailPage = 1, refsSearchTimer = null, refsReq = 0;
+  function refsSetFilter(f) { refsFilter = f; refsPage = 1; renderRefs(); }
+  function refsGo(p) { refsPage = p; renderRefs(); }
+  function refsSearchChanged() { clearTimeout(refsSearchTimer); refsSearchTimer = setTimeout(() => { refsPage = 1; renderRefs(); }, 350); }
+  function refsBackToList() {
+    refsDetailUser = null;
+    document.getElementById('refsDetailView').style.display = 'none'; document.getElementById('refsDetailView').innerHTML = '';
+    document.getElementById('refsListView').style.display = 'block';
+    renderRefs();
+  }
+  async function renderRefs() {
+    if (refsDetailUser) return openRefDetail(refsDetailUser, refsDetailPage);
+    let box = document.getElementById('refsList'), req = ++refsReq, d = null;
+    try { d = await adminGet('admin_referrers', { filter: refsFilter, page: refsPage, q: document.getElementById('refsSearch').value.trim() }); } catch (e) {}
+    if (req !== refsReq) return;
+    if (!d) { box.innerHTML = ADMIN_LOAD_ERR; return; }
+    refsPage = d.page;
+    let tabs = [['all', 'همه', d.counts.all], ['risk', 'مشکوک ⚠️', d.counts.risk], ['suspended', 'معلق', d.counts.suspended], ['blocked', 'مسدود', d.counts.blocked]];
+    document.getElementById('refsFilters').innerHTML = tabs.map(t => `<button class="${refsFilter === t[0] ? 'on' : ''}" onclick="refsSetFilter('${t[0]}')">${t[1]} <b>${t[2]}</b></button>`).join('');
+    let h = d.items.map(i => `<div class="ref-card lv${i.level}">
+        <div class="ref-top"><b>${escH(i.username)}</b>${acctBadge(i.acct)}${riskBadge(i.level)}</div>
+        <div class="ref-meta">زیرمجموعه: <b>${i.invited}</b> · ۲۴ ساعت اخیر: <b>${i.last24}</b> · شروع استخراج: <b>${i.started}</b>${i.balance != null ? ` · موجودی: <b>${Math.floor(i.balance).toLocaleString()} ت</b>` : ''}</div>
+        ${i.reasons.map(r => `<div class="ref-reason">• ${escH(r)}</div>`).join('')}
+        <button class="ref-open" data-u="${escH(i.username)}" onclick="openRefDetail(this.dataset.u, 1)">مشاهده زیرمجموعه‌ها و اقدام ◀</button>
+      </div>`).join('');
+    box.innerHTML = (h || REFS_NONE) + adminPager(d.page, d.pages, 'refsGo');
+  }
+  function acctButtons(u, st) {
+    let e = escH(u), b = [];
+    if (st !== 'suspended') b.push(`<button class="ab ab-sus" data-u="${e}" onclick="refSetStatus(this.dataset.u, 'suspended')">معلق کردن ⏸️</button>`);
+    if (st !== 'blocked') b.push(`<button class="ab ab-blk" data-u="${e}" onclick="refSetStatus(this.dataset.u, 'blocked')">مسدود کردن 🚫</button>`);
+    if (st !== 'active') b.push(`<button class="ab ab-ok" data-u="${e}" onclick="refSetStatus(this.dataset.u, 'active')">آزاد کردن ✅</button>`);
+    b.push(`<button class="ab ab-tk" data-u="${e}" onclick="openAdminTicket(this.dataset.u)">ارسال تیکت ✉️</button>`);
+    return `<div class="ref-actions">${b.join('')}</div>`;
+  }
+  async function openRefDetail(u, page) {
+    refsDetailUser = u; refsDetailPage = page || 1;
+    document.getElementById('refsListView').style.display = 'none';
+    let box = document.getElementById('refsDetailView'); box.style.display = 'block';
+    if (!box.innerHTML) box.innerHTML = "<p style='color:#aaa; font-size:12px;'>در حال دریافت...</p>";
+    let d = null;
+    try { d = await adminGet('admin_referrals', { u: u, page: refsDetailPage }); } catch (e) {}
+    if (refsDetailUser !== u) return;
+    const BACK = `<button class="ref-back" onclick="refsBackToList()">▶ بازگشت به لیست</button>`;
+    if (!d) { box.innerHTML = BACK + ADMIN_LOAD_ERR; return; }
+    refsDetailPage = d.page; let v = d.inviter;
+    let h = BACK + `<div class="ref-card lv${v.level}">
+        <div class="ref-top"><b>${escH(v.username)}</b>${acctBadge(v.acct, true)}${riskBadge(v.level)}</div>
+        <div class="ref-meta">تعداد زیرمجموعه: <b>${v.invited}</b> · دارای نشانه‌ی جدی: <b>${v.flagged}</b>${v.balance != null ? ` · موجودی: <b>${Math.floor(v.balance).toLocaleString()} ت</b>` : ''}</div>
+        ${v.reasons.map(r => `<div class="ref-reason">• ${escH(r)}</div>`).join('')}
+        ${v.exists ? acctButtons(v.username, v.acct) : '<div class="ref-meta">این نام کاربری دیگر وجود ندارد.</div>'}
+        ${v.flagged ? `<button class="ab ab-bulk" data-u="${escH(v.username)}" onclick="refBulkSuspend(this.dataset.u)">معلق کردن همه‌ی زیرمجموعه‌های مشکوک (${v.flagged}) ⏸️</button>` : ''}
+      </div>
+      <h4 style="margin: 14px 0 8px; font-size: 13px;">زیرمجموعه‌ها (جدیدترین اول)</h4>`;
+    h += d.items.map(i => `<div class="ref-row${i.flags.some(f => STRONG_FLAGS.includes(f)) ? ' warn' : ''}">
+        <div class="ref-top"><b>${escH(i.username)}</b>${acctBadge(i.acct)}</div>
+        <div class="ref-meta">عضویت: <b>${fmtJoin(i.joined, i.old, i.approx)}</b> · ${i.started ? (i.miningNow ? 'در حال استخراج ⚡' : 'استخراج کرده') : 'هنوز استخراج نزده'} · موجودی: ${Math.floor(i.balance).toLocaleString()} ت</div>
+        <div class="ref-meta">برداشتِ در انتظار: ${i.wPending}${i.wPending ? ` (${Math.floor(i.wPendingSum).toLocaleString()} ت)` : ''} · واریزشده: ${Math.floor(i.wPaid).toLocaleString()} ت${i.device ? ` · گوشی: <span dir="ltr">${escH(i.device)}</span>` : ''}</div>
+        ${i.flags.length ? `<div class="flag-wrap">${flagChips(i.flags)}</div>` : ''}
+        ${acctButtons(i.username, i.acct)}
+      </div>`).join('') || "<p style='color:#aaa; font-size:12px;'>این کاربر زیرمجموعه‌ای ندارد.</p>";
+    box.innerHTML = h + adminPager(d.page, d.pages, 'refDetailGo');
+  }
+  function refDetailGo(p) { openRefDetail(refsDetailUser, p); }
+  async function refSetStatus(u, st) {
+    if (st === 'blocked' && !confirm(`حساب «${u}» مسدود شود؟\nکاربر دیگر نمی‌تواند وارد مینی‌اپ شود. اطلاعاتش پاک نمی‌شود و بعداً می‌توانید آزادش کنید.`)) return;
+    let d = null; try { d = await adminPost('admin_set_status', { username: u, status: st }); } catch (e) {}
+    if (!d) return showCustomAlert("تغییر وضعیت انجام نشد. لطفاً دوباره امتحان کنید.", "❌");
+    showCustomAlert(st === 'active' ? `حساب «${u}» آزاد شد.` : (st === 'blocked' ? `حساب «${u}» مسدود شد.` : `حساب «${u}» معلق شد.`), "✅");
+    renderRefs();
+  }
+  async function refBulkSuspend(u) {
+    if (!confirm(`همه‌ی زیرمجموعه‌های مشکوکِ «${u}» معلق شوند؟\nفقط برداشتشان بسته می‌شود و بعداً می‌توانید آزادشان کنید.`)) return;
+    let d = null; try { d = await adminPost('admin_set_status_bulk', { inviter: u }); } catch (e) {}
+    if (!d) return showCustomAlert("انجام نشد. لطفاً دوباره امتحان کنید.", "❌");
+    showCustomAlert(`${d.count} حساب معلق شد.`, "✅");
+    renderRefs();
+  }
+  // ticket written by the admin to one user
+  let adminTicketUser = null;
+  const ADMIN_TICKET_TEMPLATE = "کاربر گرامی، حساب شما برای بررسی زیرمجموعه‌ها به‌صورت موقت در حالت بررسی قرار گرفته است.\nلطفاً در پاسخ به همین تیکت توضیح دهید که زیرمجموعه‌های شما چگونه با مینی‌اپ آشنا شده‌اند و در صورت امکان مدرک (متن یا عکس) ارسال کنید.\nپس از بررسی، نتیجه به شما اعلام می‌شود.";
+  function openAdminTicket(u) {
+    adminTicketUser = u;
+    document.getElementById('atUser').innerText = u;
+    document.getElementById('atSubject').value = ''; document.getElementById('atText').value = '';
+    document.getElementById('adminTicketModal').style.display = 'flex';
+  }
+  function closeAdminTicket() { document.getElementById('adminTicketModal').style.display = 'none'; }
+  function adminTicketTemplate() { document.getElementById('atSubject').value = "بررسی حساب و زیرمجموعه‌ها"; document.getElementById('atText').value = ADMIN_TICKET_TEMPLATE; }
+  async function adminSendTicket() {
+    let sub = document.getElementById('atSubject').value.trim(), txt = document.getElementById('atText').value.trim(), u = adminTicketUser;
+    if (!sub || !txt) return showCustomAlert("موضوع و متن تیکت را بنویسید.", "⚠️");
+    let btn = document.getElementById('atSendBtn'), orig = btn.innerText; btn.innerText = "در حال ارسال..."; btn.disabled = true;
+    let ok = false;
+    if (await adminLoadUser(u)) {
+      if (!Array.isArray(db[u].tickets)) db[u].tickets = [];
+      db[u].tickets.unshift({ id: Date.now(), subject: sub, status: "پاسخ داده شده 💬", messages: [{ sender: 'admin', text: txt, time: new Date().toLocaleTimeString('fa-IR') }] });
+      let saved = await saveDB(u);
+      ok = !!(saved && saved.status === 'success');
+    }
+    btn.innerText = orig; btn.disabled = false;
+    if (!ok) return showCustomAlert("ارسال تیکت انجام نشد. لطفاً دوباره امتحان کنید.", "❌");
+    closeAdminTicket(); renderAdminTickets();
+    showCustomAlert(`تیکت برای «${u}» ارسال شد.`, "✅");
+  }
+  // warning badges next to withdrawal requests
+  function wFlagsHtml(f) {
+    let h = acctBadge(f.acct);
+    if (f.level > 0) h += `<span class="flag-c flag-s">دعوت‌کننده‌ی ${f.level >= 2 ? 'مشکوک' : 'نیازمند بررسی'} (${f.invited} زیرمجموعه)</span>`;
+    h += flagChips((f.flags || []).filter(x => STRONG_FLAGS.includes(x)));
+    if (f.by && f.byLevel > 0) h += `<span class="flag-c flag-s">دعوت‌شده توسط ${escH(f.by)} ⚠️</span>`;
+    return h;
+  }
+  async function decorateWithdrawals(el) {
+    let cards = [...el.querySelectorAll('[data-wuser]')]; if (!cards.length) return;
+    let d = null; try { d = await adminPost('admin_user_flags', { users: [...new Set(cards.map(c => c.dataset.wuser))] }); } catch (e) {}
+    if (!d || !d.flags) return;
+    cards.forEach(c => { let f = d.flags[c.dataset.wuser], slot = c.querySelector('.w-flags'); if (f && slot) slot.innerHTML = wFlagsHtml(f); });
+  }
+
+  function switchAdminTab(t) { document.querySelectorAll('.admin-tab-content').forEach(e => e.style.display='none'); document.getElementById('adminTab-'+t).style.display='block'; if (t === 'refs') renderRefs();
+    if (t === 'withdrawals') ['adminWithdrawalsListPending', 'adminWithdrawalsListDone', 'adminWithdrawalsListRejected'].forEach(id => decorateWithdrawals(document.getElementById(id)));   // statuses may have changed meanwhile
+  }
 
   let adminMiningOnly = false;
   function isMiningNow(x) { return !!(x && x.isMining) && (Date.now() - (Number(x.miningStartTime) || 0)) < 86400000; }
@@ -2008,8 +2283,9 @@
 
   function adminWCard(w) {
       let isDone = w.status.includes('واریز'); let isRej = w.status.includes('رد');
-      let card = `<div style="background:#252538; border: 1px solid ${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}; border-right: 4px solid ${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}; padding:12px; border-radius:6px; margin-bottom:8px;">
+      let card = `<div data-wuser="${escH(w.username)}" style="background:#252538; border: 1px solid ${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}; border-right: 4px solid ${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}; padding:12px; border-radius:6px; margin-bottom:8px;">
         <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><b style="color:#38bdf8; font-size:13px;">کاربر: ${w.username}</b><span style="font-size:10px; color:${isDone?'#00ff88':(isRej?'#ef4444':'#facc15')}">${w.status}</span></div>
+        <div class="w-flags"></div>
         <div style="font-size:12px; margin-bottom:4px;">مبلغ: <b style="color:#facc15;">${w.amount.toLocaleString()} تومان</b> (${w.type})</div>
         <div style="font-size:11px; color:#aaa; margin-bottom:8px;">مقصد: <span style="color:#fff;">${w.details}</span></div>
         ${!isDone && !isRej ? `<div style="display:flex; gap:6px; margin-top:8px;"><button style="flex:1; background:#2ecc71; color:#fff; border:none; padding:8px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="approveW(${w.id}, this)">تایید پرداخت ✅</button><button style="flex:1; background:#e74c3c; color:#fff; border:none; padding:8px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="rejectW(${w.id}, this)">رد ❌</button></div>`:''}
@@ -2023,6 +2299,7 @@
     let per = 30, list = allWithdrawals.filter(w => !w.status.includes('واریز') && !w.status.includes('رد'));
     let pages = Math.max(1, Math.ceil(list.length / per)), p = Math.min(adminWPages.pending, pages); adminWPages.pending = p;
     document.getElementById('adminWithdrawalsListPending').innerHTML = (list.slice((p - 1) * per, p * per).map(adminWCard).join('') || ADMIN_W_NONE) + adminPager(p, pages, 'adminWGoPending');
+    decorateWithdrawals(document.getElementById('adminWithdrawalsListPending'));
   }
   async function loadAdminWList(kind) {
     let el = document.getElementById(kind === 'done' ? 'adminWithdrawalsListDone' : 'adminWithdrawalsListRejected'), d = null;
@@ -2030,6 +2307,7 @@
     if (!d) { el.innerHTML = ADMIN_LOAD_ERR; return; }
     adminWPages[kind] = d.page;
     el.innerHTML = (d.items.map(adminWCard).join('') || ADMIN_W_NONE) + adminPager(d.page, d.pages, kind === 'done' ? 'adminWGoDone' : 'adminWGoRejected');
+    decorateWithdrawals(el);
   }
   function adminWGoPending(p) { adminWPages.pending = p; renderPendingW(); }
   function adminWGoDone(p) { adminWPages.done = p; loadAdminWList('done'); }
