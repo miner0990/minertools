@@ -83,6 +83,8 @@
   .ab { border: none; border-radius: 6px; padding: 7px 10px; font-size: 11px; cursor: pointer; color: #fff; font-family: inherit; }
   .ab-sus { background: #b45309; } .ab-blk { background: #b91c1c; } .ab-ok { background: #15803d; } .ab-tk { background: #1d4ed8; }
   .ab-bulk { background: #7c2d12; margin-top: 8px; width: 100%; padding: 9px; }
+  .ab-ded { background: #6d28d9; }
+  .ded-note { font-size: 11px; color: #c4b5fd; margin-top: 2px; }
   .acct-b, .risk-b { font-size: 10px; border-radius: 10px; padding: 2px 8px; white-space: nowrap; }
   .acct-sus { background: rgba(245,158,11,.18); color: #fbbf24; border: 1px solid #b45309; }
   .acct-blk { background: rgba(239,68,68,.18); color: #fca5a5; border: 1px solid #b91c1c; }
@@ -446,6 +448,24 @@
 <div id="announcementModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 4000; justify-content: center; align-items: center; padding: 20px;" dir="rtl"><div class="card card-yellow" style="max-width: 360px; width: 100%; text-align: right; position: relative;"><button onclick="document.getElementById('announcementModal').style.display='none'" style="position: absolute; top: 12px; left: 12px; background: #ef4444; color: white; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer;">✕</button><h3 style="color: #facc15; font-size: 16px; margin-bottom: 10px;" id="announcementTitle">📢 اطلاعیه مهم مدیریت</h3><p style="font-size: 12px; color: #ffffff; line-height: 1.6; margin-bottom: 15px;" id="announcementText"></p><div id="announcementLinkBox" style="display: none;"><a id="announcementLinkBtn" href="#" target="_blank" class="btn-blue" style="display: block; text-align: center; font-size: 12px; padding: 10px;">مشاهده لینک 🔗</a></div></div></div>
 
 <div id="channelModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px;" dir="rtl"><div class="card card-yellow" style="max-width: 380px; width: 100%; text-align: center; position: relative;"><button onclick="document.getElementById('channelModal').style.display='none'" style="position: absolute; top: 12px; left: 12px; background: #ef4444; color: white; border: none; width: 26px; height: 26px; border-radius: 50%; font-weight: bold; cursor: pointer;">✕</button><h3 style="color: #facc15; font-size: 16px; margin-bottom: 10px;">📢 عضویت اجباری در کانال‌ها</h3><div id="modalChannelsContainer" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;"></div><button class="btn-yellow" id="verifyChannelBtn" onclick="verifyAllMemberships()">تایید عضویت و شروع ⚡</button></div></div>
+
+<div id="deductModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 15500; justify-content: center; align-items: center; padding: 15px;" dir="rtl">
+  <div class="card card-blue" style="max-width: 400px; width: 100%; text-align: right;">
+    <h3 style="color: #c4b5fd; font-size: 14px; margin-bottom: 10px;">کسر از موجودی <span id="dedUser" style="color: #facc15;"></span></h3>
+    <div id="dedInfo" style="font-size: 12px; color: #cbd5e1; line-height: 1.9; margin-bottom: 8px;">در حال دریافت موجودی...</div>
+    <input type="text" inputmode="numeric" class="select-box" id="dedAmount" placeholder="مبلغ کسر (تومان)" style="text-align: right;">
+    <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+      <button class="ab ab-ded" style="flex: 1;" onclick="deductQuick(10000)">۱۰,۰۰۰ (پاداش یک دعوت)</button>
+      <button class="ab ab-ded" style="flex: 1;" onclick="deductQuick('all')">کل موجودی</button>
+    </div>
+    <input type="text" class="select-box" id="dedReason" maxlength="200" placeholder="دلیل (مثلاً حساب تکراری) — اختیاری" style="text-align: right;">
+    <div id="dedHint" style="display: none; font-size: 11px; color: #fbbf24; line-height: 1.8; margin-bottom: 8px;"></div>
+    <div style="display: flex; gap: 8px; margin-top: 6px;">
+      <button class="btn-yellow" id="dedSendBtn" style="margin-top: 0;" onclick="submitDeduct()">کسر از موجودی ➖</button>
+      <button class="btn-danger" style="margin-top: 0;" onclick="closeDeduct()">انصراف</button>
+    </div>
+  </div>
+</div>
 
 <div id="adminTicketModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 15500; justify-content: center; align-items: center; padding: 15px;" dir="rtl">
   <div class="card card-blue" style="max-width: 400px; width: 100%; text-align: right;">
@@ -1971,6 +1991,7 @@
     if (st !== 'blocked') b.push(`<button class="ab ab-blk" data-u="${e}" onclick="refSetStatus(this.dataset.u, 'blocked')">مسدود کردن 🚫</button>`);
     if (st !== 'active') b.push(`<button class="ab ab-ok" data-u="${e}" onclick="refSetStatus(this.dataset.u, 'active')">آزاد کردن ✅</button>`);
     b.push(`<button class="ab ab-tk" data-u="${e}" onclick="openAdminTicket(this.dataset.u)">ارسال تیکت ✉️</button>`);
+    b.push(`<button class="ab ab-ded" data-u="${e}" onclick="openDeduct(this.dataset.u)">کسر از موجودی ➖</button>`);
     return `<div class="ref-actions">${b.join('')}</div>`;
   }
   async function openRefDetail(u, page) {
@@ -1988,6 +2009,7 @@
         <div class="ref-top"><b>${escH(v.username)}</b>${acctBadge(v.acct, true)}${riskBadge(v.level)}</div>
         <div class="ref-meta">تعداد زیرمجموعه: <b>${v.invited}</b> · دارای نشانه‌ی جدی: <b>${v.flagged}</b>${v.balance != null ? ` · موجودی: <b>${Math.floor(v.balance).toLocaleString()} ت</b>` : ''}</div>
         ${v.reasons.map(r => `<div class="ref-reason">• ${escH(r)}</div>`).join('')}
+        ${v.deducted > 0 ? `<div class="ded-note">کسرشده توسط مدیر تا الان: ${Math.floor(v.deducted).toLocaleString()} ت</div>` : ''}
         ${v.exists ? acctButtons(v.username, v.acct) : '<div class="ref-meta">این نام کاربری دیگر وجود ندارد.</div>'}
         ${v.flagged ? `<button class="ab ab-bulk" data-u="${escH(v.username)}" onclick="refBulkSuspend(this.dataset.u)">معلق کردن همه‌ی زیرمجموعه‌های مشکوک (${v.flagged}) ⏸️</button>` : ''}
       </div>
@@ -1996,6 +2018,7 @@
         <div class="ref-top"><b>${escH(i.username)}</b>${acctBadge(i.acct)}</div>
         <div class="ref-meta">عضویت: <b>${fmtJoin(i.joined, i.old, i.approx)}</b> · ${i.started ? (i.miningNow ? 'در حال استخراج ⚡' : 'استخراج کرده') : 'هنوز استخراج نزده'} · موجودی: ${Math.floor(i.balance).toLocaleString()} ت</div>
         <div class="ref-meta">برداشتِ در انتظار: ${i.wPending}${i.wPending ? ` (${Math.floor(i.wPendingSum).toLocaleString()} ت)` : ''} · واریزشده: ${Math.floor(i.wPaid).toLocaleString()} ت${i.device ? ` · گوشی: <span dir="ltr">${escH(i.device)}</span>` : ''}</div>
+        ${i.deducted > 0 ? `<div class="ded-note">کسرشده توسط مدیر تا الان: ${Math.floor(i.deducted).toLocaleString()} ت</div>` : ''}
         ${i.flags.length ? `<div class="flag-wrap">${flagChips(i.flags)}</div>` : ''}
         ${acctButtons(i.username, i.acct)}
       </div>`).join('') || "<p style='color:#aaa; font-size:12px;'>این کاربر زیرمجموعه‌ای ندارد.</p>";
@@ -2016,6 +2039,48 @@
     showCustomAlert(`${d.count} حساب معلق شد.`, "✅");
     renderRefs();
   }
+  // ---- the admin takes an amount off a balance (after reviewing a duplicate / fake account); never below zero ----
+  let deductUser = null, deductBalance = 0;
+  async function openDeduct(u) {
+    deductUser = u; deductBalance = 0;
+    document.getElementById('dedUser').innerText = u;
+    document.getElementById('dedAmount').value = ''; document.getElementById('dedReason').value = '';
+    let hint = document.getElementById('dedHint'); hint.style.display = 'none';
+    let info = document.getElementById('dedInfo'); info.innerText = 'در حال دریافت موجودی...';
+    document.getElementById('deductModal').style.display = 'flex';
+    let d = null; try { d = await adminGet('admin_user', { u: u }); } catch (e) {}
+    if (deductUser !== u) return;
+    if (!d || !d.user) { info.innerText = 'دریافت اطلاعات این کاربر انجام نشد. لطفاً دوباره امتحان کنید.'; return; }
+    deductBalance = Math.max(0, Math.floor(Number(d.user.mined) || 0));
+    info.innerHTML = `موجودی ذخیره‌شده روی سرور: <b style="color:#facc15;">${deductBalance.toLocaleString()} تومان</b>`;
+    let pend = (d.user.withdrawHistory || []).filter(w => !String(w.status || '').includes('واریز') && !String(w.status || '').includes('رد'));
+    if (pend.length) {
+      hint.innerText = `این کاربر ${pend.length} درخواست برداشتِ در انتظار دارد (${pend.reduce((t, w) => t + (Number(w.amount) || 0), 0).toLocaleString()} تومان). اگر آن را رد کنید، مبلغش به موجودی برمی‌گردد؛ بهتر است اول درخواست را رد کنید و بعد کسر کنید.`;
+      hint.style.display = 'block';
+    }
+  }
+  function closeDeduct() { document.getElementById('deductModal').style.display = 'none'; deductUser = null; }
+  function deductQuick(v) { document.getElementById('dedAmount').value = v === 'all' ? deductBalance : v; }
+  async function submitDeduct() {
+    let u = deductUser; if (!u) return;
+    let amt = Math.floor(parsePriceInput(document.getElementById('dedAmount').value) || 0);
+    if (!(amt >= 1)) return showCustomAlert("مبلغ را درست وارد کنید (فقط عدد).", "⚠️");
+    if (amt > deductBalance) return showCustomAlert(`این مبلغ از موجودی کاربر بیشتر است (موجودی: ${deductBalance.toLocaleString()} تومان).`, "⚠️");
+    if (!confirm(`${amt.toLocaleString()} تومان از موجودی «${u}» کم شود؟\nموجودی بعد از کسر: ${(deductBalance - amt).toLocaleString()} تومان\nاین کار خودکار برنمی‌گردد.`)) return;
+    let btn = document.getElementById('dedSendBtn'), orig = btn.innerText; btn.innerText = 'در حال انجام...'; btn.disabled = true;
+    let data = null;
+    try {
+      let res = await apiFetch(`${API_URL}/api/?action=admin_deduct`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: u, amount: amt, reason: document.getElementById('dedReason').value.trim() }) });
+      data = await res.json().catch(() => null);
+    } catch (e) {}
+    btn.innerText = orig; btn.disabled = false;
+    if (!data || data.status !== 'success') return showCustomAlert((data && data.message) || "کسر انجام نشد. لطفاً دوباره امتحان کنید.", "❌");
+    closeDeduct();
+    showCustomAlert(`${amt.toLocaleString()} تومان از موجودی «${u}» کم شد.\nموجودی جدید: ${Math.floor(data.after).toLocaleString()} تومان`, "✅");
+    renderRefs();
+  }
+
   // ticket written by the admin to one user
   let adminTicketUser = null;
   const ADMIN_TICKET_TEMPLATE = "کاربر گرامی، حساب شما برای بررسی زیرمجموعه‌ها به‌صورت موقت در حالت بررسی قرار گرفته است.\nلطفاً در پاسخ به همین تیکت توضیح دهید که زیرمجموعه‌های شما چگونه با مینی‌اپ آشنا شده‌اند و در صورت امکان مدرک (متن یا عکس) ارسال کنید.\nپس از بررسی، نتیجه به شما اعلام می‌شود.";
