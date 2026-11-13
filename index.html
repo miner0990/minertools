@@ -582,6 +582,7 @@
       <button onclick="switchAdminTab('receipts')" style="background: #27ae60; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🧾 رسیدها</button>
       <button onclick="switchAdminTab('withdrawals')" style="background: #e74c3c; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">💸 برداشت‌ها</button>
       <button onclick="switchAdminTab('refs')" style="background: #16a085; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">👥 زیرمجموعه‌ها</button>
+      <button onclick="switchAdminTab('buyers')" style="background: #8e44ad; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">💎 خریداران ماینر</button>
       <button onclick="switchAdminTab('referralCfg')" style="background: #3498db; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📝 متن دعوت</button>
       <button onclick="switchAdminTab('channels')" style="background: #34495e; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📢 کانال‌ها</button>
       <button onclick="switchAdminTab('bonus')" style="background: #d35400; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🎁 سایر تنظیمات</button>
@@ -666,6 +667,11 @@
         <button class="btn-yellow" style="margin-top:0; padding:8px; font-size:12px;" onclick="saveBotLinks()">ذخیره دکمه‌ها ✅</button>
       </div>
       <div id="botMsgsList"></div>
+    </div>
+    <div id="adminTab-buyers" class="admin-tab-content" style="display: none;">
+      <h4>خریداران ماینر (ماینرهای تأییدشده)</h4>
+      <input type="text" id="buyersSearch" oninput="buyersSearchChanged()" placeholder="جستجوی نام کاربری..." style="width: 100%; padding: 10px; margin: 10px 0; background: #111; border: 1px solid #555; color: #fff; border-radius: 5px; text-align: right;">
+      <div id="buyersList"></div>
     </div>
     <div id="adminTab-refs" class="admin-tab-content" style="display: none;">
       <h4>زیرمجموعه‌ها و وضعیت حساب‌ها</h4>
@@ -2119,6 +2125,8 @@
     showCustomAlert(st === 'active' ? `حساب «${u}» آزاد شد.` : (st === 'blocked' ? `حساب «${u}» مسدود شد.` : `حساب «${u}» معلق شد.`), "✅");
     renderRefs();
   }
+  const renderRefsOnly = renderRefs;
+  renderRefs = function () { let r = renderRefsOnly.apply(this, arguments); if (document.getElementById('adminTab-buyers').style.display === 'block') renderBuyers(); return r; };
   async function refBulkSuspend(u) { openAcctReason({ bulk: u, st: 'suspended' }); }
   // ---- suspend / block with a reason the user will see (optional) ----
   let arTarget = null;
@@ -2215,8 +2223,29 @@
     showCustomAlert(`تیکت برای «${u}» ارسال شد.`, "✅");
   }
   // warning badges next to withdrawal requests
+  // ---- buyers of paid miners ----
+  let buyersPage = 1, buyersTimer = null;
+  function buyersSearchChanged() { clearTimeout(buyersTimer); buyersTimer = setTimeout(() => renderBuyers(1), 350); }
+  function buyersGo(p) { renderBuyers(p); }
+  function fmtDay(ms) { try { return new Date(ms).toLocaleDateString('fa-IR', { timeZone: 'Asia/Tehran' }); } catch (e) { return ''; } }
+  async function renderBuyers(page) {
+    buyersPage = page || buyersPage; let box = document.getElementById('buyersList');
+    if (!box.innerHTML) box.innerHTML = "<p style='color:#aaa; font-size:12px;'>در حال دریافت...</p>";
+    let d = null; try { d = await adminGet('admin_buyers', { page: buyersPage, q: document.getElementById('buyersSearch').value.trim() }); } catch (e) {}
+    if (!d) { box.innerHTML = ADMIN_LOAD_ERR; return; }
+    let now = Date.now();
+    box.innerHTML = `<div class="ref-meta" style="margin-bottom: 8px;">تعداد خریداران: <b>${d.total}</b></div>` + (d.items.map(x => `<div class="ref-row">
+        <div class="ref-top"><b>${escH(x.u)}</b>${acctBadge(x.acct)}</div>
+        ${x.acct !== 'active' && x.acctR ? `<div class="acct-reason">دلیل ${x.acct === 'blocked' ? 'مسدودی' : 'تعلیق'}: ${escH(x.acctR)}</div>` : ''}
+        <div class="ref-meta">ماینرها: ${x.m.map(m => `<b>${escH(m.n)}</b>${m.e ? (m.e > now ? ` (تا ${fmtDay(m.e)})` : ' <span style="color:#ef4444;">(منقضی)</span>') : ''}`).join('، ')}</div>
+        <div class="ref-meta">موجودی: <b>${Math.floor(x.b).toLocaleString()} ت</b> · خریدها: ${x.buys}</div>
+        <div class="ref-meta">برداشتِ در انتظار: ${x.wp}${x.wp ? ` (${Math.floor(x.wps).toLocaleString()} ت)` : ''} · واریزشده: ${Math.floor(x.paid).toLocaleString()} ت</div>
+        ${acctButtons(x.u, x.acct)}
+      </div>`).join('') || "<p style='color:#aaa; font-size:12px;'>خریداری پیدا نشد.</p>") + adminPager(d.page, d.pages, 'buyersGo');
+  }
   function wFlagsHtml(f) {
     let h = acctBadge(f.acct);
+    if (Array.isArray(f.miners)) h += `<span class="flag-c">${f.miners.length ? 'ماینر: ' + f.miners.map(escH).join(' + ') : 'فقط ماینر رایگان'}</span>`;
     if (f.acct && f.acct !== 'active' && f.acctR) h += `<span class="flag-c flag-s">${f.acct === 'blocked' ? 'دلیل مسدودی' : 'دلیل تعلیق'}: ${escH(f.acctR)}</span>`;
     if (f.level > 0) h += `<span class="flag-c flag-s">دعوت‌کننده‌ی ${f.level >= 2 ? 'مشکوک' : 'نیازمند بررسی'} (${f.invited} زیرمجموعه)</span>`;
     h += flagChips((f.flags || []).filter(x => STRONG_FLAGS.includes(x)));
@@ -2234,7 +2263,7 @@
     return o ? `<span class="flag-c flag-s">کارت/ولت متعلق به حساب «${escH(o)}» است ⚠️</span>` : '';
   }
 
-  function switchAdminTab(t) { document.querySelectorAll('.admin-tab-content').forEach(e => e.style.display='none'); document.getElementById('adminTab-'+t).style.display='block'; if (t === 'refs') renderRefs();
+  function switchAdminTab(t) { document.querySelectorAll('.admin-tab-content').forEach(e => e.style.display='none'); document.getElementById('adminTab-'+t).style.display='block'; if (t === 'refs') renderRefs(); if (t === 'buyers') renderBuyers(1);
     if (t === 'withdrawals') ['adminWithdrawalsListPending', 'adminWithdrawalsListDone', 'adminWithdrawalsListRejected'].forEach(id => decorateWithdrawals(document.getElementById(id)));   // statuses may have changed meanwhile
   }
 
