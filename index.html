@@ -101,6 +101,7 @@
   .ab-sus { background: #b45309; } .ab-blk { background: #b91c1c; } .ab-ok { background: #15803d; } .ab-tk { background: #1d4ed8; }
   .ab-bulk { background: #7c2d12; margin-top: 8px; width: 100%; padding: 9px; }
   .ab-ded { background: #6d28d9; }
+  .refpaid-box { font-size: 12px; color: #fde68a; background: rgba(234,179,8,0.08); border: 1px solid #a16207; border-radius: 8px; padding: 8px; margin-top: 6px; line-height: 1.9; }
   .ded-note { font-size: 11px; color: #c4b5fd; margin-top: 2px; }
   .acct-b, .risk-b { font-size: 10px; border-radius: 10px; padding: 2px 8px; white-space: nowrap; }
   .acct-sus { background: rgba(245,158,11,.18); color: #fbbf24; border: 1px solid #b45309; }
@@ -2116,7 +2117,9 @@
         ${v.acct !== 'active' && v.acctR ? `<div class="acct-reason">دلیل ${v.acct === 'blocked' ? 'مسدودی' : 'تعلیق'}: ${escH(v.acctR)}</div>` : ''}
         <div class="ref-meta">تعداد زیرمجموعه: <b>${v.invited}</b> · دارای نشانه‌ی جدی: <b>${v.flagged}</b>${v.balance != null ? ` · موجودی: <b>${Math.floor(v.balance).toLocaleString()} ت</b>` : ''}</div>
         ${v.reasons.map(r => `<div class="ref-reason">• ${escH(r)}</div>`).join('')}
-        ${v.deducted > 0 ? `<div class="ded-note">کسرشده توسط مدیر تا الان: ${Math.floor(v.deducted).toLocaleString()} ت</div>` : ''}
+        ${v.deducted > 0 ? `<div class="ded-note">کسرشده توسط مدیر تا الان: ${Math.floor(v.deducted).toLocaleString()} ت</div>` : ''}${(refInvNow = v, '')}
+        ${v.refPaid && v.refPaid.todo.length ? `<div class="refpaid-box">💸 پاداش دعوت پرداخت‌شده برای <b>${v.refPaid.todo.length}</b> زیرمجموعهٔ معلق/مسدود: <b>${(v.refPaid.todo.length * v.refPaid.per).toLocaleString()} ت</b>${v.refPaid.done ? `<br>قبلاً کسر شده: ${v.refPaid.done} مورد (${(v.refPaid.done * v.refPaid.per).toLocaleString()} ت)` : ''}<br><button class="ab ab-ded" onclick="deductRefRewards()">کسر این مبلغ ➖</button></div>`
+          : (v.refPaid && v.refPaid.done ? `<div class="ded-note">پاداش دعوت ${v.refPaid.done} زیرمجموعهٔ معلق/مسدود قبلاً کسر شده است.</div>` : '')}
         ${v.exists ? acctButtons(v.username, v.acct) : '<div class="ref-meta">این نام کاربری دیگر وجود ندارد.</div>'}
         ${v.flagged ? `<button class="ab ab-bulk" data-u="${escH(v.username)}" onclick="refBulkSuspend(this.dataset.u)">معلق کردن همه‌ی زیرمجموعه‌های مشکوک (${v.flagged}) ⏸️</button>` : ''}
       </div>
@@ -2171,7 +2174,7 @@
   // ---- the admin takes an amount off a balance (after reviewing a duplicate / fake account); never below zero ----
   let deductUser = null, deductBalance = 0;
   async function openDeduct(u) {
-    deductUser = u; deductBalance = 0;
+    deductUser = u; deductBalance = 0; deductRefUsers = null;
     document.getElementById('dedUser').innerText = u;
     document.getElementById('dedAmount').value = ''; document.getElementById('dedReason').value = '';
     let hint = document.getElementById('dedHint'); hint.style.display = 'none';
@@ -2188,7 +2191,21 @@
       hint.style.display = 'block';
     }
   }
-  function closeDeduct() { document.getElementById('deductModal').style.display = 'none'; deductUser = null; }
+  function closeDeduct() { document.getElementById('deductModal').style.display = 'none'; deductUser = null; deductRefUsers = null; }
+  // the rewards of an inviter's suspended / blocked invitees, in the same deduction window (recorded so it happens once)
+  let refInvNow = null, deductRefUsers = null;
+  async function deductRefRewards() {
+    let v = refInvNow; if (!v || !v.refPaid || !v.refPaid.todo.length) return;
+    let names = v.refPaid.todo.slice(), amt = names.length * v.refPaid.per;
+    await openDeduct(v.username);
+    if (deductUser !== v.username) return;
+    if (deductBalance < 1) { closeDeduct(); return showCustomAlert("موجودی این دعوت‌کننده صفر است؛ چیزی برای کسر نیست.", "⚠️"); }
+    deductRefUsers = names;
+    let a = Math.min(amt, deductBalance);
+    document.getElementById('dedAmount').value = a;
+    document.getElementById('dedReason').value = `پاداش دعوت ${names.length} زیرمجموعهٔ معلق/مسدود`;
+    if (a < amt) { let h = document.getElementById('dedHint'); h.innerText = (h.style.display === 'block' ? h.innerText + '\n' : '') + `موجودی کافی نیست: از ${amt.toLocaleString()} تومان فقط ${a.toLocaleString()} تومان قابل کسر است.`; h.style.display = 'block'; }
+  }
   function deductQuick(v) { document.getElementById('dedAmount').value = v === 'all' ? deductBalance : v; }
   async function submitDeduct() {
     let u = deductUser; if (!u) return;
@@ -2200,7 +2217,7 @@
     let data = null;
     try {
       let res = await apiFetch(`${API_URL}/api/?action=admin_deduct`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: u, amount: amt, reason: document.getElementById('dedReason').value.trim() }) });
+        body: JSON.stringify({ username: u, amount: amt, reason: document.getElementById('dedReason').value.trim(), refUsers: deductRefUsers || [] }) });
       data = await res.json().catch(() => null);
     } catch (e) {}
     btn.innerText = orig; btn.disabled = false;
