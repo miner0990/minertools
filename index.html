@@ -94,6 +94,9 @@
   .ref-back { margin: 10px 0; }
   .ref-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
   .ab { border: none; border-radius: 6px; padding: 7px 10px; font-size: 11px; cursor: pointer; color: #fff; font-family: inherit; }
+  .ab-q { background: #334155; }
+  .acct-reason { font-size: 11px; color: #fca5a5; margin-top: 3px; line-height: 1.7; }
+  .acct-btn { margin-top: 8px; background: #b45309; color: #fff; border: none; border-radius: 8px; padding: 7px 12px; font-size: 12px; cursor: pointer; font-family: inherit; }
   .ab-sus { background: #b45309; } .ab-blk { background: #b91c1c; } .ab-ok { background: #15803d; } .ab-tk { background: #1d4ed8; }
   .ab-bulk { background: #7c2d12; margin-top: 8px; width: 100%; padding: 9px; }
   .ab-ded { background: #6d28d9; }
@@ -480,6 +483,34 @@
   </div>
 </div>
 
+<div id="acctReasonModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 15500; justify-content: center; align-items: center; padding: 15px;" dir="rtl">
+  <div class="card card-blue" style="max-width: 400px; width: 100%; text-align: right;">
+    <h3 id="arTitle" style="color: #fbbf24; font-size: 14px; margin-bottom: 8px;"></h3>
+    <div id="arInfo" style="font-size: 11px; color: #cbd5e1; line-height: 1.8; margin-bottom: 8px;"></div>
+    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+      <button class="ab ab-q" onclick="arQuick(this)">حساب تکراری</button>
+      <button class="ab ab-q" onclick="arQuick(this)">زیرمجموعه‌های فیک</button>
+      <button class="ab ab-q" onclick="arQuick(this)">کارت مشترک با حساب دیگر</button>
+      <button class="ab ab-q" onclick="arQuick(this)">نیاز به ارسال مدارک</button>
+    </div>
+    <textarea class="select-box" id="arReason" maxlength="300" rows="3" placeholder="دلیل (اختیاری) — به کاربر نشان داده می‌شود" style="text-align: right; resize: vertical;"></textarea>
+    <div style="display: flex; gap: 8px; margin-top: 6px;">
+      <button class="btn-yellow" id="arSendBtn" style="margin-top: 0;" onclick="submitAcctReason()">تأیید</button>
+      <button class="btn-danger" style="margin-top: 0;" onclick="closeAcctReason()">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<div id="acctNoticeModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 24000; justify-content: center; align-items: center; padding: 20px;" dir="rtl">
+  <div class="card card-yellow" style="max-width: 330px; width: 100%; text-align: center; border-radius: 16px; padding: 20px;">
+    <div id="acctNoticeIcon" style="font-size: 40px; margin-bottom: 10px;">⏸️</div>
+    <h3 id="acctNoticeTitle" style="color: #facc15; font-size: 16px; margin-bottom: 10px;">حساب شما معلق شد</h3>
+    <p id="acctNoticeText" style="font-size: 12px; color: #ffffff; line-height: 1.8; margin-bottom: 16px; white-space: pre-line;"></p>
+    <button class="btn-yellow" id="acctNoticeTicketBtn" style="margin: 0 0 8px; padding: 10px; font-size: 13px;" onclick="closeAcctNotice(); openAcctTickets();">ارسال مدارک (تیکت پشتیبانی) 📩</button>
+    <button class="btn-danger" style="margin: 0; padding: 10px; font-size: 13px;" onclick="closeAcctNotice()">متوجه شدم</button>
+  </div>
+</div>
+
 <div id="adminTicketModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 15500; justify-content: center; align-items: center; padding: 15px;" dir="rtl">
   <div class="card card-blue" style="max-width: 400px; width: 100%; text-align: right;">
     <h3 style="color: #38bdf8; font-size: 14px; margin-bottom: 10px;">ارسال تیکت به <span id="atUser" style="color: #facc15;"></span></h3>
@@ -860,7 +891,7 @@
     let d = document.createElement('div');
     d.id = 'blockedOverlay'; d.setAttribute('dir', 'rtl');
     d.style.cssText = 'position:fixed; inset:0; z-index:30000; background:#05070c; display:flex; align-items:center; justify-content:center; padding:24px; text-align:center;';
-    d.innerHTML = `<div style="max-width:340px;"><div style="font-size:52px; margin-bottom:14px;">🚫</div><h3 style="color:#ef4444; font-size:17px; margin-bottom:10px;">حساب مسدود شده است</h3><p style="color:#cbd5e1; font-size:13px; line-height:1.9;">${escH(msg || 'حساب شما توسط مدیریت مسدود شده است.')}</p></div>`;
+    d.innerHTML = `<div style="max-width:340px;"><div style="font-size:52px; margin-bottom:14px;">🚫</div><h3 style="color:#ef4444; font-size:17px; margin-bottom:10px;">حساب مسدود شده است</h3><p style="color:#cbd5e1; font-size:13px; line-height:1.9; white-space:pre-line;">${escH(msg || 'حساب شما توسط مدیریت مسدود شده است.')}</p></div>`;
     document.body.appendChild(d);
   }
 
@@ -1266,10 +1297,51 @@
     if (!on && hashFeedTimer) { clearInterval(hashFeedTimer); hashFeedTimer = null; }
   }
 
+  // ---- account status for the user: the yellow bar with the reason, and a notice once per change ----
+  function acctReasonLine(u) { return u && u.acctReason ? `\nدلیل: ${u.acctReason}` : ''; }
+  function renderAcctBanner(u) {
+    let b = document.getElementById('acctBanner'); if (!b) return;
+    let on = !!(u && u.acctStatus === 'suspended'), k = on ? 's|' + (u.acctReason || '') : '';
+    if (b.dataset.k === k) return;   // unchanged: don't rebuild it every second
+    b.dataset.k = k;
+    if (!on) { b.style.display = 'none'; return; }
+    b.innerHTML = `⚠️ حساب شما معلق شده و در حال بررسی است؛ فعلاً امکان برداشت ندارد.${u.acctReason ? `<br>دلیل: <b>${escH(u.acctReason)}</b>` : ''}<br><button class="acct-btn" onclick="openAcctTickets()">ارسال مدارک / پاسخ به تیکت 📩</button>`;
+    b.style.display = 'block';
+  }
+  let acctNoticeSeen = null;
+  function acctNotice(u) {
+    if (!u || !currentUser || adminToken) return;
+    let cur = u.acctStatus === 'suspended' ? 'suspended:' + (u.acctTime || 0) : 'active';
+    if (acctNoticeSeen === currentUser + '|' + cur) return;
+    acctNoticeSeen = currentUser + '|' + cur;
+    let key = 'minertools_acct_' + currentUser, prev = null;
+    try { prev = localStorage.getItem(key); } catch (e) {}
+    if (prev === cur) return;
+    try { localStorage.setItem(key, cur); } catch (e) {}
+    if (cur !== 'active') {
+      showAcctNotice('⏸️', 'حساب شما معلق شد', `فعلاً امکان ثبت برداشت ندارید، ولی استخراج شما ادامه دارد.${acctReasonLine(u)}\nاگر فکر می‌کنید اشتباهی شده، مدارک خود را (متن یا عکس) از طریق تیکت پشتیبانی بفرستید.`, true);
+    } else if (prev && prev.indexOf('suspended') === 0) {
+      showAcctNotice('✅', 'حساب شما دوباره فعال شد', 'از این به بعد می‌توانید مثل قبل برداشت ثبت کنید.', false);
+    }
+  }
+  function showAcctNotice(icon, title, text, ticket) {   // its own window, so another message can't replace it
+    document.getElementById('acctNoticeIcon').innerText = icon;
+    document.getElementById('acctNoticeTitle').innerText = title;
+    document.getElementById('acctNoticeText').innerText = text;
+    document.getElementById('acctNoticeTicketBtn').style.display = ticket ? 'block' : 'none';
+    document.getElementById('acctNoticeModal').style.display = 'flex';
+  }
+  function closeAcctNotice() { document.getElementById('acctNoticeModal').style.display = 'none'; }
+  function openAcctTickets() {
+    let el = [...document.querySelectorAll('.nav-item')].find(x => (x.getAttribute('onclick') || '').includes("'account'"));
+    if (el) el.click();
+    setTimeout(() => { let t = document.getElementById('userTicketsList'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
+  }
+
   function updateUI() {
     let u = db[currentUser];
     updateHashFeed(u);
-    let acctBanner = document.getElementById('acctBanner'); if (acctBanner) acctBanner.style.display = (u && u.acctStatus === 'suspended') ? 'block' : 'none';
+    renderAcctBanner(u); acctNotice(u);
     if(!u) return;
     
     if(!u.refCode) { u.refCode = "REF" + Math.floor(10000 + Math.random() * 90000); saveDB(); }
@@ -1591,7 +1663,7 @@
   async function submitTomanWithdraw() {
     let u = db[currentUser], c = document.getElementById('wCardNumber').value, h = document.getElementById('wCardHolder').value, a = parseInt(document.getElementById('wTomanAmount').value);
     if(c.length < 16 || !h || a <= 0 || a > u.mined) return showCustomAlert("اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست.", "❌");
-    if(u.acctStatus === 'suspended') return showCustomAlert("حساب شما در حال بررسی است و فعلاً امکان ثبت برداشت ندارد. لطفاً به تیکت پشتیبانی پاسخ دهید.", "⏳");
+    if(u.acctStatus === 'suspended') return showCustomAlert("حساب شما در حال بررسی است و فعلاً امکان ثبت برداشت ندارد. لطفاً به تیکت پشتیبانی پاسخ دهید." + acctReasonLine(u), "⏳");
     if(!(a >= withdrawMinAmount())) return showCustomAlert(wMinMsg(), "⚠️");
     if(withdrewToday(u)) return showCustomAlert(W_DAILY_MSG, "⏳");
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
@@ -1609,7 +1681,7 @@
   async function submitCryptoWithdraw() {
     let u = db[currentUser], ad = document.getElementById('wCryptoAddress').value, a = parseInt(document.getElementById('wCryptoAmount').value);
     if(!ad || a <= 0 || a > u.mined) return showCustomAlert("اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست.", "❌");
-    if(u.acctStatus === 'suspended') return showCustomAlert("حساب شما در حال بررسی است و فعلاً امکان ثبت برداشت ندارد. لطفاً به تیکت پشتیبانی پاسخ دهید.", "⏳");
+    if(u.acctStatus === 'suspended') return showCustomAlert("حساب شما در حال بررسی است و فعلاً امکان ثبت برداشت ندارد. لطفاً به تیکت پشتیبانی پاسخ دهید." + acctReasonLine(u), "⏳");
     if(!(a >= withdrawMinAmount())) return showCustomAlert(wMinMsg(), "⚠️");
     if(withdrewToday(u)) return showCustomAlert(W_DAILY_MSG, "⏳");
     let btn = event.target; let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
@@ -2020,6 +2092,7 @@
     refsDetailPage = d.page; let v = d.inviter;
     let h = BACK + `<div class="ref-card lv${v.level}">
         <div class="ref-top"><b>${escH(v.username)}</b>${acctBadge(v.acct, true)}${riskBadge(v.level)}</div>
+        ${v.acct !== 'active' && v.acctR ? `<div class="acct-reason">دلیل ${v.acct === 'blocked' ? 'مسدودی' : 'تعلیق'}: ${escH(v.acctR)}</div>` : ''}
         <div class="ref-meta">تعداد زیرمجموعه: <b>${v.invited}</b> · دارای نشانه‌ی جدی: <b>${v.flagged}</b>${v.balance != null ? ` · موجودی: <b>${Math.floor(v.balance).toLocaleString()} ت</b>` : ''}</div>
         ${v.reasons.map(r => `<div class="ref-reason">• ${escH(r)}</div>`).join('')}
         ${v.deducted > 0 ? `<div class="ded-note">کسرشده توسط مدیر تا الان: ${Math.floor(v.deducted).toLocaleString()} ت</div>` : ''}
@@ -2029,6 +2102,7 @@
       <h4 style="margin: 14px 0 8px; font-size: 13px;">زیرمجموعه‌ها (جدیدترین اول)</h4>`;
     h += d.items.map(i => `<div class="ref-row${i.flags.some(f => STRONG_FLAGS.includes(f)) ? ' warn' : ''}">
         <div class="ref-top"><b>${escH(i.username)}</b>${acctBadge(i.acct)}</div>
+        ${i.acct !== 'active' && i.acctR ? `<div class="acct-reason">دلیل ${i.acct === 'blocked' ? 'مسدودی' : 'تعلیق'}: ${escH(i.acctR)}</div>` : ''}
         <div class="ref-meta">عضویت: <b>${fmtJoin(i.joined, i.old, i.approx)}</b> · ${i.started ? (i.miningNow ? 'در حال استخراج ⚡' : 'استخراج کرده') : 'هنوز استخراج نزده'} · موجودی: ${Math.floor(i.balance).toLocaleString()} ت</div>
         <div class="ref-meta">برداشتِ در انتظار: ${i.wPending}${i.wPending ? ` (${Math.floor(i.wPendingSum).toLocaleString()} ت)` : ''} · واریزشده: ${Math.floor(i.wPaid).toLocaleString()} ت${i.device ? ` · گوشی: <span dir="ltr">${escH(i.device)}</span>` : ''}</div>
         ${i.deducted > 0 ? `<div class="ded-note">کسرشده توسط مدیر تا الان: ${Math.floor(i.deducted).toLocaleString()} ت</div>` : ''}
@@ -2039,17 +2113,36 @@
   }
   function refDetailGo(p) { openRefDetail(refsDetailUser, p); }
   async function refSetStatus(u, st) {
-    if (st === 'blocked' && !confirm(`حساب «${u}» مسدود شود؟\nکاربر دیگر نمی‌تواند وارد مینی‌اپ شود. اطلاعاتش پاک نمی‌شود و بعداً می‌توانید آزادش کنید.`)) return;
+    if (st !== 'active') return openAcctReason({ u: u, st: st });
     let d = null; try { d = await adminPost('admin_set_status', { username: u, status: st }); } catch (e) {}
     if (!d) return showCustomAlert("تغییر وضعیت انجام نشد. لطفاً دوباره امتحان کنید.", "❌");
     showCustomAlert(st === 'active' ? `حساب «${u}» آزاد شد.` : (st === 'blocked' ? `حساب «${u}» مسدود شد.` : `حساب «${u}» معلق شد.`), "✅");
     renderRefs();
   }
-  async function refBulkSuspend(u) {
-    if (!confirm(`همه‌ی زیرمجموعه‌های مشکوکِ «${u}» معلق شوند؟\nفقط برداشتشان بسته می‌شود و بعداً می‌توانید آزادشان کنید.`)) return;
-    let d = null; try { d = await adminPost('admin_set_status_bulk', { inviter: u }); } catch (e) {}
-    if (!d) return showCustomAlert("انجام نشد. لطفاً دوباره امتحان کنید.", "❌");
-    showCustomAlert(`${d.count} حساب معلق شد.`, "✅");
+  async function refBulkSuspend(u) { openAcctReason({ bulk: u, st: 'suspended' }); }
+  // ---- suspend / block with a reason the user will see (optional) ----
+  let arTarget = null;
+  function openAcctReason(t) {
+    arTarget = t; let blk = t.st === 'blocked';
+    document.getElementById('arTitle').innerText = t.bulk ? `معلق کردن همه‌ی زیرمجموعه‌های مشکوکِ «${t.bulk}»` : `${blk ? 'مسدود کردن' : 'معلق کردن'} حساب «${t.u}»`;
+    document.getElementById('arInfo').innerText = blk ? 'کاربر دیگر نمی‌تواند وارد مینی‌اپ شود. اطلاعاتش پاک نمی‌شود و بعداً می‌توانید آزادش کنید.'
+      : 'کاربر استخراج را ادامه می‌دهد ولی نمی‌تواند برداشت ثبت کند. بعداً می‌توانید آزادش کنید.';
+    document.getElementById('arReason').value = '';
+    document.getElementById('arSendBtn').innerText = blk ? 'مسدود شود 🚫' : 'معلق شود ⏸️';
+    document.getElementById('acctReasonModal').style.display = 'flex';
+  }
+  function arQuick(b) { document.getElementById('arReason').value = b.innerText; }
+  function closeAcctReason() { document.getElementById('acctReasonModal').style.display = 'none'; arTarget = null; }
+  async function submitAcctReason() {
+    let t = arTarget; if (!t) return;
+    let reason = document.getElementById('arReason').value.trim(), btn = document.getElementById('arSendBtn'), orig = btn.innerText;
+    btn.disabled = true; btn.innerText = 'در حال انجام...';
+    let d = null;
+    try { d = t.bulk ? await adminPost('admin_set_status_bulk', { inviter: t.bulk, reason: reason }) : await adminPost('admin_set_status', { username: t.u, status: t.st, reason: reason }); } catch (e) {}
+    btn.disabled = false; btn.innerText = orig;
+    if (!d) return showCustomAlert(t.bulk ? "انجام نشد. لطفاً دوباره امتحان کنید." : "تغییر وضعیت انجام نشد. لطفاً دوباره امتحان کنید.", "❌");
+    closeAcctReason();
+    showCustomAlert(t.bulk ? `${d.count} حساب معلق شد.` : (t.st === 'blocked' ? `حساب «${t.u}» مسدود شد.` : `حساب «${t.u}» معلق شد.`), "✅");
     renderRefs();
   }
   // ---- the admin takes an amount off a balance (after reviewing a duplicate / fake account); never below zero ----
@@ -2124,6 +2217,7 @@
   // warning badges next to withdrawal requests
   function wFlagsHtml(f) {
     let h = acctBadge(f.acct);
+    if (f.acct && f.acct !== 'active' && f.acctR) h += `<span class="flag-c flag-s">${f.acct === 'blocked' ? 'دلیل مسدودی' : 'دلیل تعلیق'}: ${escH(f.acctR)}</span>`;
     if (f.level > 0) h += `<span class="flag-c flag-s">دعوت‌کننده‌ی ${f.level >= 2 ? 'مشکوک' : 'نیازمند بررسی'} (${f.invited} زیرمجموعه)</span>`;
     h += flagChips((f.flags || []).filter(x => STRONG_FLAGS.includes(x)));
     if (f.by && f.byLevel > 0) h += `<span class="flag-c flag-s">دعوت‌شده توسط ${escH(f.by)} ⚠️</span>`;
