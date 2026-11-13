@@ -96,6 +96,7 @@
   .ab { border: none; border-radius: 6px; padding: 7px 10px; font-size: 11px; cursor: pointer; color: #fff; font-family: inherit; }
   .ab-q { background: #334155; }
   .acct-reason { font-size: 11px; color: #fca5a5; margin-top: 3px; line-height: 1.7; }
+  .w-cancel-btn { margin-top: 6px; background: #7f1d1d; color: #fff; border: none; border-radius: 6px; padding: 6px 12px; font-size: 11px; cursor: pointer; font-family: inherit; }
   .acct-btn { margin-top: 8px; background: #b45309; color: #fff; border: none; border-radius: 8px; padding: 7px 12px; font-size: 12px; cursor: pointer; font-family: inherit; }
   .ab-sus { background: #b45309; } .ab-blk { background: #b91c1c; } .ab-ok { background: #15803d; } .ab-tk { background: #1d4ed8; }
   .ab-bulk { background: #7c2d12; margin-top: 8px; width: 100%; padding: 9px; }
@@ -1708,9 +1709,23 @@
     let h = "";
     db[currentUser].withdrawHistory.forEach(w => {
       let col = w.status.includes('واریز') ? '#00ff88' : (w.status.includes('رد') ? '#ef4444' : '#38bdf8');
-      h += `<div style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; margin-bottom: 6px;"><b>${w.amount.toLocaleString()} تومان (${w.type})</b> - <span style="color:${col};">${w.status}</span><div style="font-size:10px; color:#aaa;">${w.details}</div>${w.rejectReason ? `<div style="font-size:10px; color:#facc15;">دلیل: ${w.rejectReason}</div>`:''}</div>`;
+      h += `<div style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; margin-bottom: 6px;"><b>${w.amount.toLocaleString()} تومان (${w.type})</b> - <span style="color:${col};">${w.status}</span><div style="font-size:10px; color:#aaa;">${w.details}</div>${w.rejectReason ? `<div style="font-size:10px; color:#facc15;">دلیل: ${w.rejectReason}</div>`:''}${!w.status.includes('واریز') && !w.status.includes('رد') ? `<button class="w-cancel-btn" onclick="cancelWithdraw(${Number(w.id)}, this)">لغو برداشت ❌</button>` : ''}</div>`;
     });
     document.getElementById('accountWithdrawHistory').innerHTML = h || "هنوز برداشتی ثبت نشده.";
+  }
+  // the user cancels its own waiting request; the server gives the amount back
+  async function cancelWithdraw(id, btn) {
+    let w = (db[currentUser].withdrawHistory || []).find(x => Number(x.id) === Number(id)); if (!w) return;
+    if (!confirm(`درخواست برداشت ${Number(w.amount).toLocaleString()} تومان لغو شود؟\nمبلغ به موجودی شما برمی‌گردد.`)) return;
+    btn.disabled = true; btn.innerText = 'در حال لغو...';
+    let data = null;
+    try {
+      let res = await apiFetch(`${API_URL}/api/?action=cancel_withdraw`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: currentUser, id: id }) });
+      data = await res.json().catch(() => null);
+    } catch (e) {}
+    if (!data || data.status !== 'success') { btn.disabled = false; btn.innerText = 'لغو برداشت ❌'; return showCustomAlert((data && data.message) || "لغو انجام نشد. لطفاً دوباره امتحان کنید.", "❌"); }
+    await loadDataFromServer(); updateUI(); renderWithdrawHistory();
+    showCustomAlert(`درخواست لغو شد و ${Number(data.amount).toLocaleString()} تومان به موجودی شما برگشت.`, "✅");
   }
 
   async function openNewTicketPrompt() {
@@ -2524,9 +2539,13 @@
      document.getElementById('adminWithdrawalsListRejected').style.display = type==='rejected' ? 'block' : 'none';
   }
 
+  function wStillPending(w) {   // the user may have cancelled it meanwhile
+    if (w && String(w.status || '').includes('بررسی')) return true;
+    renderAdminWithdrawals(); showCustomAlert("این درخواست دیگر در انتظار نیست (ممکن است کاربر خودش آن را لغو کرده باشد).", "⚠️"); return false;
+  }
   async function approveW(id, btn) {
     btn.innerText = "صبر کنید..."; btn.disabled = true;
-    await loadDataFromServer(); let w = allWithdrawals.find(x => x.id === id); if(w) w.status = "واریز شد ✅"; if(w) await adminLoadUser(w.username); 
+    await loadDataFromServer(); let w = allWithdrawals.find(x => x.id === id); if (!wStillPending(w)) return; if(w) w.status = "واریز شد ✅"; if(w) await adminLoadUser(w.username); 
     if(w && db[w.username]) { let uw = db[w.username].withdrawHistory.find(x => x.id === id); if(uw) uw.status = "واریز شد ✅"; await saveDB(w.username); }
     await saveGlobalAdminData(); renderAdminWithdrawals(); showCustomAlert("برداشت تایید شد.", "✅");
   }
@@ -2534,7 +2553,7 @@
   async function rejectW(id, btn) {
     let r = prompt("دلیل رد (مبلغ به حساب کاربر برمی‌گردد):"); if(!r) return;
     btn.innerText = "صبر کنید..."; btn.disabled = true;
-    await loadDataFromServer(); let w = allWithdrawals.find(x => x.id === id); if(w) { w.status = "رد شد ❌"; w.rejectReason = r; } if(w) await adminLoadUser(w.username);
+    await loadDataFromServer(); let w = allWithdrawals.find(x => x.id === id); if (!wStillPending(w)) return; if(w) { w.status = "رد شد ❌"; w.rejectReason = r; } if(w) await adminLoadUser(w.username);
     if(w && db[w.username]) { let uw = db[w.username].withdrawHistory.find(x => x.id === id); if(uw){ uw.status = "رد شد ❌"; uw.rejectReason = r; } db[w.username].mined += w.amount; await saveDB(w.username); }
     await saveGlobalAdminData(); renderAdminWithdrawals(); renderAdminStats(); showCustomAlert("برداشت رد شد و وجه بازگشت.", "✅");
   }
