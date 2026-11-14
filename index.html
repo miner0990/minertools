@@ -668,6 +668,25 @@
         <input type="text" id="botLinkChannel" class="select-box" dir="ltr" placeholder="@MinerToolsChannel" style="margin:4px 0 10px 0; text-align:left;">
         <button class="btn-yellow" style="margin-top:0; padding:8px; font-size:12px;" onclick="saveBotLinks()">ذخیره دکمه‌ها ✅</button>
       </div>
+      <div style="background:#252538; padding:12px; border-radius:8px; margin-bottom:15px; border:1px solid #16a085;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <b style="font-size:13px;">💸 کانال واریزی‌ها</b>
+          <label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="payFeedOn" style="vertical-align:middle;"> فعال</label>
+        </div>
+        <p style="font-size:10px; color:#aaa; margin:0 0 10px 0; line-height:1.7;">هر برداشتی که «تایید پرداخت» کنید، حداکثر یک دقیقه بعد خودکار در این کانال ثبت می‌شود (فقط پرداخت‌های جدید؛ رد و لغو هرگز). از نام کاربری فقط چند حرف اول نشان داده می‌شود و شماره‌کارت یا آدرس ولت هیچ‌وقت. ربات باید در کانال <b>مدیر</b> باشد با اجازهٔ «ارسال پیام».</p>
+        <label style="font-size:11px; color:#ccc;">📢 آیدی کانال:</label>
+        <input type="text" id="payFeedChannel" class="select-box" dir="ltr" placeholder="@miner_variz" style="margin:4px 0 10px 0; text-align:left;">
+        <label style="font-size:11px; color:#ccc;">📝 متن پیام — جای‌خالی‌ها: <span dir="ltr">{number} {user} {amount} {time} {total}</span></label>
+        <textarea id="payFeedText" class="select-box" oninput="payFeedPreviewNow()" style="height:150px; margin:4px 0 6px 0; line-height:1.6;"></textarea>
+        <div style="font-size:10px; color:#aaa; margin-bottom:4px;">پیش‌نمایش (با عددهای نمونه):</div>
+        <div id="payFeedPreview" style="white-space:pre-wrap; unicode-bidi:plaintext; font-size:12px; line-height:1.7; background:#111827; border:1px dashed #16a085; border-radius:6px; padding:8px; margin-bottom:8px;"></div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="btn-yellow" style="margin-top:0; padding:8px; font-size:12px; flex:1;" onclick="savePayFeed()">ذخیره ✅</button>
+          <button class="btn-yellow" style="margin-top:0; padding:8px; font-size:12px; flex:1; background:#16a085 !important; color:#fff !important;" onclick="testPayFeed(this)">پیام آزمایشی 🧪</button>
+          <button class="btn-yellow" style="margin-top:0; padding:8px; font-size:12px; flex:1; background:#334155 !important; color:#fff !important;" onclick="resetPayFeedText()">متن پیش‌فرض ↩️</button>
+        </div>
+        <div id="payFeedInfo" style="font-size:11px; color:#94a3b8; margin-top:8px; line-height:1.7;"></div>
+      </div>
       <div id="botMsgsList"></div>
     </div>
     <div id="adminTab-buyers" class="admin-tab-content" style="display: none;">
@@ -2012,7 +2031,7 @@
           document.getElementById('adminNoticeLink').value = globalNotice.link || ''; 
       }
       btn.innerText = "ورود به مدیریت"; btn.disabled = false; document.getElementById('adminDashboardPanel').style.display = 'block';
-      loadBotWelcomeText(); loadBotMsgs(); loadBotLinks();
+      loadBotWelcomeText(); loadBotMsgs(); loadBotLinks(); loadPayFeed();
     } else showCustomAlert((check && check.message) || "رمز عبور ادمین اشتباه است!", "❌");
   }
   function closeAdminDashboard() {
@@ -2482,6 +2501,51 @@
       } else showCustomAlert((data && data.message) || "ذخیره انجام نشد.", "❌");
     } catch(e) { showCustomAlert("خطای ارتباط با شبکه. لطفاً دوباره تلاش کنید.", "❌"); }
   }
+
+  // ---- payments channel (کانال واریزی‌ها) ----
+  let payFeedDefault = '', payFeedSample = null;
+  async function payFeedCall(action, body) {
+    let res = await apiFetch(`${API_URL}/api/?action=${action}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
+    return await res.json();
+  }
+  function payFeedPreviewNow() {
+    if (!payFeedSample) return;
+    let t = document.getElementById('payFeedText').value || payFeedDefault;
+    Object.keys(payFeedSample).forEach(k => { t = t.split(k).join(payFeedSample[k]); });
+    document.getElementById('payFeedPreview').innerText = t;
+  }
+  function payFeedShow(d) {
+    document.getElementById('payFeedOn').checked = !!d.on;
+    document.getElementById('payFeedChannel').value = d.channel || '';
+    document.getElementById('payFeedText').value = d.text || '';
+    payFeedDefault = d.default || '';
+    payFeedSample = { '{number}': '۱۲۵۴', '{user}': '‎rez***‎', '{amount}': '۱۵۰,۰۰۰ تومان (کارت به کارت)', '{time}': '', '{total}': '۴۸۵,۲۰۰,۰۰۰' };
+    let m = String(d.preview || '').match(/🕒 ([^\n]*)/); payFeedSample['{time}'] = m ? m[1] : '';
+    if (!m) document.getElementById('payFeedPreview').innerText = d.preview || ''; else payFeedPreviewNow();
+    let fa = n => Number(n || 0).toLocaleString('fa-IR');
+    let box = document.getElementById('payFeedInfo'); box.innerText = `در صف ارسال: ${fa(d.queue)} | فرستاده‌شده تا الان: ${fa(d.sent)}`;
+    if (d.lastError && (d.lastErrorAt || 0) > (d.lastOk || 0)) { let e = document.createElement('div'); e.style.color = '#ef4444'; e.innerText = '⚠️ آخرین خطا: ' + d.lastError; box.appendChild(e); }
+  }
+  async function loadPayFeed() {
+    try { let d = await payFeedCall('payfeed_get'); if (d && d.status === 'success') payFeedShow(d); } catch (e) {}
+  }
+  async function savePayFeed() {
+    let body = { on: document.getElementById('payFeedOn').checked, channel: document.getElementById('payFeedChannel').value.trim(), text: document.getElementById('payFeedText').value.trim() };
+    try {
+      let d = await payFeedCall('payfeed_set', body);
+      if (d && d.status === 'success') { payFeedShow(d); showCustomAlert(d.on ? "کانال واریزی‌ها فعال شد. از این به بعد هر «تایید پرداخت» خودکار در کانال ثبت می‌شود." : "تنظیمات کانال واریزی‌ها ذخیره شد (خاموش).", "✅"); }
+      else showCustomAlert((d && d.message) || "ذخیره انجام نشد.", "❌");
+    } catch (e) { showCustomAlert("خطای ارتباط با شبکه. لطفاً دوباره تلاش کنید.", "❌"); }
+  }
+  async function testPayFeed(btn) {
+    let orig = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
+    try {
+      let d = await payFeedCall('payfeed_test');
+      showCustomAlert((d && d.message) || "ارسال انجام نشد.", d && d.status === 'success' ? "✅" : "❌");
+    } catch (e) { showCustomAlert("خطای ارتباط با شبکه. لطفاً دوباره تلاش کنید.", "❌"); }
+    btn.innerText = orig; btn.disabled = false;
+  }
+  function resetPayFeedText() { document.getElementById('payFeedText').value = payFeedDefault; payFeedPreviewNow(); }
 
   async function saveBotMsg(name) {
     let enabled = document.getElementById('botMsgOn-' + name).checked, text = document.getElementById('botMsgText-' + name).value.trim();
