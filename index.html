@@ -967,9 +967,14 @@
   async function refreshCryptoRates() {
     if (!currentUser || adminToken) return;
     try {
-      let res = await apiFetch(`${API_URL}/api/get_all?t=${Date.now()}&u=${encodeURIComponent(currentUser)}`, { cache: "no-store" });
-      if (!res.ok) return;
-      let data = await res.json(), a = data && data['_ADMIN_DATA_'], r = a && a.cryptoRates;
+      let r = null;
+      let res = await apiFetch(`${API_URL}/api/?action=rates`, { cache: "no-store" });   // prices only (light)
+      if (res.ok) { let d = await res.json(); r = d && d.cryptoRates; }
+      if (!r) {   // an older server: the whole account, as before
+        res = await apiFetch(`${API_URL}/api/get_all?t=${Date.now()}&u=${encodeURIComponent(currentUser)}`, { cache: "no-store" });
+        if (!res.ok) return;
+        let data = await res.json(), a = data && data['_ADMIN_DATA_']; r = a && a.cryptoRates;
+      }
       if (r && Number(r.usdt) > 0 && Number(r.trx) > 0 && Number(r.btc) > 0) {
         cryptoRates = r; if (db['_ADMIN_DATA_']) db['_ADMIN_DATA_'].cryptoRates = r;
         if (db[currentUser]) updateUI();
