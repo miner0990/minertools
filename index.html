@@ -524,7 +524,10 @@
     <h3 style="color: #38bdf8; font-size: 14px; margin-bottom: 10px;">ارسال تیکت به <span id="atUser" style="color: #facc15;"></span></h3>
     <input type="text" class="select-box" id="atSubject" maxlength="80" placeholder="موضوع تیکت" style="text-align: right;">
     <textarea class="select-box" id="atText" rows="7" placeholder="متن پیام..." style="resize: vertical; line-height: 1.8; text-align: right; font-family: inherit;"></textarea>
-    <button class="btn-blue" style="font-size: 11px; padding: 7px; margin-top: 0;" onclick="adminTicketTemplate()">گذاشتن متن آماده 📝</button>
+    <div style="display: flex; gap: 6px;">
+      <button class="btn-blue" style="font-size: 11px; padding: 7px; margin-top: 0;" onclick="adminTicketTemplate()">متن آماده: بررسی زیرمجموعه‌ها 📝</button>
+      <button class="btn-blue" style="font-size: 11px; padding: 7px; margin-top: 0;" onclick="adminTicketTemplateDeduct()">متن آماده: کسر برداشت لغوشده 📝</button>
+    </div>
     <div style="display: flex; gap: 8px; margin-top: 10px;">
       <button class="btn-yellow" id="atSendBtn" style="margin-top: 0;" onclick="adminSendTicket()">ارسال تیکت ✉️</button>
       <button class="btn-danger" style="margin-top: 0;" onclick="closeAdminTicket()">انصراف</button>
@@ -606,7 +609,14 @@
       <h4 style="color: #facc15; border-bottom: 1px solid #444; padding-bottom: 8px;">لیست تفکیک شده کاربران:</h4>
       <div id="adminUsersListDetailed" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
-    <div id="adminTab-tickets" class="admin-tab-content" style="display: none;"><h4>مدیریت تیکت‌های پشتیبانی کاربران</h4><div id="adminTicketsList" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;"></div></div>
+    <div id="adminTab-tickets" class="admin-tab-content" style="display: none;"><h4>مدیریت تیکت‌های پشتیبانی کاربران</h4>
+      <div style="background: #1e1b4b; border: 1px solid #1d4ed8; border-radius: 8px; padding: 10px; margin-top: 10px;">
+        <b style="color: #93c5fd; font-size: 13px;">✉️ ارسال تیکت به کاربر</b>
+        <div style="font-size: 11px; color: #94a3b8; margin: 4px 0 8px;">نام کاربری را بنویسید و روی «ارسال تیکت» بزنید. تیکت در بخش تیکت‌های کاربر نشان داده می‌شود و ربات هم به او خبر می‌دهد.</div>
+        <input type="text" class="select-box" id="tkSearchInput" placeholder="نام کاربری را بنویسید" style="margin: 0; padding: 10px; font-size: 12px;" oninput="tkSearchChanged()">
+        <div id="tkSearchResult" style="margin-top: 8px;"></div>
+      </div>
+      <div id="adminTicketsList" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;"></div></div>
     <div id="adminTab-withdrawals" class="admin-tab-content" style="display: none;">
       <h4>تایید و مدیریت برداشت‌ها</h4>
       <div class="w-search" style="margin-top: 10px;"><input type="text" class="select-box" id="wSearchInput" placeholder="نام کاربری را بنویسید" style="margin: 0; padding: 10px; font-size: 12px;" onkeydown="if (event.key === 'Enter') wSearch()"><button class="ab ab-ded" style="white-space: nowrap;" onclick="wSearch()">جست‌وجو 🔎</button></div>
@@ -2285,7 +2295,7 @@
     if (!data || data.status !== 'success') return showCustomAlert((data && data.message) || "کسر انجام نشد. لطفاً دوباره امتحان کنید.", "❌");
     let forW = deductWid;
     closeDeduct();
-    showCustomAlert(`${amt.toLocaleString()} تومان از موجودی «${u}» کم شد.\nموجودی جدید: ${Math.floor(data.after).toLocaleString()} تومان`, "✅");
+    showCustomAlert(`${amt.toLocaleString()} تومان از موجودی «${u}» کم شد.\nموجودی جدید: ${Math.floor(data.after).toLocaleString()} تومان` + (forW ? "\n\nبرای اینکه کاربر بداند، روی «ارسال تیکت به کاربر» همین برداشت بزنید." : ''), "✅");
     renderRefs(); renderAdminStats();
     if (forW) loadAdminWList('rejected');
     if (wSearchUser) wSearch(wSearchUser, true);
@@ -2302,6 +2312,44 @@
   }
   function closeAdminTicket() { document.getElementById('adminTicketModal').style.display = 'none'; }
   function adminTicketTemplate() { document.getElementById('atSubject').value = "بررسی حساب و زیرمجموعه‌ها"; document.getElementById('atText').value = ADMIN_TICKET_TEMPLATE; }
+  // ready text for a request the user cancelled after it had been paid (with the amount deducted for it, when there is one)
+  async function adminTicketTemplateDeduct() {
+    let u = adminTicketUser, amt = 0, d = null;
+    try { d = await adminPost('admin_wstate', { users: [u] }); } catch (e) {}
+    let ded = d && d.users && d.users[u] ? Object.values(d.users[u].deducted || {}) : [];
+    if (ded.length) amt = Math.floor(Number(ded.sort((a, b) => (Number(b.t) || 0) - (Number(a.t) || 0))[0].a) || 0);
+    if (u !== adminTicketUser) return;
+    fillDeductTicket(amt);
+  }
+  function fillDeductTicket(amt) {
+    let what = amt > 0 ? `برداشت ${amt.toLocaleString()} تومانی شما` : 'یکی از برداشت‌های شما';
+    document.getElementById('atSubject').value = "کسر مبلغ برداشت لغوشده";
+    document.getElementById('atText').value = `کاربر گرامی، ${what} به کارتتان واریز شده بود، اما بعد از واریز آن را لغو کردید و مبلغ دوباره به موجودی‌تان برگشت. به همین دلیل همین مبلغ از موجودی شما کسر شد.\nاگر سؤالی دارید، در همین تیکت پیام بدهید.`;
+  }
+  // from a deducted request (withdrawals tab / search): the ticket window with this request's amount
+  function ticketForDeducted(btn) {
+    let x = btn.closest('.w-ded'); if (!x) return;
+    openAdminTicket(x.dataset.lu); fillDeductTicket(Math.floor(Number(x.dataset.deda) || 0));
+  }
+  // ---- tickets tab: find a user by name and write a ticket to it ----
+  let tkSearchTimer = null, tkSearchReq = 0;
+  function tkSearchChanged() { clearTimeout(tkSearchTimer); tkSearchTimer = setTimeout(tkSearch, 350); }
+  async function tkSearch() {
+    let q = document.getElementById('tkSearchInput').value.trim(), box = document.getElementById('tkSearchResult');
+    if (!q) { box.innerHTML = ''; return; }
+    let req = ++tkSearchReq, d = null;
+    box.innerHTML = "<p style='font-size:11px; color:#aaa;'>در حال جست‌وجو...</p>";
+    try { d = await adminGet('admin_users', { page: 1, q: q.toLowerCase() }); } catch (e) {}
+    if (req !== tkSearchReq) return;   // a newer search is on its way
+    if (!d) { box.innerHTML = ADMIN_LOAD_ERR; return; }
+    let users = d.users || [], exact = users.filter(x => String(x.username).toLowerCase() === q.toLowerCase());
+    let list = exact.concat(users.filter(x => !exact.includes(x))).slice(0, 10);
+    box.innerHTML = list.map(x => `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; background:#252538; border-radius:6px; padding:8px; margin-bottom:6px;">
+        <div style="font-size:12px;"><b style="color:#38bdf8;">${escH(x.username)}</b><div style="font-size:10px; color:#94a3b8;">موجودی: ${Math.floor(Number(x.mined) || 0).toLocaleString()} تومان</div></div>
+        <button class="ab ab-tk" style="white-space:nowrap;" data-u="${escH(x.username)}" onclick="openAdminTicket(this.dataset.u)">ارسال تیکت ✉️</button></div>`).join('')
+      + (!list.length ? "<p style='font-size:11px; color:#aaa;'>کاربری با این نام پیدا نشد.</p>" : '')
+      + (d.matched > list.length ? `<p style='font-size:10px; color:#94a3b8;'>${(d.matched - list.length).toLocaleString()} نفر دیگر هم پیدا شد؛ نام را کامل‌تر بنویسید.</p>` : '');
+  }
   async function adminSendTicket() {
     let sub = document.getElementById('atSubject').value.trim(), txt = document.getElementById('atText').value.trim(), u = adminTicketUser;
     if (!sub || !txt) return showCustomAlert("موضوع و متن تیکت را بنویسید.", "⚠️");
@@ -2745,7 +2793,8 @@
   function wSearchClose() { wSearchUser = null; let b = document.getElementById('wSearchResult'); b.style.display = 'none'; b.innerHTML = ''; }
   // ---- a request the user cancelled although it had been paid: deduct its amount (once per request; the server checks) ----
   function paintDed(x, done) {
-    x.innerHTML = done ? `<div class="w-lock-at" style="color:#00ff88;">✔️ ${Math.floor(Number(done.a) || 0).toLocaleString()} تومان از این برداشت کسر شد (${wTime(done.t)}).</div>`
+    x.dataset.deda = done ? Math.floor(Number(done.a) || 0) : '';
+    x.innerHTML = done ? `<div class="w-lock-at" style="color:#00ff88;">✔️ ${Math.floor(Number(done.a) || 0).toLocaleString()} تومان از این برداشت کسر شد (${wTime(done.t)}).</div><button class="ab ab-tk" style="width:100%; margin-top:6px; padding:9px;" onclick="ticketForDeducted(this)">ارسال تیکت به کاربر (متن آماده) ✉️</button>`
                        : `<button class="ab ab-ded" style="width:100%; margin-top:8px; padding:9px;" onclick="deductCancelled(this)">این برداشت واریز شده بود — کسر مبلغ ➖</button>`;
   }
   let deductWid = null;
