@@ -2633,6 +2633,11 @@
      document.getElementById('adminWithdrawalsListRejected').style.display = type==='rejected' ? 'block' : 'none';
   }
 
+  // the server refused the decision (already decided elsewhere, or cancelled by the user meanwhile): show why, reload
+  async function wDecisionRefused(w, out) {
+    await adminLoadUser(w.username); await loadDataFromServer(); renderAdminWithdrawals(); renderAdminStats();
+    showCustomAlert((out && out.message) || "ذخیره انجام نشد؛ لطفاً دوباره تلاش کنید.", "⚠️");
+  }
   function wStillPending(w) {   // the user may have cancelled it meanwhile
     if (w && String(w.status || '').includes('بررسی')) return true;
     renderAdminWithdrawals(); showCustomAlert("این درخواست دیگر در انتظار نیست (ممکن است کاربر خودش آن را لغو کرده باشد).", "⚠️"); return false;
@@ -2640,16 +2645,29 @@
   async function approveW(id, btn) {
     btn.innerText = "صبر کنید..."; btn.disabled = true;
     await loadDataFromServer(); let w = allWithdrawals.find(x => x.id === id); if (!wStillPending(w)) return; if(w) w.status = "واریز شد ✅"; if(w) await adminLoadUser(w.username); 
-    if(w && db[w.username]) { let uw = db[w.username].withdrawHistory.find(x => x.id === id); if(uw) uw.status = "واریز شد ✅"; await saveDB(w.username); }
+    let out = null;
+    if(w && db[w.username]) { let uw = db[w.username].withdrawHistory.find(x => x.id === id); if(uw) uw.status = "واریز شد ✅"; out = await saveDB(w.username); }
+    if (w && db[w.username] && !(out && out.status === 'success')) return wDecisionRefused(w, out);
     await saveGlobalAdminData(); renderAdminWithdrawals(); showCustomAlert("برداشت تایید شد.", "✅");
   }
 
   async function rejectW(id, btn) {
     let r = prompt("دلیل رد (مبلغ به حساب کاربر برمی‌گردد):"); if(!r) return;
+    let freeCard = confirm("آیا شماره کارت / آدرس ولتِ این درخواست اشتباه بود؟\n\nبله (OK / تأیید): کارت آزاد می‌شود تا صاحب واقعی‌اش یا خود کاربر بتواند دوباره با آن برداشت بزند.\n\nنه (Cancel / لغو): کارت مثل قبل روی همین حساب قفل می‌ماند. برای ردهای مربوط به تقلب «نه» بزنید.");
     btn.innerText = "صبر کنید..."; btn.disabled = true;
     await loadDataFromServer(); let w = allWithdrawals.find(x => x.id === id); if (!wStillPending(w)) return; if(w) { w.status = "رد شد ❌"; w.rejectReason = r; } if(w) await adminLoadUser(w.username);
-    if(w && db[w.username]) { let uw = db[w.username].withdrawHistory.find(x => x.id === id); if(uw){ uw.status = "رد شد ❌"; uw.rejectReason = r; } db[w.username].mined += w.amount; await saveDB(w.username); }
-    await saveGlobalAdminData(); renderAdminWithdrawals(); renderAdminStats(); showCustomAlert("برداشت رد شد و وجه بازگشت.", "✅");
+    let out = null;
+    if(w && db[w.username]) { let uw = db[w.username].withdrawHistory.find(x => x.id === id); if(uw){ uw.status = "رد شد ❌"; uw.rejectReason = r; } db[w.username].mined += w.amount; out = await saveDB(w.username); }
+    if (w && db[w.username] && !(out && out.status === 'success')) return wDecisionRefused(w, out);
+    await saveGlobalAdminData(); renderAdminWithdrawals(); renderAdminStats();
+    let extra = '';
+    if (freeCard && w) {
+      try {
+        let res = await apiFetch(`${API_URL}/api/?action=admin_card_free`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: w.username, id: id }) });
+        let d = await res.json(); extra = '\n\n' + ((d && d.message) || 'آزاد کردن کارت انجام نشد.');
+      } catch (e) { extra = '\n\nآزاد کردن کارت انجام نشد (خطای شبکه).'; }
+    }
+    showCustomAlert("برداشت رد شد و وجه بازگشت." + extra, "✅");
   }
 
   function renderAdminChannelsManager() {
