@@ -1036,7 +1036,7 @@
                 body: JSON.stringify(body) 
             });
             out = await res.json().catch(() => null);
-            if (out && out.status === 'success') { newUsers.delete(u); }
+            if (out && out.status === 'success') { newUsers.delete(u); afterOwnSave(u, out); }
             else {
               if (base) syncBase[u] = base; else delete syncBase[u];
               if (out && out.code === 'not_found') newUsers.add(u);
@@ -1049,6 +1049,39 @@
     return p;
   }
   
+  // The server pays mining for the real time; if it added something this app didn't count, show it now. If the
+  // server's daily total differs from this app's (a miner was approved or ended while the app was open), reload
+  // this account's miners (at most every 30 s).
+  let minersCheckedAt = 0;
+  function afterOwnSave(u, out) {
+    if (adminToken || u !== currentUser || !db[u]) return;
+    let add = Number(out.topUp) || 0;
+    if (add > 0) {
+      db[u].mined = (Number(db[u].mined) || 0) + add;
+      if (syncBase[u]) syncBase[u].mined += add;
+      updateUI();
+    }
+    if (typeof out.daily === 'number' && Math.abs(out.daily - getTotalMaxDaily(db[u])) > 1 && Date.now() - minersCheckedAt > 30000) {
+      minersCheckedAt = Date.now();
+      refreshOwnMiners(u);
+    }
+  }
+  async function refreshOwnMiners(u) {
+    try {
+      let res = await apiFetch(`${API_URL}/api/get_all?t=${Date.now()}&u=${encodeURIComponent(u)}`, { cache: "no-store" });
+      if (!res.ok) return;
+      let data = await res.json(), fresh = data && data[u], rec = db[u];
+      if (!fresh || !rec || !Array.isArray(fresh.miners) || u !== currentUser) return;
+      mineElapsed(rec);                              // the time so far at the old speed (the server pays any difference)
+      rec.miners = fresh.miners;
+      if (syncBase[u]) syncBase[u].fields.miners = fieldJson(fresh.miners);
+      if (syncBase[u] && syncBase[u].fields.purchaseHistory === fieldJson(rec.purchaseHistory) && Array.isArray(fresh.purchaseHistory)) {
+        rec.purchaseHistory = fresh.purchaseHistory; syncBase[u].fields.purchaseHistory = fieldJson(fresh.purchaseHistory);
+      }
+      updateUI();
+    } catch (e) {}
+  }
+
   function saveGlobalAdminData() {
     if(!db['_ADMIN_DATA_']) db['_ADMIN_DATA_'] = {};
     db['_ADMIN_DATA_'].allWithdrawals = allWithdrawals;
@@ -1298,26 +1331,20 @@
 
   function getTotalMaxDaily(u) { let t = 0; getActiveMiners(u).forEach(m => t += m.maxDaily); return t; }
   
+  // Add what the miners made since the last time, by the real time that passed (so nothing is lost when the phone
+  // slows the app in the background or the screen is off). Never past the end of the 24h round. true = round ended.
+  function mineElapsed(u) {
+    if (!u || !u.isMining) return false;
+    let now = Date.now(), st = Number(u.miningStartTime) || now, end = st + 86400000;
+    let from = Math.max(Number(u.lastMiningTime) || st, st), to = Math.min(now, end);
+    if (to > from) u.mined += (to - from) / 1000 * (getTotalMaxDaily(u) / 86400);   // the inviter's 5% is added by the server
+    u.lastMiningTime = now;
+    if (now >= end) { u.isMining = false; return true; }
+    return false;
+  }
   function checkBackgroundMining() {
     let u = db[currentUser];
-    if(u && u.isMining) {
-      let now = Date.now(), elapsed = now - (u.miningStartTime || now);
-      let minedAmount = 0;
-      if(elapsed >= 86400000) {
-        let valid = (u.miningStartTime + 86400000) - u.lastMiningTime;
-        if(valid > 0) minedAmount = (valid / 1000) * (getTotalMaxDaily(u) / 86400);
-        u.isMining = false; u.lastMiningTime = now;
-      } else {
-        let es = (now - u.lastMiningTime) / 1000;
-        if(es > 0) minedAmount = es * (getTotalMaxDaily(u) / 86400);
-        u.lastMiningTime = now;
-      }
-      
-      if (minedAmount > 0) {
-         u.mined += minedAmount;   // the inviter's 5% is added by the server
-      }
-      saveDB();
-    }
+    if(u && u.isMining) { mineElapsed(u); saveDB(); }
   }
 
   let hashFeedTimer = null;
@@ -1563,6 +1590,7 @@
       beginMiningRound(u);
       if (rewarded) setTimeout(() => showCustomAlert("🎁 ۵,۰۰۰ تومان پاداش ورود به کیف پول شما اضافه شد.", "🎁"), 300);
     } else {
+      mineElapsed(u);
       u.isMining = false;
     }
     saveDB(); updateUI();
@@ -1645,30 +1673,22 @@
     document.getElementById('leaderboardList').innerHTML = h;
   }
 
+  let lastMiningSave = 0;
+  function miningTick() {
+    let u = db[currentUser];
+    if (!u || !u.isMining) return;
+    let ended = mineElapsed(u);
+    updateUI();
+    let now = Date.now();
+    if (ended || now - lastMiningSave >= 60000 || now < lastMiningSave) { lastMiningSave = now; saveDB(); }   // once a minute
+  }
   function startMiningLoop() {
     if(miningInterval) clearInterval(miningInterval);
-    miningInterval = setInterval(() => {
-      let u = db[currentUser];
-      if(u && u.isMining) {
-        if(Date.now() - (u.miningStartTime || Date.now()) >= 86400000) { 
-            checkBackgroundMining(); updateUI(); 
-        }
-        else { 
-           let amount = (getTotalMaxDaily(u) / 86400);
-           u.mined += amount;   // the inviter's 5% is added by the server
-           u.lastMiningTime = Date.now();
-           
-           updateUI(); 
-           
-           localSyncTimer++;
-           if (localSyncTimer >= 60) {   // save to the server once a minute (was every 15 s)
-               saveDB();
-               localSyncTimer = 0;
-           }
-        }
-      }
-    }, 1000);
+    lastMiningSave = Date.now();
+    miningInterval = setInterval(miningTick, 1000);
   }
+  // back on screen: count the time at once (the phone may have paused the app)
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && currentUser && !accountBlocked) miningTick(); });
 
   function switchTab(t, el) {
     document.querySelectorAll('#mainScene .section').forEach(s => s.classList.remove('active'));
