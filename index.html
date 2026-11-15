@@ -107,6 +107,25 @@
   .w-lock-at { font-size: 10px; color: #c4b5fd; margin-top: 4px; line-height: 1.7; }
   .w-paying { margin-top: 6px; font-size: 11px; color: #ddd6fe; background: rgba(109,40,217,.18); border: 1px solid rgba(167,139,250,.45); padding: 6px 8px; border-radius: 6px; line-height: 1.7; }
   .w-search { display: flex; gap: 6px; margin-bottom: 10px; align-items: stretch; }
+  .rp-periods { display: flex; gap: 6px; margin: 10px 0 6px; }
+  .rp-periods button { flex: 1; padding: 9px 4px; border-radius: 6px; border: 1px solid #334155; background: #1e1e2e; color: #cbd5e1; font-family: inherit; font-size: 12px; cursor: pointer; }
+  .rp-periods button.on { background: #3987e5; border-color: #3987e5; color: #fff; font-weight: bold; }
+  .rp-meta { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #94a3b8; margin-bottom: 10px; }
+  .rp-meta button { background: #334155; color: #e2e8f0; border: none; border-radius: 6px; padding: 6px 10px; font-family: inherit; font-size: 11px; cursor: pointer; }
+  .rp-card { background: #1e1e2e; border: 1px solid #2a2a3d; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+  .rp-title { font-size: 12px; color: #94a3b8; margin-bottom: 4px; display: flex; justify-content: space-between; gap: 6px; }
+  .rp-title small { color: #64748b; font-size: 10px; }
+  .rp-hero { font-size: 20px; font-weight: bold; color: #f8fafc; margin-bottom: 6px; }
+  .rp-row { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: #cbd5e1; padding: 4px 0; border-top: 1px solid #2a2a3d; }
+  .rp-row b { color: #f8fafc; font-weight: 600; white-space: nowrap; }
+  .rp-sub { font-size: 10px; color: #94a3b8; }
+  .rp-note { font-size: 10px; color: #64748b; line-height: 1.8; margin-top: 6px; }
+  .rp-chart { position: relative; }
+  .rp-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .rp-tip { position: absolute; pointer-events: none; background: #0f172a; border: 1px solid #334155; color: #f8fafc; font-size: 11px; padding: 5px 8px; border-radius: 6px; white-space: nowrap; display: none; transform: translate(-50%, -100%); direction: rtl; }
+  .rp-table { width: 100%; border-collapse: collapse; font-size: 10px; color: #cbd5e1; margin-top: 6px; }
+  .rp-table th, .rp-table td { padding: 5px 3px; border-top: 1px solid #2a2a3d; text-align: center; white-space: nowrap; }
+  .rp-table th { color: #94a3b8; font-weight: normal; }
   .refpaid-box { font-size: 12px; color: #fde68a; background: rgba(234,179,8,0.08); border: 1px solid #a16207; border-radius: 8px; padding: 8px; margin-top: 6px; line-height: 1.9; }
   .ded-note { font-size: 11px; color: #c4b5fd; margin-top: 2px; }
   .acct-b, .risk-b { font-size: 10px; border-radius: 10px; padding: 2px 8px; white-space: nowrap; }
@@ -589,6 +608,7 @@
     </div>
     <div style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;">
       <button onclick="switchAdminTab('stats')" style="background: #e67e22; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📊 آمار</button>
+      <button onclick="switchAdminTab('report')" style="background: #0e7490; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📈 گزارش</button>
       <button onclick="switchAdminTab('tickets')" style="background: #f1c40f; color: black; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🎫 تیکت‌ها</button>
       <button onclick="switchAdminTab('receipts')" style="background: #27ae60; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🧾 رسیدها</button>
       <button onclick="switchAdminTab('withdrawals')" style="background: #e74c3c; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">💸 برداشت‌ها</button>
@@ -608,6 +628,12 @@
       <input type="text" id="adminSearchInput" oninput="adminSearchChanged()" placeholder="🔍 جستجوی نام کاربری..." class="select-box" style="margin-bottom: 15px; background: #252538 !important; border: 1px solid #444 !important;">
       <h4 style="color: #facc15; border-bottom: 1px solid #444; padding-bottom: 8px;">لیست تفکیک شده کاربران:</h4>
       <div id="adminUsersListDetailed" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;"></div>
+    </div>
+    <div id="adminTab-report" class="admin-tab-content" style="display: none;">
+      <h4>📈 گزارش</h4>
+      <div class="rp-periods"><button data-p="0" onclick="rpSetPeriod(0)">امروز</button><button data-p="1" onclick="rpSetPeriod(1)">دیروز</button><button data-p="7" onclick="rpSetPeriod(7)">۷ روز</button><button data-p="30" onclick="rpSetPeriod(30)">۳۰ روز</button></div>
+      <div class="rp-meta"><span id="rpUpdated"></span><button onclick="renderReport(true)">به‌روزرسانی 🔄</button></div>
+      <div id="rpBody"></div>
     </div>
     <div id="adminTab-tickets" class="admin-tab-content" style="display: none;"><h4>مدیریت تیکت‌های پشتیبانی کاربران</h4>
       <div style="background: #1e1b4b; border: 1px solid #1d4ed8; border-radius: 8px; padding: 10px; margin-top: 10px;">
@@ -2407,8 +2433,136 @@
     return o ? `<span class="flag-c flag-s">کارت/ولت متعلق به حساب «${escH(o)}» است ⚠️</span>` : '';
   }
 
-  function switchAdminTab(t) { document.querySelectorAll('.admin-tab-content').forEach(e => e.style.display='none'); document.getElementById('adminTab-'+t).style.display='block'; if (t === 'refs') renderRefs(); if (t === 'buyers') renderBuyers(1);
+  function switchAdminTab(t) { document.querySelectorAll('.admin-tab-content').forEach(e => e.style.display='none'); document.getElementById('adminTab-'+t).style.display='block'; if (t === 'refs') renderRefs(); if (t === 'buyers') renderBuyers(1); if (t === 'report') renderReport();
     if (t === 'withdrawals') ['adminWithdrawalsListPending', 'adminWithdrawalsListDone', 'adminWithdrawalsListRejected', 'wSearchResult'].forEach(id => { decorateWithdrawals(document.getElementById(id)); decorateWState(document.getElementById(id)); });   // statuses / locks may have changed meanwhile
+  }
+
+  // ---- 📈 report: numbers from the server (built at most once a minute); amounts of sales = approved receipts × shop price ----
+  const MINER_PRICES = { Pro: 1999000, Turbo: 2799000, Infinity: 4399000 };   // the same prices as in the shop
+  const MINER_LABELS = { Pro: 'Pro', Turbo: 'Turbo', Infinity: 'Infinity (VIP)', other: 'سایر' };
+  const RP_PERIOD_LABEL = { 0: 'امروز', 1: 'دیروز', 7: '۷ روز اخیر', 30: '۳۰ روز اخیر' };
+  let rpData = null, rpPeriod = 0, rpBusy = false;
+  async function renderReport(fresh) {
+    if (rpBusy) return;
+    rpBusy = true;
+    let body = document.getElementById('rpBody');
+    if (!rpData) body.innerHTML = "<p style='font-size:12px; color:#aaa;'>در حال آماده‌سازی گزارش...</p>";
+    let d = null;
+    try { d = await adminPost('admin_stats', { fresh: !!fresh }); } catch (e) {}
+    rpBusy = false;
+    if (!d || !Array.isArray(d.days)) {
+      if (!rpData) body.innerHTML = ADMIN_LOAD_ERR; else showCustomAlert("به‌روزرسانی گزارش انجام نشد. لطفاً دوباره امتحان کنید.", "❌");
+      return;
+    }
+    rpData = d; paintReport();
+  }
+  function rpSetPeriod(p) { rpPeriod = p; if (rpData) paintReport(); }
+  const rpT = n => Math.round(Number(n) || 0).toLocaleString();
+  const rpX = n => (Math.round((Number(n) || 0) * 10) / 10).toLocaleString();
+  function rpDay(i) { return new Date(rpData.day0 + 43200000 - i * 86400000).toLocaleDateString('fa-IR', { timeZone: 'Asia/Tehran', month: 'long', day: 'numeric' }); }
+  function rpSalesAmount(x) { return ['Pro', 'Turbo', 'Infinity'].reduce((a, m) => a + (x.sales[m] || 0) * MINER_PRICES[m], 0); }
+  function paintReport() {
+    let d = rpData, idx = rpPeriod === 0 ? [0] : rpPeriod === 1 ? [1] : [...Array(rpPeriod).keys()];
+    let D = idx.map(i => d.days[i]).filter(Boolean), sum = f => D.reduce((a, x) => a + (Number(f(x)) || 0), 0);
+    document.querySelectorAll('.rp-periods button').forEach(b => b.classList.toggle('on', Number(b.dataset.p) === rpPeriod));
+    document.getElementById('rpUpdated').innerText = 'آخرین به‌روزرسانی: ' + new Date(d.at).toLocaleTimeString('fa-IR', { timeZone: 'Asia/Tehran', hour: '2-digit', minute: '2-digit' });
+    let P = RP_PERIOD_LABEL[rpPeriod], trx = Number(d.trx) || 0;
+    // sales
+    let sc = {}; ['Pro', 'Turbo', 'Infinity', 'other'].forEach(m => sc[m] = sum(x => x.sales[m]));
+    let salesAmt = sum(rpSalesAmount), salesN = sc.Pro + sc.Turbo + sc.Infinity + sc.other;
+    let rc = d.receipts || {}, rcN = ['Pro', 'Turbo', 'Infinity', 'other'].reduce((a, m) => a + (rc[m] || 0), 0);
+    let rcAmt = ['Pro', 'Turbo', 'Infinity'].reduce((a, m) => a + (rc[m] || 0) * MINER_PRICES[m], 0);
+    // payments
+    let pTn = sum(x => x.paidT[0]), pTs = sum(x => x.paidT[1]), pCn = sum(x => x.paidC[0]), pCs = sum(x => x.paidC[1]);
+    let pCx = sum(x => x.paidC[2]), pCu = sum(x => x.paidC[3]), pCtrx = pCx + (trx > 0 ? pCu / trx : 0);
+    // waiting now
+    let pe = d.pend || { toman: [0, 0, 0, 0], trc: [0, 0, 0, 0] }, pt = pe.toman, pc = pe.trc;
+    let trxOf = t => trx > 0 ? rpX(t / trx) + ' ترون' : '— (نرخ ترون تنظیم نشده)';
+    // users, balance, rejected / cancelled
+    let su = sum(x => x.su[0]), inv = sum(x => x.su[1]);
+    let net = salesAmt - pTs - pCs;
+    let rjN = sum(x => x.rej[0]), rjS = sum(x => x.rej[1]), cxN = sum(x => x.cx[0]), cxS = sum(x => x.cx[1]);
+    let row = (a, b, sub) => `<div class="rp-row"><span>${a}${sub ? `<div class="rp-sub">${sub}</div>` : ''}</span><b>${b}</b></div>`;
+    let since = t => t ? new Date(t).toLocaleDateString('fa-IR', { timeZone: 'Asia/Tehran', month: 'long', day: 'numeric' }) : '';
+    let html = '';
+    html += `<div class="rp-card"><div class="rp-title">💎 فروش ماینر <small>${P}</small></div>
+      <div class="rp-hero">${rpT(salesAmt)} تومان</div>
+      ${['Pro', 'Turbo', 'Infinity'].map(m => row(MINER_LABELS[m], `${sc[m]} عدد — ${rpT(sc[m] * MINER_PRICES[m])} تومان`)).join('')}
+      ${sc.other ? row('سایر', `${sc.other} عدد`) : ''}
+      ${row('رسیدهای در انتظار تایید <small style="color:#64748b">(همین الان)</small>', `${rcN} عدد — ${rpT(rcAmt)} تومان`)}</div>`;
+    html += `<div class="rp-card"><div class="rp-title">✅ واریزی‌ها — تومانی 💳 <small>${P}</small></div>
+      <div class="rp-hero">${rpT(pTs)} تومان</div>
+      ${row('تعداد', `${pTn} مورد`)}</div>`;
+    html += `<div class="rp-card"><div class="rp-title">✅ واریزی‌ها — ترون 🪙 <small>${P}</small></div>
+      <div class="rp-hero">${pCn && pCu > 0 ? '≈ ' : ''}${rpX(pCtrx)} ترون</div>
+      <div class="rp-sub" style="margin-bottom:4px;">معادل ${rpT(pCs)} تومان</div>
+      ${row('تعداد', `${pCn} مورد`)}</div>`;
+    html += `<div class="rp-card" style="border-color:#3b3b55;"><div class="rp-title">⏳ مانده برای واریز — تومانی 💳 <small>همین الان</small></div>
+      <div class="rp-hero">${rpT(pt[1])} تومان</div>
+      ${row('تعداد درخواست', `${pt[0]} درخواست`)}
+      ${row('🔒 در حال پرداخت (دست حسابدار)', `${pt[2]} درخواست — ${rpT(pt[3])} تومان`)}
+      ${row('هنوز به حسابدار نرسیده', `${pt[0] - pt[2]} درخواست — ${rpT(pt[1] - pt[3])} تومان`)}</div>`;
+    html += `<div class="rp-card" style="border-color:#3b3b55;"><div class="rp-title">⏳ مانده برای واریز — ترون 🪙 <small>همین الان</small></div>
+      <div class="rp-hero">${trxOf(pc[1])}</div>
+      <div class="rp-sub" style="margin-bottom:4px;">معادل ${rpT(pc[1])} تومان${trx > 0 ? ` — نرخ فعلی هر ترون: ${rpT(trx)} تومان` : ''}</div>
+      ${row('تعداد درخواست', `${pc[0]} درخواست`)}
+      ${row('🔒 در حال پرداخت (دست حسابدار)', `${pc[2]} درخواست — ${trxOf(pc[3])}`)}
+      ${row('هنوز به حسابدار نرسیده', `${pc[0] - pc[2]} درخواست — ${trxOf(pc[1] - pc[3])}`)}</div>`;
+    html += `<div class="rp-card"><div class="rp-title">👥 کاربران</div>
+      ${row(`عضو جدید (${P})`, `${su.toLocaleString()} نفر`, `با دعوت: ${inv.toLocaleString()} — مستقیم: ${(su - inv).toLocaleString()}`)}
+      ${row('کل کاربران', `${(d.users.total || 0).toLocaleString()} نفر`)}
+      ${row('در حال استخراج (همین الان)', `${(d.users.mining || 0).toLocaleString()} نفر`)}</div>`;
+    html += `<div class="rp-card"><div class="rp-title">⚖️ تراز <small>${P}</small></div>
+      <div class="rp-hero" style="color:${net >= 0 ? '#4ade80' : '#f87171'};"><span dir="ltr">${net >= 0 ? '' : '−'}${rpT(Math.abs(net))}</span> تومان</div>
+      <div class="rp-sub">فروش ماینر منهای واریزی‌ها (${net >= 0 ? 'مثبت' : 'منفی'})</div></div>`;
+    html += `<div class="rp-card"><div class="rp-title">🏦 بدهی احتمالی <small>همین الان</small></div>
+      <div class="rp-hero">${rpT(d.liab[1])} تومان</div>
+      <div class="rp-sub">جمع موجودی ${(d.liab[0] || 0).toLocaleString()} کاربری که موجودی‌شان به حداقل برداشت (${rpT(d.wmin)} تومان) رسیده؛ یعنی اگر همه همین الان برداشت بزنند. حساب‌های تعلیق و مسدود حساب نشده‌اند. درخواست‌های «مانده برای واریز» جدا از این است.</div></div>`;
+    html += `<div class="rp-card"><div class="rp-title">❌ رد و لغو <small>${P}</small></div>
+      ${row('رد شده توسط شما', `${rjN} مورد — ${rpT(rjS)} تومان`)}
+      ${row('لغو شده توسط کاربر', `${cxN} مورد — ${rpT(cxS)} تومان`)}</div>`;
+    html += `<div class="rp-card"><div class="rp-title">📊 ۱۴ روز اخیر</div>
+      ${rpChart('فروش ماینر (تومان)', i => rpSalesAmount(d.days[i]), ' تومان')}
+      ${rpChart('واریزی‌ها (تومان)', i => d.days[i].paidT[1] + d.days[i].paidC[1], ' تومان')}
+      ${rpChart('عضو جدید (نفر)', i => d.days[i].su[0], ' نفر')}
+      <details style="margin-top:8px;"><summary style="font-size:11px; color:#94a3b8; cursor:pointer;">جدول روزانه</summary>
+      <div style="overflow-x:auto;"><table class="rp-table"><tr><th>روز</th><th>فروش (تومان)</th><th>واریزی تومانی</th><th>واریزی ترون (تومان)</th><th>عضو جدید</th></tr>
+      ${[...Array(14).keys()].map(i => { let x = d.days[i]; return `<tr><td>${rpDay(i)}</td><td>${rpT(rpSalesAmount(x))}</td><td>${rpT(x.paidT[1])}</td><td>${rpT(x.paidC[1])}</td><td>${x.su[0]}</td></tr>`; }).join('')}
+      </table></div></details></div>`;
+    html += `<div class="rp-note">• مبلغ فروش = تعداد رسیدهای تاییدشده × قیمت فعلی فروشگاه (Pro ${rpT(MINER_PRICES.Pro)}، Turbo ${rpT(MINER_PRICES.Turbo)}، Infinity ${rpT(MINER_PRICES.Infinity)} تومان).<br>
+      • واریزی‌ها ${d.since && d.since.paid ? `از ${since(d.since.paid)} ثبت شده‌اند` : 'از همین حالا ثبت می‌شوند'}؛ رد شده‌ها ${d.since && d.since.log ? `از ${since(d.since.log)}` : 'از همین حالا'} ثبت می‌شوند.<br>
+      • ترون واریزشده با نرخ همان لحظهٔ واریز حساب می‌شود؛ برای واریزهای قدیمی‌تر با نرخ فعلی (≈).<br>
+      • روزها از ساعت ۰۰:۰۰ به وقت ایران شروع می‌شوند.</div>`;
+    document.getElementById('rpBody').innerHTML = html;
+    rpWireCharts();
+  }
+  // a small column chart of the last 14 days (oldest on the left, today on the right); tap / hover a day for its value
+  function rpChart(title, val, unit) {
+    let n = 14, W = 330, H = 96, top = 14, base = H - 16, slot = W / n, bw = Math.min(14, slot - 4);
+    let v = [...Array(n).keys()].map(k => Math.max(0, Number(val(n - 1 - k)) || 0)), mx = Math.max(...v, 0);
+    let max = mx > 0 ? mx : 1, mi = mx > 0 ? v.lastIndexOf(mx) : -1, bars = '';
+    v.forEach((x, k) => {
+      let h = x > 0 ? Math.max(2, (base - top) * x / max) : 0, cx = slot * k + slot / 2, y = base - h, r = Math.min(4, h);
+      let path = h > 0 ? `M${cx - bw / 2},${base} V${y + r} Q${cx - bw / 2},${y} ${cx - bw / 2 + r},${y} H${cx + bw / 2 - r} Q${cx + bw / 2},${y} ${cx + bw / 2},${y + r} V${base} Z` : '';
+      let tip = `${rpDay(n - 1 - k)}: ${rpT(x)}${unit}`;
+      bars += `${path ? `<path d="${path}" fill="#3987e5"/>` : ''}<rect class="rp-hit" x="${slot * k}" y="0" width="${slot}" height="${H}" fill="transparent" data-tip="${escH(tip)}" data-x="${cx}" data-y="${Math.min(y, base) - 4}"/>`;
+      if (k % 2 === 1 || k === n - 1) bars += `<text x="${cx}" y="${H - 3}" font-size="8" fill="#64748b" text-anchor="middle">${new Date(rpData.day0 + 43200000 - (n - 1 - k) * 86400000).toLocaleDateString('fa-IR', { timeZone: 'Asia/Tehran', day: 'numeric' })}</text>`;
+    });
+    let lbl = mi >= 0 ? `<text x="${slot * mi + slot / 2}" y="${base - (base - top) - 3}" font-size="9" fill="#cbd5e1" text-anchor="middle">${rpT(mx)}</text>` : '';
+    return `<div class="rp-sub" style="margin:8px 0 2px;">${title}</div><div class="rp-chart" dir="ltr"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${escH(title)}"><line x1="0" y1="${base}" x2="${W}" y2="${base}" stroke="#2a2a3d" stroke-width="1"/>${bars}${lbl}</svg><div class="rp-tip"></div></div>`;
+  }
+  function rpWireCharts() {
+    document.querySelectorAll('#rpBody .rp-chart').forEach(c => {
+      let tip = c.querySelector('.rp-tip'), svg = c.querySelector('svg');
+      let show = e => {
+        let r = e.target.closest('.rp-hit'); if (!r) return;
+        let k = svg.getBoundingClientRect().width / 330;
+        tip.textContent = r.dataset.tip; tip.style.display = 'block';
+        tip.style.left = Math.min(Math.max(Number(r.dataset.x) * k, 60), svg.getBoundingClientRect().width - 60) + 'px'; tip.style.top = (Number(r.dataset.y) * k) + 'px';
+      };
+      svg.addEventListener('pointermove', show); svg.addEventListener('pointerdown', show);
+      svg.addEventListener('pointerleave', () => { tip.style.display = 'none'; });
+    });
   }
 
   let adminMiningOnly = false;
