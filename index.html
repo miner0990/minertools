@@ -108,6 +108,16 @@
   .w-paying { margin-top: 6px; font-size: 11px; color: #ddd6fe; background: rgba(109,40,217,.18); border: 1px solid rgba(167,139,250,.45); padding: 6px 8px; border-radius: 6px; line-height: 1.7; }
   .w-search { display: flex; gap: 6px; margin-bottom: 10px; align-items: stretch; }
   .rp-periods { display: flex; gap: 6px; margin: 10px 0 6px; }
+  .tk-boxes { display: flex; gap: 6px; margin: 14px 0 8px; }
+  .tk-boxes button { flex: 1; padding: 9px 4px; border-radius: 6px; border: 1px solid #334155; background: #1e1e2e; color: #cbd5e1; font-family: inherit; font-size: 11px; cursor: pointer; }
+  .tk-boxes button.on { background: #f1c40f; border-color: #f1c40f; color: #111; font-weight: bold; }
+  .tk-card { background: #252538; padding: 10px; border-radius: 8px; border-right: 3px solid #475569; }
+  .tk-card.waiting { border-right-color: #facc15; }
+  .tk-card.answered { border-right-color: #00ff88; }
+  .tk-last { font-size: 11px; color: #cbd5e1; background: #1e1e2e; border-radius: 6px; padding: 6px 8px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+  .tk-badge { background: #ef4444; color: #fff; border-radius: 10px; padding: 0 6px; font-size: 10px; margin-right: 4px; }
+  .tk-quick { display: none; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+  .tk-quick button { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; border-radius: 12px; padding: 4px 8px; font-size: 10px; font-family: inherit; cursor: pointer; }
   .rp-periods button { flex: 1; padding: 9px 4px; border-radius: 6px; border: 1px solid #334155; background: #1e1e2e; color: #cbd5e1; font-family: inherit; font-size: 12px; cursor: pointer; }
   .rp-periods button.on { background: #3987e5; border-color: #3987e5; color: #fff; font-weight: bold; }
   .rp-meta { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #94a3b8; margin-bottom: 10px; }
@@ -478,12 +488,14 @@
       <button onclick="document.getElementById('ticketChatModal').style.display='none'" style="background:none; border:none; color:#ef4444; font-size:16px; cursor:pointer;">✕</button>
     </div>
     <div id="tcMessages" style="height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; padding: 5px;"></div>
-    <div id="tcInputArea" style="display: flex; gap: 8px;">
-      <input type="text" class="select-box" id="tcReplyInput" placeholder="پاسخ خود را بنویسید..." style="margin-bottom: 0;">
+    <div id="tcQuick" class="tk-quick"></div>
+    <div id="tcInputArea" style="display: flex; gap: 8px; align-items: flex-end;">
+      <textarea class="select-box" id="tcReplyInput" rows="1" placeholder="پاسخ خود را بنویسید..." style="margin-bottom: 0; resize: none; height: 40px; min-height: 40px; max-height: 130px; overflow-y: auto; font-family: inherit; line-height: 1.6;" oninput="tcGrow(this)"></textarea>
       <button class="btn-blue" id="tcPhotoBtn" style="margin-top:0; width: 44px; padding: 8px; font-size: 14px;" onclick="pickTicketImg()" title="ارسال عکس">📎</button>
       <input type="file" id="tcImgFile" accept="image/*" style="display: none;" onchange="onTicketImgChosen(this)">
-      <button class="btn-blue" style="margin-top:0; width: 80px; padding: 8px; font-size: 12px;" onclick="sendTicketMessage()">ارسال</button>
+      <button class="btn-blue" style="margin-top:0; width: 80px; padding: 8px; font-size: 12px;" onclick="sendTicketMessage(this)">ارسال</button>
     </div>
+    <button id="tcSendNext" class="btn-blue" style="display: none; margin-top: 8px; font-size: 12px; padding: 8px;" onclick="sendTicketMessage(this, true)">ارسال و بعدی ⏭</button>
     <button id="tcCloseBtnUniversal" class="btn-danger" style="margin-top:10px; font-size:12px; padding:8px;" onclick="closeActiveTicket()">بستن دائمی این تیکت 🔒</button>
   </div>
 </div>
@@ -609,7 +621,7 @@
     <div style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;">
       <button onclick="switchAdminTab('stats')" style="background: #e67e22; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📊 آمار</button>
       <button onclick="switchAdminTab('report')" style="background: #0e7490; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">📈 گزارش</button>
-      <button onclick="switchAdminTab('tickets')" style="background: #f1c40f; color: black; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🎫 تیکت‌ها</button>
+      <button onclick="switchAdminTab('tickets')" style="background: #f1c40f; color: black; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🎫 تیکت‌ها<span id="tkBadge"></span></button>
       <button onclick="switchAdminTab('receipts')" style="background: #27ae60; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">🧾 رسیدها</button>
       <button onclick="switchAdminTab('withdrawals')" style="background: #e74c3c; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">💸 برداشت‌ها</button>
       <button onclick="switchAdminTab('refs')" style="background: #16a085; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">👥 زیرمجموعه‌ها</button>
@@ -642,7 +654,8 @@
         <input type="text" class="select-box" id="tkSearchInput" placeholder="نام کاربری را بنویسید" style="margin: 0; padding: 10px; font-size: 12px;" oninput="tkSearchChanged()">
         <div id="tkSearchResult" style="margin-top: 8px;"></div>
       </div>
-      <div id="adminTicketsList" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;"></div></div>
+      <div class="tk-boxes"><button data-b="waiting" onclick="tkBox('waiting')">⏳ منتظر پاسخ شما <span id="tkCnt-waiting"></span></button><button data-b="answered" onclick="tkBox('answered')">💬 پاسخ داده شده <span id="tkCnt-answered"></span></button><button data-b="closed" onclick="tkBox('closed')">🔒 بسته شده <span id="tkCnt-closed"></span></button></div>
+      <div id="adminTicketsList" style="margin-top: 6px; display: flex; flex-direction: column; gap: 10px;"></div></div>
     <div id="adminTab-withdrawals" class="admin-tab-content" style="display: none;">
       <h4>تایید و مدیریت برداشت‌ها</h4>
       <div class="w-search" style="margin-top: 10px;"><input type="text" class="select-box" id="wSearchInput" placeholder="نام کاربری را بنویسید" style="margin: 0; padding: 10px; font-size: 12px;" onkeydown="if (event.key === 'Enter') wSearch()"><button class="ab ab-ded" style="white-space: nowrap;" onclick="wSearch()">جست‌وجو 🔎</button></div>
@@ -1851,8 +1864,13 @@
   function openTicketChat(username, ticketId) {
     activeChatUsername = username; activeChatTicketId = ticketId;
     let t = db[username].tickets.find(x => x.id === ticketId);
-    document.getElementById('tcTitle').innerText = t.subject;
+    document.getElementById('tcTitle').innerText = isAdminLoggedIn ? `👤 ${username} | ${t.subject}` : t.subject;
     let isClosed = t.status.includes('بسته');
+    let q = document.getElementById('tcQuick');
+    if (!q.innerHTML) q.innerHTML = TK_QUICK.map((x, i) => `<button onclick="tkQuickFill(${i})">${x[0]}</button>`).join('');
+    q.style.display = isAdminLoggedIn && !isClosed ? 'flex' : 'none';
+    document.getElementById('tcSendNext').style.display = isAdminLoggedIn && !isClosed ? 'block' : 'none';
+    let inp0 = document.getElementById('tcReplyInput'); inp0.value = ''; tcGrow(inp0);
     document.getElementById('tcCloseBtnUniversal').style.display = isClosed ? 'none' : 'block';
     document.getElementById('tcInputArea').style.display = isClosed ? 'none' : 'flex';
     document.getElementById('tcPhotoBtn').style.display = isAdminLoggedIn ? 'none' : 'block';
@@ -1876,19 +1894,31 @@
     loadTicketImgs();
   }
 
-  async function sendTicketMessage() {
+  async function sendTicketMessage(btnArg, next) {
     let inp = document.getElementById('tcReplyInput');
     let text = inp.value.trim(); if(!text) return;
-    let btn = event.target; btn.innerText = "..."; btn.disabled = true;
+    let btn = btnArg || event.target, label = btn.innerText; btn.innerText = "..."; btn.disabled = true;
     await syncBeforeChange();
     if (isAdminLoggedIn) await adminLoadUser(activeChatUsername);
     let t = db[activeChatUsername] && db[activeChatUsername].tickets.find(x => x.id === activeChatTicketId);
-    if(!t) { btn.innerText = "ارسال"; btn.disabled = false; return; }
-    t.messages.push({ sender: isAdminLoggedIn ? 'admin' : activeChatUsername, text: text, time: new Date().toLocaleTimeString('fa-IR') });
+    if(!t) { btn.innerText = label; btn.disabled = false; return; }
+    let msg = { sender: isAdminLoggedIn ? 'admin' : activeChatUsername, text: text, time: new Date().toLocaleTimeString('fa-IR') };
+    if (isAdminLoggedIn) msg.at = Date.now();
+    t.messages.push(msg);
     t.status = isAdminLoggedIn ? "پاسخ داده شده 💬" : "در حال بررسی ⏳";
-    inp.value = ''; renderTicketMessages();
-    if(!isAdminLoggedIn) { await saveDB(); renderUserTickets(); } else { await saveDB(activeChatUsername); renderAdminTickets(); }
-    btn.innerText = "ارسال"; btn.disabled = false;
+    inp.value = ''; tcGrow(inp); renderTicketMessages();
+    if(!isAdminLoggedIn) { await saveDB(); renderUserTickets(); }
+    else {
+      let u = activeChatUsername, id = activeChatTicketId, out = await saveDB(u);
+      if (!out || out.status !== 'success') {   // not saved: the text stays in the box, nothing moves
+        await adminLoadUser(u); renderTicketMessages(); inp.value = text; tcGrow(inp);
+        btn.innerText = label; btn.disabled = false;
+        return showCustomAlert("پاسخ ذخیره نشد. متن در کادر پاسخ ماند؛ لطفاً دوباره بفرستید.", "❌");
+      }
+      renderAdminTickets();
+      if (next) { btn.innerText = label; btn.disabled = false; return tkOpenNext(u, id); }
+    }
+    btn.innerText = label; btn.disabled = false;
   }
 
   // ---- photo in a ticket message: shrink on the phone, upload, then add it to the ticket ----
@@ -2398,7 +2428,7 @@
     let ok = false;
     if (await adminLoadUser(u)) {
       if (!Array.isArray(db[u].tickets)) db[u].tickets = [];
-      db[u].tickets.unshift({ id: Date.now(), subject: sub, status: "پاسخ داده شده 💬", messages: [{ sender: 'admin', text: txt, time: new Date().toLocaleTimeString('fa-IR') }] });
+      db[u].tickets.unshift({ id: Date.now(), subject: sub, status: "پاسخ داده شده 💬", messages: [{ sender: 'admin', text: txt, time: new Date().toLocaleTimeString('fa-IR'), at: Date.now() }] });
       let saved = await saveDB(u);
       ok = !!(saved && saved.status === 'success');
     }
@@ -2545,7 +2575,7 @@
       <div style="overflow-x:auto;"><table class="rp-table"><tr><th>روز</th><th>فروش (تومان)</th><th>واریزی تومانی</th><th>واریزی ترون (تومان)</th><th>عضو جدید</th></tr>
       ${[...Array(14).keys()].map(i => { let x = d.days[i]; return `<tr><td>${rpDay(i)}</td><td>${rpT(rpSalesAmount(x))}</td><td>${rpT(x.paidT[1])}</td><td>${rpT(x.paidC[1])}</td><td>${x.su[0]}</td></tr>`; }).join('')}
       </table></div></details></div>`;
-    html += `<div class="rp-note">• مبلغ فروش = تعداد رسیدهای تاییدشده × قیمت فعلی فروشگاه (Pro ${rpT(MINER_PRICES.Pro)}، Turbo ${rpT(MINER_PRICES.Turbo)}، Infinity ${rpT(MINER_PRICES.Infinity)} تومان).<br>
+    html += `<div class="rp-note">• مبلغ فروش = تعداد رسیدهای تاییدشده × قیمت فعلی فروشگاه (Pro ${rpT(MINER_PRICES.Pro)}، Turbo ${rpT(MINER_PRICES.Turbo)}، Infinity ${rpT(MINER_PRICES.Infinity)} تومان). هر فروش در روزی شمرده می‌شود که کاربر رسید را فرستاده (روز خرید).<br>
       • واریزی‌ها ${d.since && d.since.paid ? `از ${since(d.since.paid)} ثبت شده‌اند` : 'از همین حالا ثبت می‌شوند'}؛ رد شده‌ها ${d.since && d.since.log ? `از ${since(d.since.log)}` : 'از همین حالا'} ثبت می‌شوند.<br>
       • ترون واریزشده با نرخ همان لحظهٔ واریز حساب می‌شود؛ برای واریزهای قدیمی‌تر با نرخ فعلی (≈).<br>
       • روزها از ساعت ۰۰:۰۰ به وقت ایران شروع می‌شوند.</div>`;
@@ -2643,25 +2673,64 @@
     document.getElementById('statMiningBox').style.borderColor = adminMiningOnly ? "#00ff88" : "transparent";
   }
 
-  async function renderAdminTickets() {
-    let h = "", d = null;
-    try { d = await adminGet('admin_tickets', { page: adminTicketsPage }); } catch (e) {}
-    if (!d) { document.getElementById('adminTicketsList').innerHTML = ADMIN_LOAD_ERR; return; }
-    adminTicketsPage = d.page;
-    {
-      {
-        d.items.forEach(t => { let u = t.username;
-          let col = t.status.includes('بسته') ? '#94a3b8' : (t.status.includes('پاسخ داده شده') ? '#00ff88' : '#facc15');
-          h += `<div style="background: #252538; padding: 10px; border-radius: 8px; margin-bottom: 8px;">
-                  <div style="display:flex; justify-content:space-between;"><b style="color:#38bdf8;">کاربر: ${u}</b><span style="color:${col}; font-size:10px;">${t.status}</span></div>
-                  <div style="font-size:11px; color:#fff; margin:6px 0;">موضوع: ${t.subject}</div>
-                  <button class="btn-blue" style="margin:0; padding:6px; font-size:11px; width:auto;" onclick="adminOpenTicket('${u}', ${t.id})">مشاهده و پاسخ 💬</button>
-                </div>`;
-        });
-      }
-    }
-    document.getElementById('adminTicketsList').innerHTML = (h || "هیچ تیکتی وجود ندارد.") + adminPager(d.page, d.pages, 'adminTicketsGo');
+  // ---- tickets in three boxes: waiting for you (the user wrote last; longest waiting first) / answered / closed ----
+  let adminTicketsBox = 'waiting';
+  const TK_EMPTY = { waiting: "🎉 تیکتی منتظر پاسخ شما نیست.", answered: "تیکت پاسخ‌داده‌شده‌ای نیست.", closed: "تیکت بسته‌شده‌ای نیست." };
+  function tkBox(b) { adminTicketsBox = b; adminTicketsPage = 1; renderAdminTickets(); }
+  function tkAgo(ms) {
+    let m = Math.floor((Date.now() - Number(ms)) / 60000);
+    if (!(m >= 0)) return '';
+    if (m < 1) return 'همین الان';
+    if (m < 60) return `${m.toLocaleString('fa-IR')} دقیقه پیش`;
+    if (m < 1440) return `${Math.floor(m / 60).toLocaleString('fa-IR')} ساعت پیش`;
+    return `${Math.floor(m / 1440).toLocaleString('fa-IR')} روز پیش`;
   }
+  function tkCounts(c) {
+    if (!c) return;
+    ['waiting', 'answered', 'closed'].forEach(k => { let e = document.getElementById('tkCnt-' + k); if (e) e.innerText = `(${(c[k] || 0).toLocaleString('fa-IR')})`; });
+    document.querySelectorAll('.tk-boxes button').forEach(b => b.classList.toggle('on', b.dataset.b === adminTicketsBox));
+    let bd = document.getElementById('tkBadge');
+    if (bd) bd.innerHTML = c.waiting > 0 ? `<span class="tk-badge">${c.waiting.toLocaleString('fa-IR')}</span>` : '';
+  }
+  async function renderAdminTickets() {
+    let h = "", d = null, box = adminTicketsBox;
+    try { d = await adminGet('admin_tickets', { page: adminTicketsPage, box: box }); } catch (e) {}
+    if (!d) { document.getElementById('adminTicketsList').innerHTML = ADMIN_LOAD_ERR; return; }
+    if (box !== adminTicketsBox) return;   // another box was chosen meanwhile
+    adminTicketsPage = d.page; tkCounts(d.counts);
+    (d.items || []).forEach(t => {
+      let last = t.last || {}, mine = last.from === 'admin';
+      let when = last.at ? tkAgo(last.at) : (last.time || '');
+      h += `<div class="tk-card ${box}">
+              <div style="display:flex; justify-content:space-between; gap:6px;"><b style="color:#38bdf8;">${escH(t.username)}</b><span style="color:#94a3b8; font-size:10px;">${(t.n || 0).toLocaleString('fa-IR')} پیام</span></div>
+              <div style="font-size:12px; color:#fff; margin:4px 0 6px;">موضوع: ${escH(t.subject)}</div>
+              <div class="tk-last"><b style="color:${mine ? '#facc15' : '#38bdf8'};">${mine ? 'شما' : 'کاربر'}:</b> ${escH(last.text || '')}${last.more ? '…' : ''}${last.img ? ' 📷 عکس' : ''}</div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; gap:6px;">
+                <span style="font-size:10px; color:#94a3b8;">${when}</span>
+                <button class="btn-blue" style="margin:0; padding:6px 10px; font-size:11px; width:auto;" data-u="${escH(t.username)}" data-id="${Number(t.id)}" onclick="adminOpenTicket(this.dataset.u, Number(this.dataset.id))">${box === 'waiting' ? 'پاسخ دادن 💬' : 'مشاهده 💬'}</button>
+              </div>
+            </div>`;
+    });
+    document.getElementById('adminTicketsList').innerHTML = (h || `<p style="font-size:12px; color:#94a3b8;">${TK_EMPTY[box]}</p>`) + adminPager(d.page, d.pages, 'adminTicketsGo');
+  }
+  // after a reply: the next ticket that waits for you (the list is fresh from the server)
+  async function tkOpenNext(u0, id0) {
+    let d = null;
+    try { d = await adminGet('admin_tickets', { page: 1, box: 'waiting' }); } catch (e) {}
+    if (d) tkCounts(d.counts);
+    let nx = d && (d.items || []).find(x => !(x.username === u0 && Number(x.id) === Number(id0)));
+    if (!nx) { document.getElementById('ticketChatModal').style.display = 'none'; return showCustomAlert(d ? "تیکت منتظر دیگری نیست 🎉" : "فهرست تیکت‌ها دریافت نشد. لطفاً دوباره امتحان کنید.", d ? "✅" : "❌"); }
+    adminOpenTicket(nx.username, Number(nx.id));
+  }
+  // ready replies: put in the reply box (you read / change it, then send)
+  const TK_QUICK = [
+    ['⏳ واریز در حال انجام', 'کاربر گرامی، درخواست برداشت شما ثبت شده و در صف واریز است. واریزها به ترتیب ثبت درخواست انجام می‌شوند. به‌محض واریز، وضعیت درخواست در «کیف پول» به «واریز شد ✅» تغییر می‌کند. از صبر و همراهی شما سپاسگزاریم 🌹'],
+    ['📦 حجم بالای واریزها', 'کاربر گرامی، به دلیل حجم بالای درخواست‌های برداشت، واریزها کمی بیشتر از معمول طول می‌کشد. همهٔ درخواست‌ها به ترتیب در حال انجام هستند و درخواست شما هم در صف است. لطفاً درخواست را لغو نکنید تا نوبتتان از دست نرود. از صبر شما سپاسگزاریم 🌹'],
+    ['🧾 رسید خرید در حال بررسی', 'کاربر گرامی، رسید خرید شما دریافت شده و در حال بررسی است. پس از تایید، ماینر خودکار در حساب شما فعال می‌شود.'],
+    ['🔍 در حال بررسی', 'کاربر گرامی، پیام شما دریافت شد و در حال بررسی است. نتیجه را در همین تیکت به شما اطلاع می‌دهیم.'],
+    ['🌹 پایان گفتگو', 'خوشحالیم که مشکل حل شد 🌹 اگر سؤال دیگری داشتید، تیکت جدید ثبت کنید.']];
+  function tkQuickFill(i) { let inp = document.getElementById('tcReplyInput'); inp.value = TK_QUICK[i][1]; tcGrow(inp); inp.focus(); }
+  function tcGrow(el) { el.style.height = 'auto'; el.style.height = Math.min(Math.max(el.scrollHeight, 40), 130) + 'px'; }
 
   function parsePriceInput(v) {
       v = String(v || '').replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
