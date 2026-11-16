@@ -638,7 +638,7 @@
     <div id="adminTab-tickets" class="admin-tab-content" style="display: none;"><h4>مدیریت تیکت‌های پشتیبانی کاربران</h4>
       <div style="background: #1e1b4b; border: 1px solid #1d4ed8; border-radius: 8px; padding: 10px; margin-top: 10px;">
         <b style="color: #93c5fd; font-size: 13px;">✉️ ارسال تیکت به کاربر</b>
-        <div style="font-size: 11px; color: #94a3b8; margin: 4px 0 8px;">نام کاربری را بنویسید و روی «ارسال تیکت» بزنید. تیکت در بخش تیکت‌های کاربر نشان داده می‌شود و ربات هم به او خبر می‌دهد.</div>
+        <div style="font-size: 11px; color: #94a3b8; margin: 4px 0 8px;">نام کاربری را بنویسید: تیکت‌های همان کاربر را می‌بینید و با «مشاهده و پاسخ» جواب می‌دهید. با «تیکت جدید» هم برایش تیکت می‌فرستید (در بخش تیکت‌های کاربر نشان داده می‌شود و ربات هم به او خبر می‌دهد).</div>
         <input type="text" class="select-box" id="tkSearchInput" placeholder="نام کاربری را بنویسید" style="margin: 0; padding: 10px; font-size: 12px;" oninput="tkSearchChanged()">
         <div id="tkSearchResult" style="margin-top: 8px;"></div>
       </div>
@@ -2370,11 +2370,26 @@
     if (!d) { box.innerHTML = ADMIN_LOAD_ERR; return; }
     let users = d.users || [], exact = users.filter(x => String(x.username).toLowerCase() === q.toLowerCase());
     let list = exact.concat(users.filter(x => !exact.includes(x))).slice(0, 10);
-    box.innerHTML = list.map(x => `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; background:#252538; border-radius:6px; padding:8px; margin-bottom:6px;">
+    box.innerHTML = list.map(x => `<div style="background:#252538; border-radius:6px; padding:8px; margin-bottom:6px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
         <div style="font-size:12px;"><b style="color:#38bdf8;">${escH(x.username)}</b><div style="font-size:10px; color:#94a3b8;">موجودی: ${Math.floor(Number(x.mined) || 0).toLocaleString()} تومان</div></div>
-        <button class="ab ab-tk" style="white-space:nowrap;" data-u="${escH(x.username)}" onclick="openAdminTicket(this.dataset.u)">ارسال تیکت ✉️</button></div>`).join('')
+        <button class="ab ab-tk" style="white-space:nowrap;" data-u="${escH(x.username)}" onclick="openAdminTicket(this.dataset.u)">تیکت جدید ✉️</button></div>
+        ${tkUserTickets(x)}</div>`).join('')
       + (!list.length ? "<p style='font-size:11px; color:#aaa;'>کاربری با این نام پیدا نشد.</p>" : '')
       + (d.matched > list.length ? `<p style='font-size:10px; color:#94a3b8;'>${(d.matched - list.length).toLocaleString()} نفر دیگر هم پیدا شد؛ نام را کامل‌تر بنویسید.</p>` : '');
+  }
+  // the user's own tickets in the search (newest first): open one to read and answer
+  function tkUserTickets(x) {
+    let ts = (Array.isArray(x.tickets) ? x.tickets : []).filter(t => t && t.id).slice().sort((a, b) => Number(b.id) - Number(a.id));
+    if (!ts.length) return `<div style="font-size:10px; color:#64748b; margin-top:6px;">تیکتی ندارد.</div>`;
+    return `<div style="font-size:10px; color:#94a3b8; margin:8px 0 4px;">تیکت‌های این کاربر (${ts.length}):</div>` + ts.map(t => {
+      let st = String(t.status || ''), col = st.includes('بسته') ? '#94a3b8' : (st.includes('پاسخ داده شده') ? '#00ff88' : '#facc15');
+      let last = (t.messages || []).slice(-1)[0], who = last ? (last.sender === 'admin' ? 'آخرین پیام: شما' : 'آخرین پیام: کاربر') : '';
+      return `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; border-top:1px solid #334155; padding:6px 0;">
+        <div style="font-size:11px; min-width:0;"><div style="color:#fff; overflow:hidden; text-overflow:ellipsis;">${escH(t.subject || '')}</div>
+        <div style="font-size:10px;"><span style="color:${col};">${escH(st)}</span> <span style="color:#64748b;">${who}</span></div></div>
+        <button class="btn-blue" style="margin:0; padding:6px 8px; font-size:10px; width:auto; white-space:nowrap;" data-u="${escH(x.username)}" data-id="${Number(t.id)}" onclick="adminOpenTicket(this.dataset.u, Number(this.dataset.id))">مشاهده و پاسخ 💬</button></div>`;
+    }).join('');
   }
   async function adminSendTicket() {
     let sub = document.getElementById('atSubject').value.trim(), txt = document.getElementById('atText').value.trim(), u = adminTicketUser;
@@ -2390,6 +2405,7 @@
     btn.innerText = orig; btn.disabled = false;
     if (!ok) return showCustomAlert("ارسال تیکت انجام نشد. لطفاً دوباره امتحان کنید.", "❌");
     closeAdminTicket(); renderAdminTickets();
+    if (document.getElementById('tkSearchInput').value.trim()) tkSearch();   // the new ticket shows in the search too
     showCustomAlert(`تیکت برای «${u}» ارسال شد.`, "✅");
   }
   // warning badges next to withdrawal requests
@@ -3037,45 +3053,47 @@
     loadReceiptThumbs();
   }
 
-  async function approveReceipt(i, btn) {
+  async function approveReceipt(i, btn) { await receiptDecide(i, btn, true, null); }
+  async function rejectReceipt(i, btn) {
+    let reason = prompt("دلیل رد کردن رسید را بنویسید:"); if(!reason) return;
+    await receiptDecide(i, btn, false, reason);
+  }
+  // Approve / reject: the user's account is changed first; the receipt leaves the list only when that worked.
+  async function receiptDecide(i, btn, approve, reason) {
+    let r0 = pendingReceipts[i]; if (!r0) return;
+    let label = btn.innerText;
     btn.innerText = "صبر کنید..."; btn.disabled = true;
-    let r = pendingReceipts[i]; await loadDataFromServer();
-    if(r) await adminLoadUser(r.username);
-    
-    r.status = "تایید شد ✅";
-    if(db[r.username]) { 
+    let fail = msg => { btn.innerText = label; btn.disabled = false; showCustomAlert(msg, "❌"); };
+    await loadDataFromServer();
+    let k = pendingReceipts.findIndex(x => String(x.id) === String(r0.id) && x.username === r0.username);
+    let r = k >= 0 ? pendingReceipts[k] : r0, u = r.username;
+    if (!(await adminLoadUser(u))) return fail("اطلاعات حساب این کاربر دریافت نشد. هیچ تغییری انجام نشد و رسید در فهرست ماند. لطفاً دوباره امتحان کنید.");
+    let rec = db[u], p = (rec.purchaseHistory || []).find(x => String(x.id) === String(r.id));
+    if (p && !String(p.status || '').includes('بررسی')) {   // already decided (another panel, or an earlier try that did reach the account)
+      if (k >= 0) { pendingReceipts.splice(k, 1); await saveGlobalAdminData(); }
+      renderAdminReceipts();
+      return showCustomAlert(`این رسید قبلاً بررسی شده است. وضعیت در حساب کاربر: ${p.status}\nچیزی دوباره انجام نشد.`, "ℹ️");
+    }
+    if (approve) {
       let newMiner = { name: "ماینر نامشخص", hashrate: "0 TH/s", maxDaily: 0, expireAt: null };
       if(r.machine === 'Pro') { newMiner = {name:"ماینر پرو (Pro)", hashrate:"320 TH/s", maxDaily:150000, expireAt: Date.now() + (90 * 86400000)}; }
       else if(r.machine === 'Turbo') { newMiner = {name:"ماینر توربو (Turbo)", hashrate:"650 TH/s", maxDaily:250000, expireAt: Date.now() + (180 * 86400000)}; }
       else if(r.machine === 'Infinity') { newMiner = {name:"ماینر اینفینیتی (VIP) 💎", hashrate:"1200 TH/s", maxDaily:400000, expireAt: null}; }
-      
-      db[r.username].miners.push(newMiner);
-      
-      if(db[r.username].purchaseHistory) {
-        let p = db[r.username].purchaseHistory.find(x => x.id === r.id);
-        if(p) p.status = "تایید شد و ماینر فعال گردید ✅";
+      if (!Array.isArray(rec.miners)) rec.miners = [];
+      rec.miners.push(newMiner);
+      if (p) p.status = "تایید شد و ماینر فعال گردید ✅";
+    } else if (p) { p.status = "رد شد ❌"; p.rejectReason = reason; }
+    if (approve || p) {
+      let out = await saveDB(u);
+      if (!out || out.status !== 'success') {
+        await adminLoadUser(u);   // the panel's copy back to what the server has
+        return fail(((out && out.message) ? out.message + "\n" : "") + "ذخیره در حساب کاربر انجام نشد. رسید در فهرست ماند و " + (approve ? "ماینری اضافه نشد" : "چیزی تغییر نکرد") + ". لطفاً دوباره امتحان کنید.");
       }
-      await saveDB(r.username); 
     }
-    
-    pendingReceipts.splice(i, 1); await saveGlobalAdminData();
-    renderAdminReceipts(); renderAdminStats(); showCustomAlert("رسید تایید و ماینر فعال شد.", "✅");
-  }
-
-  async function rejectReceipt(i, btn) {
-    let reason = prompt("دلیل رد کردن رسید را بنویسید:"); if(!reason) return;
-    btn.innerText = "صبر کنید..."; btn.disabled = true;
-    let r = pendingReceipts[i]; await loadDataFromServer();
-    if(r) await adminLoadUser(r.username);
-
-    r.status = "رد شد ❌"; r.rejectReason = reason;
-    if(db[r.username] && db[r.username].purchaseHistory) {
-      let p = db[r.username].purchaseHistory.find(x => x.id === r.id);
-      if(p) { p.status = "رد شد ❌"; p.rejectReason = reason; }
-      await saveDB(r.username);
-    }
-    pendingReceipts.splice(i, 1); await saveGlobalAdminData();
-    renderAdminReceipts(); showCustomAlert("رسید رد شد.", "✅");
+    if (k >= 0) pendingReceipts.splice(k, 1);
+    await saveGlobalAdminData();
+    renderAdminReceipts(); if (approve) renderAdminStats();
+    showCustomAlert(approve ? "رسید تایید و ماینر فعال شد." : "رسید رد شد.", "✅");
   }
   
   async function updateUsername() {
