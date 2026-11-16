@@ -495,7 +495,10 @@
       <input type="file" id="tcImgFile" accept="image/*" style="display: none;" onchange="onTicketImgChosen(this)">
       <button class="btn-blue" style="margin-top:0; width: 80px; padding: 8px; font-size: 12px;" onclick="sendTicketMessage(this)">ارسال</button>
     </div>
-    <button id="tcSendNext" class="btn-blue" style="display: none; margin-top: 8px; font-size: 12px; padding: 8px;" onclick="sendTicketMessage(this, true)">ارسال و بعدی ⏭</button>
+    <div id="tcNextRow" style="display: none; gap: 8px; margin-top: 8px;">
+      <button id="tcSendNext" class="btn-blue" style="margin-top: 0; font-size: 12px; padding: 8px; flex: 1;" onclick="sendTicketMessage(this, true)">ارسال و بعدی ⏭</button>
+      <button id="tcSkipNext" class="btn-blue" style="margin-top: 0; font-size: 12px; padding: 8px; flex: 1; background: #475569 !important;" onclick="tkSkip(this)">بعدی بدون پاسخ ⏩</button>
+    </div>
     <button id="tcCloseBtnUniversal" class="btn-danger" style="margin-top:10px; font-size:12px; padding:8px;" onclick="closeActiveTicket()">بستن دائمی این تیکت 🔒</button>
   </div>
 </div>
@@ -792,6 +795,7 @@
   let inviterSyncCounter = 0;
   
   let activeChatTicketId = null;
+  let tkCur = null, tkNav = false;   // the admin's open ticket (its place in the waiting list); a «next» on its way
   let activeChatUsername = null;
   
   let localSyncTimer = 0; 
@@ -1869,7 +1873,10 @@
     let q = document.getElementById('tcQuick');
     if (!q.innerHTML) q.innerHTML = TK_QUICK.map((x, i) => `<button onclick="tkQuickFill(${i})">${x[0]}</button>`).join('');
     q.style.display = isAdminLoggedIn && !isClosed ? 'flex' : 'none';
-    document.getElementById('tcSendNext').style.display = isAdminLoggedIn && !isClosed ? 'block' : 'none';
+    document.getElementById('tcNextRow').style.display = isAdminLoggedIn && !isClosed ? 'flex' : 'none';
+    let tms = t.messages || [], lm = tms[tms.length - 1];
+    // its place in «منتظر پاسخ شما»: the time of its last message (the server's order), or the ticket's own time
+    tkCur = { u: username, id: ticketId, key: Number(lm && lm.at) || Number(ticketId), waiting: !isClosed && !(lm && lm.sender === 'admin'), page: 1 };
     let inp0 = document.getElementById('tcReplyInput'); inp0.value = ''; tcGrow(inp0);
     document.getElementById('tcCloseBtnUniversal').style.display = isClosed ? 'none' : 'block';
     document.getElementById('tcInputArea').style.display = isClosed ? 'none' : 'flex';
@@ -1896,7 +1903,10 @@
 
   async function sendTicketMessage(btnArg, next) {
     let inp = document.getElementById('tcReplyInput');
-    let text = inp.value.trim(); if(!text) return;
+    let text = inp.value.trim();
+    if (!text) { if (next && isAdminLoggedIn) showCustomAlert("اول پاسخ را بنویسید، یا «بعدی بدون پاسخ ⏩» را بزنید.", "✍️"); return; }
+    if (next && tkNav) return;
+    let cur = tkCur;
     let btn = btnArg || event.target, label = btn.innerText; btn.innerText = "..."; btn.disabled = true;
     await syncBeforeChange();
     if (isAdminLoggedIn) await adminLoadUser(activeChatUsername);
@@ -1916,7 +1926,10 @@
         return showCustomAlert("پاسخ ذخیره نشد. متن در کادر پاسخ ماند؛ لطفاً دوباره بفرستید.", "❌");
       }
       renderAdminTickets();
-      if (next) { btn.innerText = label; btn.disabled = false; return tkOpenNext(u, id); }
+      if (next) {
+        await tkOpenNext(cur && cur.u === u && cur.id === id ? cur : { u: u, id: id, key: 0, waiting: false, page: 1 });
+        btn.innerText = label; btn.disabled = false; return;
+      }
     }
     btn.innerText = label; btn.disabled = false;
   }
@@ -2166,8 +2179,8 @@
   function adminSearchChanged() { clearTimeout(adminSearchTimer); adminSearchTimer = setTimeout(() => { adminUsersPage = 1; renderAdminStats(); }, 350); }
   function adminUsersGo(p) { adminUsersPage = p; renderAdminStats().then(() => document.getElementById('adminUsersListDetailed').scrollIntoView({ block: 'start' })); }
   function adminTicketsGo(p) { adminTicketsPage = p; renderAdminTickets(); }
-  async function adminOpenTicket(u, id) {
-    if (await adminLoadUser(u) && db[u].tickets && db[u].tickets.find(x => x.id === id)) openTicketChat(u, id);
+  async function adminOpenTicket(u, id, pg) {
+    if (await adminLoadUser(u) && db[u].tickets && db[u].tickets.find(x => x.id === id)) { openTicketChat(u, id); if (pg > 1 && tkCur) tkCur.page = pg; }
     else showCustomAlert("اطلاعات این تیکت دریافت نشد. لطفاً دوباره امتحان کنید.", "❌");
   }
 
@@ -2707,20 +2720,47 @@
               <div class="tk-last"><b style="color:${mine ? '#facc15' : '#38bdf8'};">${mine ? 'شما' : 'کاربر'}:</b> ${escH(last.text || '')}${last.more ? '…' : ''}${last.img ? ' 📷 عکس' : ''}</div>
               <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; gap:6px;">
                 <span style="font-size:10px; color:#94a3b8;">${when}</span>
-                <button class="btn-blue" style="margin:0; padding:6px 10px; font-size:11px; width:auto;" data-u="${escH(t.username)}" data-id="${Number(t.id)}" onclick="adminOpenTicket(this.dataset.u, Number(this.dataset.id))">${box === 'waiting' ? 'پاسخ دادن 💬' : 'مشاهده 💬'}</button>
+                <button class="btn-blue" style="margin:0; padding:6px 10px; font-size:11px; width:auto;" data-u="${escH(t.username)}" data-id="${Number(t.id)}" data-pg="${Number(d.page) || 1}" onclick="adminOpenTicket(this.dataset.u, Number(this.dataset.id), Number(this.dataset.pg))">${box === 'waiting' ? 'پاسخ دادن 💬' : 'مشاهده 💬'}</button>
               </div>
             </div>`;
     });
     document.getElementById('adminTicketsList').innerHTML = (h || `<p style="font-size:12px; color:#94a3b8;">${TK_EMPTY[box]}</p>`) + adminPager(d.page, d.pages, 'adminTicketsGo');
   }
-  // after a reply: the next ticket that waits for you (the list is fresh from the server)
-  async function tkOpenNext(u0, id0) {
-    let d = null;
-    try { d = await adminGet('admin_tickets', { page: 1, box: 'waiting' }); } catch (e) {}
-    if (d) tkCounts(d.counts);
-    let nx = d && (d.items || []).find(x => !(x.username === u0 && Number(x.id) === Number(id0)));
-    if (!nx) { document.getElementById('ticketChatModal').style.display = 'none'; return showCustomAlert(d ? "تیکت منتظر دیگری نیست 🎉" : "فهرست تیکت‌ها دریافت نشد. لطفاً دوباره امتحان کنید.", d ? "✅" : "❌"); }
-    adminOpenTicket(nx.username, Number(nx.id));
+  // «next»: the waiting ticket right after the one you were on, in the order of «منتظر پاسخ شما» (fresh from the server).
+  // A ticket opened from another box starts at the top. At the end of the list it stops (never goes round to the top).
+  function tkKey(x) { return Number(x.last && x.last.at) || Number(x.id); }
+  async function tkOpenNext(cur) {
+    if (tkNav) return; tkNav = true;
+    try {
+      let after = !!cur.waiting, page = after ? Math.max(1, (cur.page || 1) - 1) : 1, pages = page, nx = null, seen = false, d = null;
+      while (!nx && page <= pages) {
+        d = null;
+        try { d = await adminGet('admin_tickets', { page: page, box: 'waiting' }); } catch (e) {}
+        if (!d) return showCustomAlert("فهرست تیکت‌ها دریافت نشد. لطفاً دوباره امتحان کنید.", "❌");
+        tkCounts(d.counts); page = Number(d.page) || page; pages = Math.min(Number(d.pages) || 1, 500);
+        for (let x of (d.items || [])) {
+          if (x.username === cur.u && Number(x.id) === Number(cur.id)) { seen = true; continue; }
+          let k = tkKey(x);
+          if (!after || seen || k > cur.key || (k === cur.key && !cur.skipped)) { nx = x; nx.pg = page; break; }
+        }
+        page++;
+      }
+      if (nx) return await adminOpenTicket(nx.username, Number(nx.id), nx.pg);
+      document.getElementById('ticketChatModal').style.display = 'none';
+      tkBox('waiting');
+      let w = (d && d.counts && Number(d.counts.waiting)) || 0;
+      if (after && w > ((seen || cur.skipped) ? 1 : 0))
+        showCustomAlert(`به آخر فهرست تیکت‌های منتظر رسیدید ✅\n${w.toLocaleString('fa-IR')} تیکت هنوز در «منتظر پاسخ شما» مانده است (از بالای فهرست).`, "✅");
+      else showCustomAlert("تیکت منتظر دیگری نیست 🎉", "✅");
+    } finally { tkNav = false; }
+  }
+  // «بعدی بدون پاسخ»: this ticket stays as it is (still waiting); the next one opens
+  async function tkSkip(btn) {
+    if (!isAdminLoggedIn || !tkCur || tkNav) return;
+    if (document.getElementById('tcReplyInput').value.trim())
+      return showCustomAlert("در کادر پاسخ متن نوشته‌اید. برای فرستادنش «ارسال و بعدی ⏭» را بزنید؛ برای رد شدن بدون پاسخ، اول کادر را خالی کنید.", "✍️");
+    let label = btn.innerText; btn.innerText = "..."; btn.disabled = true;
+    try { await tkOpenNext(Object.assign({}, tkCur, { skipped: true })); } finally { btn.innerText = label; btn.disabled = false; }
   }
   // ready replies: put in the reply box (you read / change it, then send)
   const TK_QUICK = [
