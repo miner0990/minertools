@@ -3093,38 +3093,68 @@
   // the server refused the decision (already decided elsewhere, or cancelled by the user meanwhile): show why, reload
   async function wDecisionRefused(w, out) {
     await adminLoadUser(w.username); await loadDataFromServer(); renderAdminWithdrawals(); renderAdminStats();
-    showCustomAlert((out && out.message) || "ذخیره انجام نشد؛ لطفاً دوباره تلاش کنید.", "⚠️");
+    showCustomAlert((out && out.message) || "ذخیره انجام نشد (اینترنت یا سرور). چند لحظه بعد دوباره بزنید؛ اگر قبلاً ثبت شده باشد، چیزی دوباره پرداخت یا برگشت داده نمی‌شود.", "⚠️");
   }
   function wStillPending(w) {   // the user may have cancelled it meanwhile
     if (w && String(w.status || '').includes('بررسی')) return true;
     renderAdminWithdrawals(); showCustomAlert("این درخواست دیگر در انتظار نیست (ممکن است کاربر خودش آن را لغو کرده باشد).", "⚠️"); return false;
   }
+  // ---- approve / reject: decided from the user's own account; the server writes the account and the list in one request ----
+  async function wListSync(u, id) {   // the list follows the account (nothing in the account changes)
+    try {
+      let res = await apiFetch(`${API_URL}/api/?action=admin_wsync`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u, id: id }) });
+      let d = await res.json().catch(() => null);
+      return !!(d && d.status === 'success');
+    } catch (e) { return false; }
+  }
+  const W_LIST_FAIL = "\n\n⚠️ ولی فهرست پنل به‌روز نشد (اینترنت). چند لحظه بعد همین دکمه را دوباره بزنید؛ چیزی دوباره پرداخت یا برگشت داده نمی‌شود.";
+  // returns { ok: the list was updated, w } when decided now; null when nothing was decided
+  async function wDecide(id, btn, pay, reason) {
+    let label = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
+    let done = () => { btn.innerText = label; btn.disabled = false; };
+    let w = await wFind(id, btn);
+    if (!w) { done(); renderAdminWithdrawals(); showCustomAlert("این درخواست در فهرست پیدا نشد. لطفاً صفحه را ببندید و دوباره باز کنید.", "⚠️"); return null; }
+    let u = w.username;
+    if (!(await adminLoadUser(u)) || !db[u]) { done(); showCustomAlert("اطلاعات حساب کاربر دریافت نشد (اینترنت). لطفاً دوباره امتحان کنید.", "❌"); return null; }
+    let uw = (db[u].withdrawHistory || []).find(x => x && Number(x.id) === Number(id));
+    if (!uw) { done(); showCustomAlert("این درخواست در حساب کاربر پیدا نشد.", "⚠️"); return null; }
+    let st = String(uw.status || '');
+    if (!st.includes('بررسی')) {   // already decided in the account: the list only (nothing paid or given back again)
+      let ok = await wListSync(u, id);
+      if (ok) { w.status = st; if (uw.rejectReason) w.rejectReason = uw.rejectReason; }
+      done(); renderAdminWithdrawals();
+      let msg = st.includes('لغو') ? "این درخواست دیگر در انتظار نیست: کاربر خودش آن را لغو کرده و مبلغش به حسابش برگشته است. آن را پرداخت نکنید."
+              : st.includes('واریز') ? "این برداشت قبلاً در حساب کاربر «واریز شد» ثبت شده بود. دوباره پرداخت نکنید."
+              : "این برداشت قبلاً در حساب کاربر «رد شد» ثبت شده بود و مبلغش همان موقع به حساب کاربر برگشته است؛ دوباره برنگشت.";
+      showCustomAlert(msg + (ok ? "\n\nفهرست پنل به‌روز شد ✅" : W_LIST_FAIL), ok ? "ℹ️" : "⚠️");
+      return null;
+    }
+    uw.status = pay ? "واریز شد ✅" : "رد شد ❌";
+    if (!pay) { uw.rejectReason = reason; db[u].mined = (Number(db[u].mined) || 0) + (Number(uw.amount) || 0); }
+    let out = await saveDB(u);
+    if (!(out && out.status === 'success')) { done(); await wDecisionRefused(w, out); return null; }
+    let ok = out.list === 'ok' || await wListSync(u, id);
+    if (ok) { w.status = uw.status; if (!pay) w.rejectReason = reason; }
+    done(); renderAdminWithdrawals(); if (!pay) renderAdminStats();
+    return { ok: ok, w: w };
+  }
   async function approveW(id, btn) {
-    btn.innerText = "صبر کنید..."; btn.disabled = true;
-    await loadDataFromServer(); let w = await wFind(id, btn);if (!wStillPending(w)) return; if(w) w.status = "واریز شد ✅"; if(w) await adminLoadUser(w.username); 
-    let out = null;
-    if(w && db[w.username]) { let uw = db[w.username].withdrawHistory.find(x => x.id === id); if(uw) uw.status = "واریز شد ✅"; out = await saveDB(w.username); }
-    if (w && db[w.username] && !(out && out.status === 'success')) return wDecisionRefused(w, out);
-    await saveGlobalAdminData(); renderAdminWithdrawals(); showCustomAlert("برداشت تایید شد.", "✅");
+    let r = await wDecide(id, btn, true, null); if (!r) return;
+    showCustomAlert("برداشت تایید شد." + (r.ok ? "" : W_LIST_FAIL), r.ok ? "✅" : "⚠️");
   }
 
   async function rejectW(id, btn) {
     let r = prompt("دلیل رد (مبلغ به حساب کاربر برمی‌گردد):"); if(!r) return;
     let freeCard = confirm("آیا شماره کارت / آدرس ولتِ این درخواست اشتباه بود؟\n\nبله (OK / تأیید): کارت آزاد می‌شود تا صاحب واقعی‌اش یا خود کاربر بتواند دوباره با آن برداشت بزند.\n\nنه (Cancel / لغو): کارت مثل قبل روی همین حساب قفل می‌ماند. برای ردهای مربوط به تقلب «نه» بزنید.");
-    btn.innerText = "صبر کنید..."; btn.disabled = true;
-    await loadDataFromServer(); let w = await wFind(id, btn);if (!wStillPending(w)) return; if(w) { w.status = "رد شد ❌"; w.rejectReason = r; } if(w) await adminLoadUser(w.username);
-    let out = null;
-    if(w && db[w.username]) { let uw = db[w.username].withdrawHistory.find(x => x.id === id); if(uw){ uw.status = "رد شد ❌"; uw.rejectReason = r; } db[w.username].mined += w.amount; out = await saveDB(w.username); }
-    if (w && db[w.username] && !(out && out.status === 'success')) return wDecisionRefused(w, out);
-    await saveGlobalAdminData(); renderAdminWithdrawals(); renderAdminStats();
-    let extra = '';
+    let dr = await wDecide(id, btn, false, r); if (!dr) return;
+    let w = dr.w, extra = '';
     if (freeCard && w) {
       try {
         let res = await apiFetch(`${API_URL}/api/?action=admin_card_free`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: w.username, id: id }) });
         let d = await res.json(); extra = '\n\n' + ((d && d.message) || 'آزاد کردن کارت انجام نشد.');
       } catch (e) { extra = '\n\nآزاد کردن کارت انجام نشد (خطای شبکه).'; }
     }
-    showCustomAlert("برداشت رد شد و وجه بازگشت." + extra, "✅");
+    showCustomAlert("برداشت رد شد و وجه بازگشت." + extra + (dr.ok ? "" : W_LIST_FAIL), dr.ok ? "✅" : "⚠️");
   }
 
   function renderAdminChannelsManager() {
