@@ -1163,7 +1163,7 @@
             await apiFetch(`${API_URL}/api/update`, { 
                 method: 'POST', 
                 headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ username: '_ADMIN_DATA_', userData: db['_ADMIN_DATA_'] }) 
+                body: JSON.stringify({ username: '_ADMIN_DATA_', userData: adminToken ? Object.assign({}, db['_ADMIN_DATA_'], { allWithdrawals: [] }) : db['_ADMIN_DATA_'] })   // admin: the server keeps its own withdrawals list 
             });
             await new Promise(r => setTimeout(r, 400));
           } catch(e) {}
@@ -2971,7 +2971,9 @@
       return card;
   }
   const ADMIN_W_NONE = "<p style='font-size:11px; color:#aaa;'>موردی یافت نشد.</p>";
-  function renderAdminWithdrawals() { renderPendingW(); loadAdminWList('done'); loadAdminWList('rejected'); if (wSearchUser) wSearch(wSearchUser, true); }
+  // «واریز شده» / «رد شده»: loaded when shown (they come from the users' accounts on the server)
+  function wListShown(kind) { let el = document.getElementById(kind === 'done' ? 'adminWithdrawalsListDone' : 'adminWithdrawalsListRejected'); return !!el && el.style.display !== 'none'; }
+  function renderAdminWithdrawals() { renderPendingW(); ['done', 'rejected'].forEach(k => { if (wListShown(k)) loadAdminWList(k); }); if (wSearchUser) wSearch(wSearchUser, true); }
   function renderPendingW() {
     let per = 30, list = allWithdrawals.filter(w => !w.status.includes('واریز') && !w.status.includes('رد'));
     let pages = Math.max(1, Math.ceil(list.length / per)), p = Math.min(adminWPages.pending, pages); adminWPages.pending = p;
@@ -2994,6 +2996,7 @@
      document.getElementById('adminWithdrawalsListPending').style.display = type==='pending' ? 'block' : 'none';
      document.getElementById('adminWithdrawalsListDone').style.display = type==='done' ? 'block' : 'none';
      document.getElementById('adminWithdrawalsListRejected').style.display = type==='rejected' ? 'block' : 'none';
+     if (type !== 'pending') loadAdminWList(type);
   }
 
   // ---- "being paid" lock: while it is on, the user can't cancel the request (the server checks it) ----
