@@ -2002,7 +2002,14 @@
     showCustomAlert("تیکت با موفقیت بسته شد.", "🔒");
   }
 
-  function openCheckout(n, p, m) { 
+  // a receipt for this miner is still waiting for the admin: no second one until the decision
+  const RECEIPT_WAITING_MSG = "رسید شما برای این ماینر در حال بررسی است. تا نتیجه مشخص نشده نمی‌توانید رسید دیگری بفرستید.\n\nنتیجه را در بخش حساب کاربری ببینید.";
+  function receiptWaitingFor(n) {
+    let ph = (db[currentUser] && db[currentUser].purchaseHistory) || [];
+    return ph.some(x => x && String(x.machine || '').trim() === String(n || '').trim() && String(x.status || '').includes('بررسی'));
+  }
+  function openCheckout(n, p, m) {
+    if (receiptWaitingFor(n)) return showCustomAlert(RECEIPT_WAITING_MSG, "⏳");
     selectedMachineToBuy = {name: n, price: p, method: m}; 
     document.getElementById('checkoutTitle').innerText = "خرید " + n; 
     document.getElementById('checkoutPriceText').innerText = "مبلغ: " + p.toLocaleString() + " تومان"; 
@@ -2075,7 +2082,8 @@
   async function submitReceipt() { 
     let btn = event.target;
     let r = document.getElementById('receiptInput').value.trim(); 
-    if(!receiptImgData) return showCustomAlert("لطفاً عکس رسید واریزی را از گالری انتخاب کنید.", "⚠️"); 
+    if(!receiptImgData) return showCustomAlert("لطفاً عکس رسید واریزی را از گالری انتخاب کنید.", "⚠️");
+    if (selectedMachineToBuy && receiptWaitingFor(selectedMachineToBuy.name)) { closeCheckout(); return showCustomAlert(RECEIPT_WAITING_MSG, "⏳"); }
     
     let orig = btn.innerText; btn.innerText = "در حال ارسال عکس..."; btn.disabled = true;
     let imgId = null;
@@ -2094,7 +2102,14 @@
     if(!db[currentUser].purchaseHistory) db[currentUser].purchaseHistory = [];
     db[currentUser].purchaseHistory.unshift({ id: uniqueId, machine: selectedMachineToBuy.name, receipt: r, receiptImg: imgId, status: "در حال بررسی ⏳" });
     
-    await saveDB(); await saveGlobalAdminData();
+    let saved = await saveDB();
+    if (!(saved && saved.status === 'success')) {   // not saved: say so, and take it back out of the phone's copy
+      pendingReceipts = pendingReceipts.filter(x => x.id !== uniqueId);
+      db[currentUser].purchaseHistory = (db[currentUser].purchaseHistory || []).filter(x => x.id !== uniqueId);
+      btn.innerText = orig; btn.disabled = false;
+      return showCustomAlert((saved && saved.message) || "ثبت رسید انجام نشد. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.", "⚠️");
+    }
+    await saveGlobalAdminData();
     btn.innerText = orig; btn.disabled = false;
     
     showCustomAlert(`رسید شما با موفقیت ثبت شد. بعد از بررسی توسط مدیریت، ماینر ${selectedMachineToBuy.name} برای شما فعال می‌شود. از بخش حساب کاربری می‌توانید وضعیت خرید خود را پیگیری کنید.`, "✅"); 
