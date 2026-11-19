@@ -1126,7 +1126,7 @@
           if (!rec) { resolve(); return; }
           let base = syncBase[u];
           let creating = newUsers.has(u) || !base;
-          let body;
+          let body, sentMined = Number(rec.mined) || 0;
           if (creating) {
             body = { mode: 'v2', create: true, username: u, userData: rec };
           } else {
@@ -1146,7 +1146,7 @@
                 body: JSON.stringify(body) 
             });
             out = await res.json().catch(() => null);
-            if (out && out.status === 'success') { newUsers.delete(u); afterOwnSave(u, out); }
+            if (out && out.status === 'success') { newUsers.delete(u); afterOwnSave(u, out, rec, sentMined); }
             else {
               if (base) syncBase[u] = base; else delete syncBase[u];
               if (out && out.code === 'not_found') newUsers.add(u);
@@ -1163,10 +1163,16 @@
   // server's daily total differs from this app's (a miner was approved or ended while the app was open), reload
   // this account's miners (at most every 30 s).
   let minersCheckedAt = 0;
-  function afterOwnSave(u, out) {
+  function afterOwnSave(u, out, rec, sentMined) {
     if (adminToken || u !== currentUser || !db[u]) return;
     let add = Number(out.topUp) || 0;
-    if (add > 0) {
+    if (typeof out.mined === 'number' && isFinite(out.mined) && rec === db[u] && typeof sentMined === 'number') {
+      // the server's balance after this save (server v34), plus what this app counted while the request was on its way
+      let grown = (Number(rec.mined) || 0) - sentMined;
+      rec.mined = out.mined + grown;
+      if (syncBase[u]) syncBase[u].mined = out.mined;
+      updateUI();
+    } else if (add > 0) {
       db[u].mined = (Number(db[u].mined) || 0) + add;
       if (syncBase[u]) syncBase[u].mined += add;
       updateUI();
