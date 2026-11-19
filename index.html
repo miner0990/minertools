@@ -118,6 +118,27 @@
   .tk-badge { background: #ef4444; color: #fff; border-radius: 10px; padding: 0 6px; font-size: 10px; margin-right: 4px; }
   .tk-quick { display: none; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
   .tk-quick button { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; border-radius: 12px; padding: 4px 8px; font-size: 10px; font-family: inherit; cursor: pointer; }
+  .tk-quick button.tk-smart { border-color: #38bdf8; color: #e0f2fe; }
+  .nt-cats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .nt-cats button { background: #0f172a; color: #e2e8f0; border: 1px solid #334155; border-radius: 10px; padding: 12px 8px; font-size: 12px; font-family: inherit; cursor: pointer; text-align: center; line-height: 1.5; }
+  .nt-cats button.on { border-color: #38bdf8; background: rgba(56,189,248,0.12); color: #fff; }
+  .nt-box { background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 10px; margin-top: 10px; font-size: 12px; line-height: 1.8; color: #cbd5e1; }
+  .nt-box b.h { color: #facc15; display: block; margin-bottom: 4px; font-size: 12px; }
+  .nt-row { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dashed #1e293b; padding: 3px 0; font-size: 11px; }
+  .nt-row:last-child { border-bottom: none; }
+  .nt-faq details { border-bottom: 1px solid #1e293b; padding: 6px 0; }
+  .nt-faq details:last-child { border-bottom: none; }
+  .nt-faq summary { cursor: pointer; color: #e2e8f0; font-size: 12px; list-style: none; }
+  .nt-faq summary::before { content: "＋ "; color: #38bdf8; }
+  .nt-faq details[open] summary::before { content: "－ "; }
+  .nt-faq details div { color: #94a3b8; font-size: 11.5px; margin-top: 4px; white-space: pre-wrap; }
+  .nt-imgs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .nt-imgs span { position: relative; display: inline-block; }
+  .nt-imgs img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; border: 1px solid #334155; }
+  .nt-imgs button { position: absolute; top: -6px; left: -6px; width: 20px; height: 20px; border-radius: 50%; border: none; background: #ef4444; color: #fff; font-size: 11px; cursor: pointer; line-height: 20px; padding: 0; }
+  .tk-uinfo { background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 6px 8px; margin-bottom: 8px; font-size: 11px; color: #cbd5e1; }
+  .tk-uinfo summary { cursor: pointer; color: #facc15; font-size: 11px; }
+  .tk-uinfo .nt-row { font-size: 10.5px; }
   .rp-periods button { flex: 1; padding: 9px 4px; border-radius: 6px; border: 1px solid #334155; background: #1e1e2e; color: #cbd5e1; font-family: inherit; font-size: 12px; cursor: pointer; }
   .rp-periods button.on { background: #3987e5; border-color: #3987e5; color: #fff; font-weight: bold; }
   .rp-meta { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #94a3b8; margin-bottom: 10px; }
@@ -414,7 +435,7 @@
       <div class="card card-blue" style="text-align: right; background: rgba(56, 189, 248, 0.05);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
           <h3 style="color: #38bdf8; font-size: 14px;">🎧 پشتیبانی آنلاین (تیکت)</h3>
-          <button class="btn-blue" style="width: auto; margin:0; padding: 6px 12px; font-size: 11px;" onclick="openNewTicketPrompt()">ثبت تیکت ➕</button>
+          <button class="btn-blue" style="width: auto; margin:0; padding: 6px 12px; font-size: 11px;" onclick="openNewTicket()">ثبت تیکت ➕</button>
         </div>
         <p style="font-size: 11px; color: #94a3b8; margin-bottom: 10px;">مشکلات یا سوالات خود را با مدیریت در میان بگذارید.</p>
         <div id="userTicketsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;"></div>
@@ -487,6 +508,7 @@
       <h3 style="color: #38bdf8; font-size: 14px;" id="tcTitle">تیکت پشتیبانی</h3>
       <button onclick="document.getElementById('ticketChatModal').style.display='none'" style="background:none; border:none; color:#ef4444; font-size:16px; cursor:pointer;">✕</button>
     </div>
+    <div id="tcUserInfo" style="display: none;"></div>
     <div id="tcMessages" style="height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; padding: 5px;"></div>
     <div id="tcQuick" class="tk-quick"></div>
     <div id="tcInputArea" style="display: flex; gap: 8px; align-items: flex-end;">
@@ -500,6 +522,33 @@
       <button id="tcSkipNext" class="btn-blue" style="margin-top: 0; font-size: 12px; padding: 8px; flex: 1; background: #475569 !important;" onclick="tkSkip(this)">بعدی بدون پاسخ ⏩</button>
     </div>
     <button id="tcCloseBtnUniversal" class="btn-danger" style="margin-top:10px; font-size:12px; padding:8px;" onclick="closeActiveTicket()">بستن دائمی این تیکت 🔒</button>
+  </div>
+</div>
+
+<div id="newTicketModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 15000; justify-content: center; align-items: flex-start; padding: 15px; overflow-y: auto;" dir="rtl">
+  <div class="card card-blue" style="max-width: 400px; width: 100%; text-align: right; position: relative; margin: auto 0;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #1e293b; padding-bottom: 10px;">
+      <h3 style="color: #38bdf8; font-size: 14px;">🎧 پشتیبانی</h3>
+      <button onclick="closeNewTicket()" style="background:none; border:none; color:#ef4444; font-size:16px; cursor:pointer;">✕</button>
+    </div>
+    <p style="font-size: 12px; color: #94a3b8; margin-bottom: 8px;">سؤال یا مشکل شما دربارهٔ چیست؟</p>
+    <div class="nt-cats" id="ntCats"></div>
+    <div id="ntHelp"></div>
+    <div id="ntOpen" style="display: none;"></div>
+    <div id="ntForm" style="display: none;">
+      <div class="nt-box">
+        <b class="h">جواب را پیدا نکردید؟ پیام بفرستید</b>
+        <input type="text" class="select-box" id="ntSubject" maxlength="60" placeholder="موضوع کوتاه (اختیاری)" style="margin-bottom: 8px;">
+        <textarea class="select-box" id="ntText" maxlength="1000" rows="4" placeholder="پیام خود را کامل بنویسید..." style="margin-bottom: 6px; resize: vertical; min-height: 90px;"></textarea>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="btn-blue" id="ntPhotoBtn" style="margin-top: 0; width: auto; padding: 8px 12px; font-size: 12px;" onclick="document.getElementById('ntImgFile').click()">📎 افزودن عکس</button>
+          <span style="font-size: 10px; color: #94a3b8;">تا ۳ عکس (مثلاً عکس صفحه یا پیام خطا)</span>
+        </div>
+        <input type="file" id="ntImgFile" accept="image/*" multiple style="display: none;" onchange="ntImgsChosen(this)">
+        <div class="nt-imgs" id="ntImgs"></div>
+        <button class="btn-yellow" id="ntSendBtn" style="margin-top: 10px;" onclick="submitNewTicket(this)">ثبت تیکت ✅</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1843,14 +1892,158 @@
     showCustomAlert(`درخواست لغو شد و ${Number(data.amount).toLocaleString()} تومان به موجودی شما برگشت.`, "✅");
   }
 
-  async function openNewTicketPrompt() {
-    let sub = prompt("موضوع تیکت خود را کوتاه بنویسید:"); if(!sub) return;
-    let txt = prompt("پیام کامل خود را بنویسید:"); if(!txt) return;
+  // ---- support texts (checked against the app and the server rules) ----
+  const TX = {
+    base: "به خاطر حجم بالای درخواست‌ها، واریزها یکی‌یکی در حال انجام است؛ لطفاً صبور باشید، واریز می‌شود.",
+    time: "زمان دقیق واریز مشخص نیست، ولی واریزها به‌طور مرتب در دست امور مالی در حال انجام است.",
+    fast: "واریزهای ترون هم در حال انجام است؛ اگر واریز سریع‌تر می‌خواهید، برداشت تومانی بزنید.",
+    paya: "واریز به کارت طی ۴۸ تا ۷۲ ساعت توسط سیکل پایا انجام می‌شود و به حساب می‌نشیند.",
+    invalid: "این پیام یکی از این سه دلیل را دارد: شماره کارت کمتر از ۱۶ رقم است، نام صاحب کارت خالی است، یا مبلغ از موجودی حساب بیشتر است.\nدرست قبل از ثبت، موجودی شما با سرور به‌روز می‌شود و ممکن است کمتر از عددی باشد که قبلاً روی صفحه دیدید؛ در این صورت مبلغ را برابر یا کمتر از موجودی فعلی بنویسید. اگر موجودی فعلی از حداقل برداشت کمتر است، باید صبر کنید تا به حداقل برسد.",
+    cancelBtn: "دکمهٔ «لغو برداشت ❌» زیر هر درخواستی که در حال بررسی است نمایش داده می‌شود تا اگر خواستید خودتان آن را لغو کنید؛ به معنی لغو شدن درخواست نیست. اگر آن را بزنید، درخواست لغو می‌شود، مبلغش به موجودی برمی‌گردد و از صف واریز خارج می‌شود.",
+    card: "هر شماره کارت (یا آدرس ولت) فقط برای یک حساب قابل استفاده است و کارتی که قبلاً با حساب دیگری ثبت شده، برای این حساب قبول نمی‌شود.",
+    ref: "زیرمجموعه فقط وقتی برای شما ثبت می‌شود که دوستتان:\n۱. با لینک دعوت شما وارد ربات شده باشد، یا هنگام ثبت‌نام کد معرف شما را در کادر «کد معرف (اختیاری)...» نوشته باشد؛\n۲. حساب جدید ساخته باشد (کسی که قبلاً حساب داشته، بعداً زیرمجموعه نمی‌شود)؛\n۳. اولین استخراجش را شروع کرده باشد. فقط استارت زدن ربات یا ثبت‌نام کافی نیست.\nبا شروع اولین استخراج او، ۱۰٬۰۰۰ تومان پاداش و یک نفر به «📊 آمار زیرمجموعه‌های شما» در بخش «👥 پاداش» اضافه می‌شود. اگر حساب دوستتان در حال بررسی (معلق) باشد، پاداش تا رفع آن منتظر می‌ماند.",
+    sign: "پشتیبانی MinerTools"
+  };
+  function faN(n) { return Math.round(Number(n) || 0).toLocaleString('fa-IR'); }
+  function wKind(w) { let s = String((w && w.status) || ''); return s.includes('واریز') ? 'paid' : s.includes('لغو') ? 'cancel' : s.includes('رد') ? 'rej' : s.includes('بررسی') ? 'wait' : ''; }
+  function isTronW(w) { let t = String((w && w.type) || ''); return t.includes('TRC') || t.includes('ترون'); }
+  function pKind(p) { let s = String((p && p.status) || ''); return s.includes('تایید') ? 'ok' : s.includes('رد') ? 'rej' : s.includes('بررسی') ? 'wait' : ''; }
+  const NT_CATS = [
+    { k: 'w', label: '💸 برداشت', hint: 'واریز، حداقل، خطای برداشت' },
+    { k: 'p', label: '🛒 خرید و رسید', hint: 'رسید خرید ماینر' },
+    { k: 'r', label: '👥 دعوت و زیرمجموعه', hint: 'لینک، پاداش دعوت' },
+    { k: 'a', label: '🔐 حساب و ورود', hint: 'رمز، نام کاربری، بررسی حساب' },
+    { k: 'o', label: '💬 سایر', hint: 'استخراج و بقیه' }];
+  let ntCat = null, ntImgs = [];
+  function openNewTicket() {
+    ntCat = null; ntImgs = [];
+    document.getElementById('ntCats').innerHTML = NT_CATS.map((c, i) => `<button data-i="${i}" onclick="pickNtCat(${i})">${escH(c.label)}<br><span style="font-size:10px; color:#94a3b8;">${escH(c.hint)}</span></button>`).join('');
+    ['ntHelp', 'ntOpen'].forEach(id => { let el = document.getElementById(id); el.innerHTML = ''; });
+    document.getElementById('ntOpen').style.display = 'none'; document.getElementById('ntForm').style.display = 'none';
+    document.getElementById('ntSubject').value = ''; document.getElementById('ntText').value = ''; ntRenderImgs();
+    document.getElementById('newTicketModal').style.display = 'flex';
+  }
+  function closeNewTicket() { document.getElementById('newTicketModal').style.display = 'none'; }
+  function ntRow(a, b) { return `<div class="nt-row"><span>${a}</span><span>${b}</span></div>`; }
+  function ntFaq(list) { return `<div class="nt-box nt-faq"><b class="h">سؤال‌های رایج</b>${list.map(q => `<details><summary>${escH(q[0])}</summary><div>${escH(q[1])}</div></details>`).join('')}</div>`; }
+  // what the user sees at once for a topic: the state of their own requests + the common questions
+  function ntHelpHtml(k, u) {
+    let h = '';
+    if (k === 'w') {
+      let ws = (u.withdrawHistory || []).slice(0, 3), st = '';
+      if (!ws.length) st = '<div>هنوز درخواست برداشتی ثبت نکرده‌اید.</div>';
+      else {
+        st = ws.map(w => ntRow(`${faN(w.amount)} تومان (${escH(w.type)})`, escH(w.status) + (w.rejectReason ? `<br><span style="color:#facc15;">دلیل: ${escH(w.rejectReason)}</span>` : ''))).join('');
+        let wait = ws.filter(w => wKind(w) === 'wait'), first = wKind(ws[0]);
+        if (wait.length) st += `<div style="margin-top:6px;">درخواست در حال بررسی شما در صف واریز است. ${TX.base} ${TX.time} لطفاً آن را لغو نکنید؛ درخواست لغوشده از صف واریز خارج می‌شود.${wait.some(isTronW) ? '<br>' + TX.fast : ''}</div>`;
+        else if (first === 'paid') st += `<div style="margin-top:6px;">آخرین برداشت شما «واریز شد ✅» است. ${TX.paya}</div>`;
+        else if (first === 'cancel') st += `<div style="margin-top:6px;">آخرین درخواست را خودتان با دکمهٔ «لغو برداشت ❌» لغو کرده‌اید و مبلغش به موجودی برگشته است. برای دریافت، دوباره از بخش «💳 کیف پول» درخواست بزنید.</div>`;
+        else if (first === 'rej') st += `<div style="margin-top:6px;">دلیل رد در بالا نوشته شده؛ بعد از درست کردن آن می‌توانید دوباره درخواست بزنید.</div>`;
+      }
+      h += `<div class="nt-box"><b class="h">وضعیت برداشت‌های شما</b>${st}</div>`;
+      h += ntFaq([
+        ['برداشت من کی واریز می‌شود؟', TX.base + '\n' + TX.time + '\n' + TX.fast],
+        ['حداقل برداشت چقدر است و روزی چند بار می‌شود برداشت زد؟', `حداقل برداشت ${faN(withdrawMinAmount())} تومان است. هر روز یک درخواست برداشت می‌توانید ثبت کنید؛ روز جدید از ساعت ۰۰:۰۰ به وقت ایران شروع می‌شود. سقف جداگانه‌ای نیست، ولی برای اینکه واریزتان سریع‌تر انجام شود، هر روز حداکثر ۱ میلیون تومان برداشت بزنید.`],
+        ['پیام «اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست» یعنی چه؟', TX.invalid],
+        ['برای برداشت باید ماینر بخرم یا کسی را دعوت کنم؟', 'خیر؛ برای برداشت نیازی به خرید ماینر، دعوت یا پرداخت هیچ مبلغی نیست و درآمد ماینر رایگان هم قابل برداشت است.'],
+        ['دکمهٔ «لغو برداشت ❌» یعنی درخواستم لغو شده؟', TX.cancelBtn],
+        ['نوشته «واریز شد ✅» ولی به حسابم نرسیده', TX.paya + '\nاگر بعد از این مدت نرسید، تیکت بزنید (اگر می‌شود با عکس صورت‌حساب کارت).'],
+        ['کارتم را قبول نمی‌کند', TX.card + '\nشماره کارت باید ۱۶ رقم باشد.']]);
+    } else if (k === 'p') {
+      let ps = (u.purchaseHistory || []).slice(0, 3);
+      let st = ps.length ? ps.map(p => ntRow(escH(p.machine), escH(p.status) + (p.rejectReason ? `<br><span style="color:#facc15;">دلیل: ${escH(p.rejectReason)}</span>` : ''))).join('')
+                         : '<div>رسید خریدی برای حساب شما ثبت نشده است.</div>';
+      h += `<div class="nt-box"><b class="h">رسیدهای خرید شما</b>${st}</div>`;
+      h += ntFaq([
+        ['رسیدم رد شده، چه کنم؟', 'دلیل رد را در وضعیت بالا ببینید؛ می‌توانید از بخش «🛒 فروشگاه» دوباره همان ماینر را انتخاب کنید و رسید درست را بفرستید.'],
+        ['چرا برای همان ماینر نمی‌توانم رسید دیگری بفرستم؟', 'تا وقتی رسید قبلی شما برای همان ماینر در حال بررسی است، رسید دیگری برای آن ماینر فرستاده نمی‌شود؛ بعد از مشخص شدن نتیجه می‌توانید.'],
+        ['رسید را فرستادم ولی بالا نیست', 'اگر رسیدی در وضعیت بالا نمی‌بینید، یعنی ثبت نشده است؛ دوباره از بخش «🛒 فروشگاه» بفرستید و صبر کنید تا پیام «با موفقیت ثبت شد» نمایش داده شود.']]);
+    } else if (k === 'r') {
+      let n = Number(u.referrals) || 0;
+      h += `<div class="nt-box"><b class="h">دعوت‌های شما</b>${ntRow('کد معرف شما', escH(u.refCode || '---'))}${ntRow('تعداد زیرمجموعه', faN(n) + ' نفر')}${ntRow('پاداش نقدی دعوت', faN(n * 10000) + ' تومان')}</div>`;
+      h += ntFaq([
+        ['چرا زیرمجموعه‌ام ثبت نشده؟', TX.ref],
+        ['اسم زیرمجموعه‌ها را کجا ببینم؟', 'در حال حاضر نام یا شمارهٔ زیرمجموعه‌ها در برنامه نمایش داده نمی‌شود؛ در بخش «👥 پاداش»، قسمت «📊 آمار زیرمجموعه‌های شما»، تعداد دوستان دعوت‌شده و مجموع پاداش نقدی دعوت را می‌بینید.'],
+        ['برای هر زیرمجموعه چه می‌گیرم؟', 'با اولین استخراج هر زیرمجموعه، ۱۰٬۰۰۰ تومان پاداش و از آن به بعد ۵٪ از سود استخراج او برای همیشه به شما می‌رسد. او هم ۵٬۰۰۰ تومان پاداش ورود می‌گیرد.'],
+        ['کد یا لینک دعوتم کجاست؟', 'در بخش «👥 پاداش»، «کد معرف اختصاصی شما» نوشته شده است. با دکمهٔ «ارسال مستقیم به دوستان ↗» یا «کپی متن بنر 📋»، متن دعوت را که کد و لینک شما را دارد بفرستید.']]);
+    } else if (k === 'a') {
+      let st = u.acctStatus === 'suspended' ? `حساب شما در حال بررسی است و فعلاً امکان برداشت ندارد.${escH(acctReasonLine(u)).replace(/\n/g, '<br>')}<br>توضیح یا مدارک خود را با تیکت همین بخش بفرستید.` : 'حساب شما فعال است ✅';
+      h += `<div class="nt-box"><b class="h">وضعیت حساب شما</b><div>${st}</div></div>`;
+      h += ntFaq([
+        ['نام کاربری یا رمزم را چطور عوض کنم؟', 'در بخش «👤 حساب»، قسمت «تنظیمات حساب»، کادر «نام کاربری جدید...» یا «رمز جدید...» را پر کنید و دکمهٔ «ذخیره» کنارش را بزنید.'],
+        ['دوستم موقع ثبت‌نام پیام «رمز عبور اشتباه است» می‌گیرد', 'یعنی آن نام کاربری قبلاً توسط شخص دیگری گرفته شده است. یک نام کاربری دیگر (غیرتکراری) انتخاب کند. اگر خودش قبلاً با همین نام ثبت‌نام کرده و رمز را فراموش کرده، در صفحهٔ ورود دکمهٔ «نام کاربری یا رمزم را فراموش کرده‌ام 🔑» را بزند.'],
+        ['رمز یا نام کاربری را فراموش کرده‌ام', 'در صفحهٔ ورود دکمهٔ «نام کاربری یا رمزم را فراموش کرده‌ام 🔑» را بزنید. مینی‌اپ باید از همان اکانت تلگرامی باز شود که با آن ثبت‌نام کرده‌اید؛ نام کاربری نمایش داده می‌شود و می‌توانید رمز جدید بگذارید.'],
+        ['با چند اکانت می‌شود وارد شد؟', 'هر اکانت تلگرام (و هر گوشی) فقط می‌تواند یک حساب (مزرعه) داشته باشد و هر حساب فقط از همان اکانت تلگرامی باز می‌شود که به آن وصل است.']]);
+    } else if (k === 'o') {
+      h += ntFaq([
+        ['ماینر را چطور دوباره روشن کنم؟', 'در بخش «🏠 مزرعه» دکمهٔ «شروع استخراج رایگان 🚀» را بزنید. ماینر تا ۲۴ ساعت استخراج می‌کند و بعد خودش متوقف می‌شود؛ برای دور بعد دوباره همین دکمه را بزنید. اگر پیام عضویت در کانال آمد، اول عضو کانال شوید.'],
+        ['درصد «از استخراج امروز» چیست؟', 'پیشرفت دور ۲۴ ساعتهٔ استخراج است و ۲۴ ساعت بعد از زدن دکمهٔ شروع به ۱۰۰٪ می‌رسد؛ اگر وسط دور «توقف ماینر ⏸️» بزنید، زمان توقف حساب نمی‌شود و به آخر دور اضافه می‌شود.'],
+        ['باید «توقف ماینر» را بزنم؟', 'خیر، لازم نیست. ماینر بعد از ۲۴ ساعت خودش متوقف می‌شود.']]);
+    }
+    return h;
+  }
+  function ntOpenTicketOf(k) {
+    let c = NT_CATS.find(x => x.k === k), u = db[currentUser];
+    return (u.tickets || []).find(t => t && !String(t.status || '').includes('بسته') && String(t.subject || '').startsWith(c.label));
+  }
+  function pickNtCat(i) {
+    let c = NT_CATS[i], u = db[currentUser]; if (!c || !u) return;
+    ntCat = c;
+    document.querySelectorAll('#ntCats button').forEach(b => b.classList.toggle('on', Number(b.dataset.i) === i));
+    document.getElementById('ntHelp').innerHTML = ntHelpHtml(c.k, u);
+    let open = ntOpenTicketOf(c.k), ob = document.getElementById('ntOpen');
+    if (open) {
+      ob.innerHTML = `<div class="nt-box"><b class="h">شما یک تیکت باز در همین موضوع دارید</b><div>«${escH(open.subject)}» — ${escH(open.status)}</div><div style="font-size:11px; color:#94a3b8;">ادامهٔ پیامتان را در همان تیکت بنویسید تا سریع‌تر جواب بگیرید.</div><button class="btn-blue" style="margin-top:8px;" data-tid="${Number(open.id)}" onclick="closeNewTicket(); openTicketChat(currentUser, Number(this.dataset.tid))">ادامه در همان تیکت 💬</button></div>`;
+      ob.style.display = 'block'; document.getElementById('ntForm').style.display = 'none';
+    } else { ob.style.display = 'none'; ob.innerHTML = ''; document.getElementById('ntForm').style.display = 'block'; }
+  }
+  function ntRenderImgs() {
+    document.getElementById('ntImgs').innerHTML = ntImgs.map((d, i) => `<span><img src="${d}" alt=""><button onclick="ntImgs.splice(${i}, 1); ntRenderImgs();">✕</button></span>`).join('');
+    document.getElementById('ntPhotoBtn').disabled = ntImgs.length >= 3;
+  }
+  async function ntImgsChosen(inp) {
+    let files = Array.from(inp.files || []); inp.value = '';
+    for (let f of files) {
+      if (ntImgs.length >= 3) { showCustomAlert("حداکثر ۳ عکس می‌توانید بفرستید.", "⚠️"); break; }
+      if (f.type && !f.type.startsWith('image/')) { showCustomAlert("فقط فایل عکس قابل انتخاب است.", "⚠️"); continue; }
+      try { ntImgs.push(await shrinkImageFile(f)); } catch (e) { showCustomAlert("این عکس باز نشد. لطفاً از آن اسکرین‌شات بگیرید و همان را انتخاب کنید.", "⚠️"); }
+    }
+    ntRenderImgs();
+  }
+  async function submitNewTicket(btn) {
+    if (!ntCat) return showCustomAlert("اول موضوع را انتخاب کنید.", "⚠️");
+    let text = document.getElementById('ntText').value.trim(), sub = document.getElementById('ntSubject').value.trim().replace(/[<>]/g, '');
+    if (!text) return showCustomAlert("لطفاً پیام خود را بنویسید.", "✍️");
+    if (ntOpenTicketOf(ntCat.k)) return pickNtCat(NT_CATS.indexOf(ntCat));
+    let orig = btn.innerText; btn.disabled = true; btn.innerText = "در حال ارسال...";
+    let ids = [];
+    try {
+      for (let d of ntImgs) {
+        btn.innerText = `ارسال عکس ${faN(ids.length + 1)} از ${faN(ntImgs.length)}...`;
+        let res = await apiFetch(`${API_URL}/api/?action=receipt_upload`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: currentUser, image: d }) });
+        let j = await res.json().catch(() => null);
+        if (!j || j.status !== 'success' || !j.id) throw new Error((j && j.message) || "ارسال عکس انجام نشد. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.");
+        ids.push(j.id);
+      }
+    } catch (e) { btn.disabled = false; btn.innerText = orig; return showCustomAlert(e.message, "❌"); }
+    btn.innerText = "در حال ثبت...";
     await syncBeforeChange();
-    if(!db[currentUser]) return;
-    db[currentUser].tickets.unshift({ id: Date.now(), subject: sub, status: "در حال بررسی ⏳", messages: [ { sender: currentUser, text: txt, time: new Date().toLocaleTimeString('fa-IR') } ] });
-    saveDB(); renderUserTickets(); 
-    showCustomAlert("تیکت شما با موفقیت ثبت شد.", "✅");
+    let u = db[currentUser]; if (!u) { btn.disabled = false; btn.innerText = orig; return; }
+    if (!u.tickets) u.tickets = [];
+    let time = new Date().toLocaleTimeString('fa-IR'), id = Date.now();
+    let msgs = [{ sender: currentUser, text: text, time: time }];
+    if (ids[0]) msgs[0].img = ids[0];
+    ids.slice(1).forEach(x => msgs.push({ sender: currentUser, text: '', img: x, time: time }));
+    u.tickets.unshift({ id: id, subject: ntCat.label + (sub ? ' · ' + sub : ''), status: "در حال بررسی ⏳", messages: msgs });
+    let saved = await saveDB();
+    btn.disabled = false; btn.innerText = orig;
+    if (!(saved && saved.status === 'success')) {   // not saved: say so, and take it back out of the phone's copy
+      if (db[currentUser]) db[currentUser].tickets = (db[currentUser].tickets || []).filter(t => t.id !== id);
+      renderUserTickets();
+      return showCustomAlert((saved && saved.message) || "ثبت تیکت انجام نشد. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید؛ متن شما در کادر مانده است.", "❌");
+    }
+    closeNewTicket(); renderUserTickets();
+    showCustomAlert("تیکت شما ثبت شد ✅\nجواب در همین بخش (👤 حساب ← پشتیبانی) نمایش داده می‌شود و ربات هم به شما خبر می‌دهد.", "✅");
   }
 
   function renderUserTickets() {
@@ -1871,8 +2064,11 @@
     document.getElementById('tcTitle').innerText = isAdminLoggedIn ? `👤 ${username} | ${t.subject}` : t.subject;
     let isClosed = t.status.includes('بسته');
     let q = document.getElementById('tcQuick');
-    if (!q.innerHTML) q.innerHTML = TK_QUICK.map((x, i) => `<button onclick="tkQuickFill(${i})">${x[0]}</button>`).join('');
+    tkQuickList = isAdminLoggedIn ? tkSmart(db[username]).concat(TK_QUICK) : TK_QUICK;
+    q.innerHTML = tkQuickList.map((x, i) => `<button class="${x[2] ? 'tk-smart' : ''}" onclick="tkQuickFill(${i})">${escH(x[0])}</button>`).join('');
     q.style.display = isAdminLoggedIn && !isClosed ? 'flex' : 'none';
+    let ui = document.getElementById('tcUserInfo');
+    ui.innerHTML = isAdminLoggedIn ? tkUserInfo(username, db[username]) : ''; ui.style.display = isAdminLoggedIn ? 'block' : 'none';
     document.getElementById('tcNextRow').style.display = isAdminLoggedIn && !isClosed ? 'flex' : 'none';
     let tms = t.messages || [], lm = tms[tms.length - 1];
     // its place in «منتظر پاسخ شما»: the time of its last message (the server's order), or the ticket's own time
@@ -1880,7 +2076,7 @@
     let inp0 = document.getElementById('tcReplyInput'); inp0.value = ''; tcGrow(inp0);
     document.getElementById('tcCloseBtnUniversal').style.display = isClosed ? 'none' : 'block';
     document.getElementById('tcInputArea').style.display = isClosed ? 'none' : 'flex';
-    document.getElementById('tcPhotoBtn').style.display = isAdminLoggedIn ? 'none' : 'block';
+    document.getElementById('tcPhotoBtn').style.display = 'block';
     renderTicketMessages();
     document.getElementById('ticketChatModal').style.display = 'flex';
   }
@@ -1951,7 +2147,8 @@
   }
   async function onTicketImgChosen(inp) {
     let file = inp.files && inp.files[0]; inp.value = '';
-    if (!file || isAdminLoggedIn) return;
+    if (file && isAdminLoggedIn) return adminTicketImg(file);
+    if (!file) return;
     if (file.type && !file.type.startsWith('image/')) return showCustomAlert("فقط فایل عکس قابل انتخاب است.", "⚠️");
     let pb = document.getElementById('tcPhotoBtn'); pb.disabled = true; pb.innerText = '⏳';
     try {
@@ -1972,6 +2169,29 @@
       showCustomAlert(m === 'img' ? "این عکس باز نشد. لطفاً از آن اسکرین‌شات بگیرید و همان را انتخاب کنید." : (m && m !== 'upload' ? m : "ارسال عکس انجام نشد. لطفاً دوباره تلاش کنید."), "⚠️");
     }
     pb.disabled = false; pb.innerText = '📎';
+  }
+  // the admin sends a photo in the open ticket: upload (server v33), then a normal admin reply carrying it
+  async function adminTicketImg(file) {
+    if (file.type && !file.type.startsWith('image/')) return showCustomAlert("فقط فایل عکس قابل انتخاب است.", "⚠️");
+    let u = activeChatUsername, tid = activeChatTicketId, pb = document.getElementById('tcPhotoBtn'); pb.disabled = true; pb.innerText = '⏳';
+    let done = () => { pb.disabled = false; pb.innerText = '📎'; };
+    let id = null;
+    try {
+      let data = await shrinkImageFile(file);
+      let res = await apiFetch(`${API_URL}/api/?action=admin_ticket_image`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u, image: data }) });
+      let j = await res.json().catch(() => null);
+      if (!j || j.status !== 'success' || !/^[a-f0-9]{24}$/.test(String(j.id || ''))) throw new Error((j && j.message && !/unknown/i.test(j.message)) ? j.message : "ارسال عکس انجام نشد (اگر سرور هنوز به‌روز نشده، اول نسخهٔ جدید سرور را نصب کنید).");
+      id = j.id;
+    } catch (e) { done(); return showCustomAlert(e && e.message && e.message !== 'img' ? e.message : "این عکس باز نشد. لطفاً از آن اسکرین‌شات بگیرید و همان را انتخاب کنید.", "❌"); }
+    await syncBeforeChange(); await adminLoadUser(u);
+    let t = db[u] && db[u].tickets && db[u].tickets.find(x => x.id === tid);
+    if (!t || String(t.status || '').includes('بسته')) { done(); return showCustomAlert("این تیکت بسته است یا پیدا نشد.", "⚠️"); }
+    let box = document.getElementById('tcReplyInput'), text = box.value.trim();
+    t.messages.push({ sender: 'admin', text: text, img: id, time: new Date().toLocaleTimeString('fa-IR'), at: Date.now() });
+    t.status = "پاسخ داده شده 💬";
+    let out = await saveDB(u);
+    if (!out || out.status !== 'success') { await adminLoadUser(u); renderTicketMessages(); box.value = text; tcGrow(box); done(); return showCustomAlert("عکس ذخیره نشد؛ لطفاً دوباره بفرستید.", "❌"); }
+    box.value = ''; tcGrow(box); renderTicketMessages(); renderAdminTickets(); done();
   }
   function loadTicketImgs() {
     document.querySelectorAll('[data-timg]').forEach(async el => {
@@ -2784,7 +3004,44 @@
     ['🧾 رسید خرید در حال بررسی', 'کاربر گرامی، رسید خرید شما دریافت شده و در حال بررسی است. پس از تایید، ماینر خودکار در حساب شما فعال می‌شود.'],
     ['🔍 در حال بررسی', 'کاربر گرامی، پیام شما دریافت شد و در حال بررسی است. نتیجه را در همین تیکت به شما اطلاع می‌دهیم.'],
     ['🌹 پایان گفتگو', 'خوشحالیم که مشکل حل شد 🌹 اگر سؤال دیگری داشتید، تیکت جدید ثبت کنید.']];
-  function tkQuickFill(i) { let inp = document.getElementById('tcReplyInput'); inp.value = TK_QUICK[i][1]; tcGrow(inp); inp.focus(); }
+  let tkQuickList = TK_QUICK;
+  function tkQuickFill(i) { let inp = document.getElementById('tcReplyInput'); inp.value = tkQuickList[i][1]; tcGrow(inp); inp.focus(); }
+  // ready replies made from this user's own requests (the admin reads / changes them before sending)
+  function tkSmart(u) {
+    if (!u) return [];
+    let out = [], ws = (u.withdrawHistory || []).slice(0, 5), ps = (u.purchaseHistory || []).slice(0, 3);
+    let wrap = lines => "سلام، وقت بخیر.\n" + lines.join("\n") + "\n\n" + TX.sign;
+    let amts = l => l.map(w => faN(w.amount) + " تومان").join("، ");
+    let wait = ws.filter(w => wKind(w) === 'wait');
+    if (wait.length) {
+      let l = [wait.length > 1 ? `درخواست‌های برداشت شما (${amts(wait)}) ثبت شده و در صف واریز هستند.` : `درخواست برداشت ${faN(wait[0].amount)} تومانی شما ثبت شده و در صف واریز است.`, TX.base, TX.time];
+      if (wait.some(isTronW)) l.push(TX.fast);
+      out.push(['⏳ در صف واریز: ' + amts(wait), wrap(l), 1]);
+    }
+    let paid = ws.find(w => wKind(w) === 'paid');
+    if (paid) out.push(['✅ واریز شد: ' + faN(paid.amount), wrap([`برداشت ${faN(paid.amount)} تومانی شما در «📜 درخواست‌ها و تاریخچه برداشت» با وضعیت «واریز شد ✅» ثبت شده است.`, TX.paya, "اگر بعد از این مدت مبلغ به حسابتان نرسید، در همین تیکت خبر بدهید (اگر می‌شود با عکس صورت‌حساب کارت) تا پیگیری شود."]), 1]);
+    let cx = ws.filter(w => wKind(w) === 'cancel');
+    if (cx.length && !wait.length) out.push(['↩️ خودش لغو کرده', wrap([cx.length > 1 ? `درخواست‌های برداشت شما (${amts(cx)}) با دکمهٔ «لغو برداشت ❌» از داخل حساب خودتان لغو شده‌اند و مبلغشان به موجودی شما برگشته است.` : `درخواست برداشت ${faN(cx[0].amount)} تومانی شما با دکمهٔ «لغو برداشت ❌» از داخل حساب خودتان لغو شده و مبلغش به موجودی شما برگشته است.`, "درخواست لغوشده از صف واریز خارج می‌شود؛ برای دریافت، از بخش «💳 کیف پول» دوباره درخواست برداشت ثبت کنید و آن را لغو نکنید.", TX.base]), 1]);
+    if (ps[0]) {
+      let p = ps[0], k = pKind(p), line = k === 'ok' ? `ماینر ${p.machine} شما با وضعیت «تایید شد و ماینر فعال گردید ✅» ثبت شده است.`
+        : k === 'rej' ? `رسید شما برای ماینر ${p.machine} رد شده است${p.rejectReason ? `؛ دلیل: «${String(p.rejectReason).trim()}»` : ''}. می‌توانید از بخش «🛒 فروشگاه» دوباره ماینر ${p.machine} را انتخاب کنید و رسید درست را بفرستید.`
+        : `رسید شما برای ماینر ${p.machine} ثبت شده و در حال بررسی است.`;
+      out.push(['🧾 رسید ' + p.machine, wrap([line]), 1]);
+    }
+    out.push(['⚠️ پیام «نامعتبر»', wrap(["پیام «اطلاعات وارد شده نامعتبر است یا موجودی کافی نیست»: " + TX.invalid]), 1]);
+    out.push(['👥 قانون زیرمجموعه', wrap([TX.ref]), 1]);
+    return out;
+  }
+  // a short summary of the account above the chat (admin)
+  function tkUserInfo(name, u) {
+    if (!u) return '';
+    let ws = (u.withdrawHistory || []).slice(0, 3), ps = (u.purchaseHistory || []).slice(0, 3);
+    let st = u.acctStatus === 'suspended' ? 'معلق ⏸️' : (u.acctStatus === 'blocked' ? 'مسدود 🚫' : 'فعال');
+    let h = `<details class="tk-uinfo" open><summary>👤 ${escH(name)} · ${st} · موجودی ${faN(Math.floor(Number(u.mined) || 0))} ت · زیرمجموعه ${faN(u.referrals)}</summary>`;
+    h += ws.length ? ws.map(w => ntRow(`💸 ${faN(w.amount)} ت (${escH(w.type)})`, escH(w.status))).join('') : '<div class="nt-row"><span>💸 برداشتی ندارد</span></div>';
+    if (ps.length) h += ps.map(p => ntRow(`🧾 ${escH(p.machine)}`, escH(p.status))).join('');
+    return h + '</details>';
+  }
   function tcGrow(el) { el.style.height = 'auto'; el.style.height = Math.min(Math.max(el.scrollHeight, 40), 130) + 'px'; }
 
   function parsePriceInput(v) {
