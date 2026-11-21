@@ -800,6 +800,7 @@
     </div>
     <div id="adminTab-buyers" class="admin-tab-content" style="display: none;">
       <h4>خریداران ماینر (ماینرهای تأییدشده)</h4>
+      <div style="font-size: 11px; color: #94a3b8;">آخرین خرید تأییدشده بالای فهرست است.</div>
       <input type="text" id="buyersSearch" oninput="buyersSearchChanged()" placeholder="جستجوی نام کاربری..." style="width: 100%; padding: 10px; margin: 10px 0; background: #111; border: 1px solid #555; color: #fff; border-radius: 5px; text-align: right;">
       <div id="buyersList"></div>
     </div>
@@ -2698,16 +2699,56 @@
   function buyersSearchChanged() { clearTimeout(buyersTimer); buyersTimer = setTimeout(() => renderBuyers(1), 350); }
   function buyersGo(p) { renderBuyers(p); }
   function fmtDay(ms) { try { return new Date(ms).toLocaleDateString('fa-IR', { timeZone: 'Asia/Tehran' }); } catch (e) { return ''; } }
+  function fmtDayTime(ms) { try { return new Date(ms).toLocaleString('fa-IR', { timeZone: 'Asia/Tehran', year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
+  // the receipt photo of a buyer's latest approved purchase (admin)
+  async function buyerReceipt(id, btn) {
+    id = String(id).replace(/[^a-f0-9]/g, ''); if (!/^[a-f0-9]{24}$/.test(id)) return;
+    let label = btn.innerText; btn.innerText = "در حال دریافت..."; btn.disabled = true;
+    try {
+      if (!receiptThumbCache[id]) {
+        let res = await apiFetch(`${API_URL}/api/?action=receipt_image&id=${id}`, { cache: "no-store" });
+        if (!res.ok) throw new Error('img');
+        receiptThumbCache[id] = URL.createObjectURL(await res.blob());
+      }
+      openReceiptViewer(receiptThumbCache[id]);
+    } catch (e) { showCustomAlert("عکس رسید بارگذاری نشد.", "⚠️"); }
+    btn.innerText = label; btn.disabled = false;
+  }
+  // takes one paid miner off a buyer's account (admin; after a confirmation). The balance stays as it is.
+  let buyersItems = [];
+  async function buyerRemoveMiner(i, j, btn) {
+    let x = buyersItems[i], m = x && x.m && x.m[j]; if (!m) return;
+    if (!confirm(`ماینر «${m.n}» از حساب «${x.u}» برداشته شود؟\nموجودی فعلی کاربر کم نمی‌شود؛ فقط از همین لحظه سرعت استخراجش کم می‌شود.`)) return;
+    let label = btn.innerText; btn.innerText = "صبر کنید..."; btn.disabled = true;
+    let fail = msg => { btn.innerText = label; btn.disabled = false; showCustomAlert(msg, "❌"); };
+    if (!(await adminLoadUser(x.u))) return fail("اطلاعات حساب این کاربر دریافت نشد. هیچ تغییری انجام نشد. لطفاً دوباره امتحان کنید.");
+    let rec = db[x.u], ms = Array.isArray(rec.miners) ? rec.miners : [];
+    let k = ms.findIndex(y => y && y.name === m.n && y.name !== 'ماینر رایگان پایه' && (Number(y.expireAt) || 0) === (Number(m.e) || 0));
+    if (k < 0) { renderBuyers(); return showCustomAlert("این ماینر دیگر در حساب کاربر نیست (شاید قبلاً برداشته شده). چیزی تغییر نکرد.", "ℹ️"); }
+    rec.miners = ms.slice(0, k).concat(ms.slice(k + 1));
+    let out = await saveDB(x.u);
+    if (!out || out.status !== 'success') {
+      await adminLoadUser(x.u);   // the panel's copy back to what the server has
+      return fail(((out && out.message) ? out.message + "\n" : "") + "ذخیره انجام نشد و ماینر برداشته نشد. لطفاً دوباره امتحان کنید.");
+    }
+    showCustomAlert(`ماینر «${m.n}» از حساب «${x.u}» برداشته شد.`, "✅");
+    renderBuyers();
+  }
   async function renderBuyers(page) {
     buyersPage = page || buyersPage; let box = document.getElementById('buyersList');
     if (!box.innerHTML) box.innerHTML = "<p style='color:#aaa; font-size:12px;'>در حال دریافت...</p>";
     let d = null; try { d = await adminGet('admin_buyers', { page: buyersPage, q: document.getElementById('buyersSearch').value.trim() }); } catch (e) {}
     if (!d) { box.innerHTML = ADMIN_LOAD_ERR; return; }
     let now = Date.now();
-    box.innerHTML = `<div class="ref-meta" style="margin-bottom: 8px;">تعداد خریداران: <b>${d.total}</b></div>` + (d.items.map(x => `<div class="ref-row">
+    buyersItems = d.items;
+    box.innerHTML = `<div class="ref-meta" style="margin-bottom: 8px;">تعداد خریداران: <b>${d.total}</b></div>` + (d.items.map((x, i) => `<div class="ref-row">
         <div class="ref-top"><b>${escH(x.u)}</b>${acctBadge(x.acct)}</div>
         ${x.acct !== 'active' && x.acctR ? `<div class="acct-reason">دلیل ${x.acct === 'blocked' ? 'مسدودی' : 'تعلیق'}: ${escH(x.acctR)}</div>` : ''}
-        <div class="ref-meta">ماینرها: ${x.m.map(m => `<b>${escH(m.n)}</b>${m.e ? (m.e > now ? ` (تا ${fmtDay(m.e)})` : ' <span style="color:#ef4444;">(منقضی)</span>') : ''}`).join('، ')}</div>
+        <div class="ref-meta">ماینرها: ${x.m.map((m, j) => `<b>${escH(m.n)}</b>${m.e ? (m.e > now ? ` (تا ${fmtDay(m.e)})` : ' <span style="color:#ef4444;">(منقضی)</span>') : ''} <button onclick="buyerRemoveMiner(${i}, ${j}, this)" style="background:#7f1d1d; color:#fff; border:none; padding:2px 8px; border-radius:4px; font-size:10px; cursor:pointer;">🗑 برداشتن</button>`).join('، ')}</div>
+        ${x.pm ? `<div class="ref-meta">آخرین خرید تأییدشده: <b>${escH(x.pm)}</b>${x.at ? ` · تأیید: ${fmtDayTime(x.at)}` : (x.pt ? ` · ارسال رسید: ${fmtDayTime(x.pt)}` : '')}</div>` : ''}
+        ${x.rc ? `<div class="ref-meta">کد پیگیری/هش: <span style="color:#facc15; word-break:break-all;">${escH(x.rc)}</span></div>` : ''}
+        ${x.tg ? `<div class="ref-meta">آیدی عددی تلگرام: <b style="user-select:all;">${escH(x.tg)}</b></div>` : ''}
+        ${x.ri ? `<button onclick="buyerReceipt('${String(x.ri).replace(/[^a-f0-9]/g, '')}', this)" style="background:#334155; color:#fff; border:none; padding:5px 10px; border-radius:5px; font-size:11px; cursor:pointer; margin:4px 0;">🧾 دیدن عکس رسید</button>` : ''}
         <div class="ref-meta">موجودی: <b>${Math.floor(x.b).toLocaleString()} ت</b> · خریدها: ${x.buys}</div>
         <div class="ref-meta">برداشتِ در انتظار: ${x.wp}${x.wp ? ` (${Math.floor(x.wps).toLocaleString()} ت)` : ''} · واریزشده: ${Math.floor(x.paid).toLocaleString()} ت</div>
         ${acctButtons(x.u, x.acct)}
